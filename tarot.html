@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>大アルカナ占い</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --void:#100e1e;
+    --panel:#1c1836;
+    --panel-2:#241f45;
+    --gold:#c9a227;
+    --gold-bright:#e8c864;
+    --crimson:#8a2a37;
+    --parchment:#ece4d0;
+    --lavender:#a79fc9;
+    --line: rgba(201,162,39,0.28);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(ellipse at 50% -10%, #2a2454 0%, var(--void) 55%),
+      var(--void);
+    min-height:100vh;
+    color:var(--parchment);
+    font-family:'Cormorant Garamond', serif;
+    -webkit-font-smoothing:antialiased;
+    padding: clamp(20px, 5vw, 48px) clamp(14px, 4vw, 32px) 60px;
+    overflow-x:hidden;
+  }
+  .stars-bg{
+    position:fixed; inset:0; z-index:-1; pointer-events:none; opacity:0.5;
+    background-image:
+      radial-gradient(1px 1px at 20% 30%, var(--lavender) 40%, transparent 100%),
+      radial-gradient(1px 1px at 70% 15%, var(--lavender) 40%, transparent 100%),
+      radial-gradient(1.5px 1.5px at 85% 60%, var(--gold) 40%, transparent 100%),
+      radial-gradient(1px 1px at 40% 80%, var(--lavender) 40%, transparent 100%),
+      radial-gradient(1px 1px at 10% 65%, var(--gold) 40%, transparent 100%),
+      radial-gradient(1.5px 1.5px at 60% 45%, var(--lavender) 40%, transparent 100%),
+      radial-gradient(1px 1px at 92% 88%, var(--lavender) 40%, transparent 100%);
+    background-size: 100% 100%;
+  }
+
+  header{ text-align:center; max-width:640px; margin:0 auto clamp(28px,5vw,44px); }
+  .eyebrow{
+    font-family:'Space Mono', monospace; letter-spacing:0.35em; text-transform:uppercase;
+    font-size:11px; color:var(--gold); opacity:0.85; margin:0 0 10px;
+  }
+  h1{
+    font-family:'Cinzel', serif; font-weight:600; letter-spacing:0.08em;
+    font-size:clamp(28px, 6vw, 42px); margin:0 0 12px; color:var(--parchment);
+    text-shadow:0 0 24px rgba(201,162,39,0.25);
+  }
+  header p{ color:var(--lavender); font-size:clamp(15px,2.4vw,18px); line-height:1.7; margin:0; }
+
+  .modes{
+    display:flex; justify-content:center; gap:10px; margin:22px auto 0; flex-wrap:wrap;
+  }
+  .mode-btn{
+    font-family:'Space Mono', monospace; font-size:12px; letter-spacing:0.05em;
+    background:transparent; border:1px solid var(--line); color:var(--lavender);
+    padding:9px 16px; border-radius:999px; cursor:pointer; transition:all .25s ease;
+  }
+  .mode-btn:hover{ border-color:var(--gold); color:var(--parchment); }
+  .mode-btn.active{ background:var(--gold); border-color:var(--gold); color:#1a1626; font-weight:700; }
+
+  main{ max-width:960px; margin:0 auto; }
+
+  .altar{
+    display:flex; flex-wrap:wrap; justify-content:center; align-items:flex-start;
+    gap: clamp(20px, 4vw, 40px); margin-top: clamp(30px,5vw,48px);
+  }
+
+  .slot{ display:flex; flex-direction:column; align-items:center; width:220px; max-width:80vw; }
+  .slot-label{
+    font-family:'Space Mono', monospace; font-size:11px; letter-spacing:0.25em;
+    text-transform:uppercase; color:var(--gold); opacity:0.8; margin-bottom:12px;
+    height:14px;
+  }
+
+  .card-stage{ perspective:1400px; width:100%; }
+  .card{
+    position:relative; width:100%; aspect-ratio: 5/7.4;
+    transform-style:preserve-3d; transition: transform .85s cubic-bezier(.2,.8,.2,1);
+    cursor:pointer;
+  }
+  .card.flipped{ transform: rotateY(180deg); }
+
+  .card-face{
+    position:absolute; inset:0; border-radius:14px; backface-visibility:hidden;
+    border:1px solid var(--line);
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    box-shadow: 0 18px 40px -14px rgba(0,0,0,0.65);
+  }
+  .card-back{
+    background:
+      radial-gradient(circle at 50% 50%, var(--panel-2) 0%, var(--panel) 75%);
+    overflow:hidden;
+  }
+  .card-back .rune-ring{
+    width:64%; animation: spin 100s linear infinite;
+  }
+  @media (prefers-reduced-motion: reduce){ .card-back .rune-ring{ animation:none; } }
+  .card-back .core{ position:absolute; width:6px; height:6px; border-radius:50%; background:var(--gold); box-shadow:0 0 16px 4px rgba(201,162,39,0.6); }
+  .card-back .mark{
+    position:absolute; bottom:14px; font-family:'Cinzel'; font-size:10px; letter-spacing:0.3em;
+    color:var(--gold); opacity:0.7;
+  }
+  @keyframes spin{ from{ transform:rotate(0deg); } to{ transform:rotate(360deg); } }
+
+  .card-front{
+    background: linear-gradient(160deg, #f4eeda 0%, var(--parchment) 60%, #e2d8bd 100%);
+    color:#241f45; padding: 8% 6% 7%;
+    /* pre-rotated so it faces the viewer once the parent .card flips 180deg */
+    transform: rotateY(180deg);
+    transition: transform .85s cubic-bezier(.2,.8,.2,1);
+  }
+  .card.reversed .card-front{ transform: rotateY(180deg) rotate(180deg); }
+  .card-front .roman{
+    font-family:'Cinzel'; font-weight:600; font-size:13px; letter-spacing:0.15em; color:#7a6a2a;
+  }
+  .card-front svg{ width:74%; flex:1; color:#7a2331; overflow:visible; margin: 6% 0; }
+  .card-front svg path, .card-front svg line, .card-front svg circle,
+  .card-front svg rect, .card-front svg polygon, .card-front svg polyline, .card-front svg ellipse{
+    fill:none; stroke:currentColor; stroke-width:2.1; stroke-linecap:round; stroke-linejoin:round;
+  }
+  .card-front .card-name{
+    font-family:'Cinzel'; font-weight:600; font-size:clamp(13px,2vw,16px);
+    letter-spacing:0.06em; text-align:center; color:#2b2450;
+  }
+
+  .badge{
+    margin-top:10px; font-family:'Space Mono'; font-size:10.5px; letter-spacing:0.2em;
+    padding:3px 10px; border-radius:999px; border:1px solid var(--crimson); color:#e7a9ae;
+    background:rgba(138,42,55,0.15); visibility:hidden;
+  }
+  .slot.is-reversed .badge{ visibility:visible; }
+
+  .drawn-name{
+    margin-top:16px; text-align:center; font-family:'Cinzel'; letter-spacing:0.04em;
+    font-size:clamp(16px,2.4vw,19px); color:var(--parchment); min-height:24px;
+  }
+  .drawn-keywords{
+    text-align:center; color:var(--gold); font-family:'Space Mono'; font-size:11px;
+    letter-spacing:0.08em; margin-top:6px; min-height:16px;
+  }
+  .drawn-meaning{
+    text-align:center; color:var(--lavender); font-size:15px; line-height:1.75;
+    margin-top:10px; max-width:230px;
+  }
+
+  .controls{ display:flex; justify-content:center; margin-top:clamp(34px,6vw,52px); }
+  .draw-btn{
+    font-family:'Cinzel'; font-weight:600; letter-spacing:0.12em; font-size:14px;
+    background:linear-gradient(135deg, var(--gold-bright), var(--gold));
+    color:#1a1626; border:none; padding:15px 38px; border-radius:999px; cursor:pointer;
+    box-shadow:0 10px 30px -8px rgba(201,162,39,0.55);
+    transition: transform .2s ease, box-shadow .2s ease;
+  }
+  .draw-btn:hover{ transform:translateY(-2px); box-shadow:0 14px 34px -8px rgba(201,162,39,0.7); }
+  .draw-btn:disabled{ opacity:0.5; cursor:default; transform:none; }
+
+  .panel{
+    max-width:520px; margin: clamp(30px,5vw,48px) auto 0; text-align:center;
+    border-top:1px solid var(--line); padding-top:clamp(22px,4vw,30px);
+    display:none;
+  }
+  .panel.show{ display:block; }
+  .panel .full-name{ font-family:'Cinzel'; font-size:clamp(20px,3vw,26px); letter-spacing:0.05em; }
+  .panel .roman-full{ color:var(--gold); font-family:'Space Mono'; font-size:12px; letter-spacing:0.2em; margin-top:6px; }
+  .panel .meaning{ margin-top:16px; font-size:clamp(16px,2.2vw,18px); line-height:1.85; color:var(--parchment); }
+  .panel .kw{ margin-top:12px; color:var(--gold); font-family:'Space Mono'; font-size:12px; letter-spacing:0.1em; }
+
+  .history{ margin-top:clamp(40px,6vw,64px); }
+  .history-title{
+    text-align:center; font-family:'Space Mono'; font-size:11px; letter-spacing:0.3em;
+    text-transform:uppercase; color:var(--lavender); opacity:0.75; margin-bottom:16px;
+  }
+  .history-strip{
+    display:flex; flex-wrap:wrap; justify-content:center; gap:8px; max-width:640px; margin:0 auto;
+  }
+  .chip{
+    font-family:'Space Mono'; font-size:11px; padding:6px 12px; border-radius:999px;
+    border:1px solid var(--line); color:var(--lavender); background:rgba(28,24,54,0.5);
+    cursor:pointer; transition:all .2s ease;
+  }
+  .chip:hover{ border-color:var(--gold); color:var(--parchment); }
+  .chip.reversed-chip::after{ content:" ・逆"; color:var(--crimson); }
+
+  footer{ text-align:center; margin-top:56px; color:var(--lavender); opacity:0.5; font-family:'Space Mono'; font-size:10.5px; letter-spacing:0.15em; }
+
+  /* mode-1 (single draw): the inline meaning under the card is redundant with
+     the detail panel below, so keep it hidden on wider screens. The mobile
+     media query below forces it back on so everything fits in one screen. */
+  body.mode-1 .slot .drawn-meaning{ display:none; }
+
+  /* ---------- Mobile: fit within one screen, 3-card spread scrolls horizontally ---------- */
+  @media (max-width: 640px){
+    html, body{ height:100dvh; }
+    body{
+      overflow-x:hidden; overflow-y:auto;
+      display:flex; flex-direction:column;
+      padding: 14px 12px 10px;
+    }
+    header{ margin-bottom:8px; flex-shrink:0; }
+    .eyebrow{ font-size:9px; margin-bottom:4px; }
+    h1{ font-size:21px; margin-bottom:5px; }
+    header p{ font-size:12px; line-height:1.4; }
+    .modes{ margin-top:10px; gap:6px; }
+    .mode-btn{ font-size:10px; padding:6px 11px; }
+
+    main{ flex:1 1 auto; min-height:0; display:flex; flex-direction:column; }
+
+    .altar{
+      flex:1 1 auto; min-height:0; margin-top:8px;
+      flex-wrap:nowrap; align-items:center;
+      overflow-x:auto; overflow-y:hidden;
+      scroll-snap-type:x mandatory; -webkit-overflow-scrolling:touch;
+      padding: 4px 6px 10px; gap:16px;
+    }
+    .altar.single-mode{ justify-content:center; }
+    .altar:not(.single-mode){ justify-content:flex-start; }
+
+    .slot{ width:clamp(112px, 30vh, 170px); flex:0 0 auto; scroll-snap-align:center; }
+    .slot-label{ font-size:9px; letter-spacing:0.2em; margin-bottom:6px; height:11px; }
+    .drawn-name{ font-size:13px; margin-top:8px; min-height:18px; }
+    .drawn-keywords{ font-size:9px; margin-top:3px; }
+    .drawn-meaning{ display:block; font-size:11px; line-height:1.45; margin-top:6px; max-width:unset; }
+    .badge{ font-size:9px; padding:2px 8px; margin-top:6px; }
+
+    .controls{ margin-top:10px; flex-shrink:0; }
+    .draw-btn{ padding:11px 28px; font-size:12px; }
+
+    .panel{ display:none !important; }
+
+    .history{ margin-top:10px; flex-shrink:0; }
+    .history-title{ font-size:9px; margin-bottom:6px; }
+    .history-strip{
+      flex-wrap:nowrap; overflow-x:auto; justify-content:flex-start;
+      padding: 0 2px 4px; max-width:100%;
+    }
+    .chip{ font-size:9px; padding:4px 9px; flex:0 0 auto; }
+
+    footer{ display:none; }
+  }
+</style>
+</head>
+<body>
+<div class="stars-bg"></div>
+
+<header>
+  <p class="eyebrow">Major Arcana &middot; 22 Cards</p>
+  <h1>大アルカナ占い</h1>
+  <p>静かに問いを一つ思い浮かべながら、カードを引いてください。</p>
+  <div class="modes">
+    <button class="mode-btn active" data-mode="1">1枚引き</button>
+    <button class="mode-btn" data-mode="3">3枚引き（過去・現在・未来）</button>
+  </div>
+</header>
+
+<main>
+  <div class="altar" id="altar"></div>
+
+  <div class="controls">
+    <button class="draw-btn" id="drawBtn">カードを引く</button>
+  </div>
+
+  <div class="panel" id="panel">
+    <div class="full-name" id="panelName"></div>
+    <div class="roman-full" id="panelRoman"></div>
+    <div class="kw" id="panelKw"></div>
+    <div class="meaning" id="panelMeaning"></div>
+  </div>
+
+  <div class="history" id="historyWrap" style="display:none;">
+    <div class="history-title">今回引いたカード</div>
+    <div class="history-strip" id="historyStrip"></div>
+  </div>
+</main>
+
+<footer>THE FOOL &middot; TO &middot; THE WORLD</footer>
+
+<script>
+(function(){
+  "use strict";
+
+  const NS = "http://www.w3.org/2000/svg";
+
+  const CARDS = [
+    { roman:"0", name:"愚者", en:"The Fool", kw:["自由","冒険","直感"],
+      up:"新しい旅の始まり。何ものにも縛られない自由な心で、恐れずに一歩を踏み出すとき。",
+      rev:"向こう見ずな行動が思わぬ落とし穴に。準備不足のまま踏み出すことへの警告。",
+      shapes:[["circle",{cx:50,cy:28,r:12}],["line",{x1:18,y1:95,x2:68,y2:58}],["circle",{cx:72,cy:52,r:5}]] },
+    { roman:"I", name:"魔術師", en:"The Magician", kw:["創造","意志","可能性"],
+      up:"持てる力と知恵を使いこなし、望むものを形にする創造の時。行動が現実を変える。",
+      rev:"力の空回りや自信過剰に注意。才能はあっても使い方を誤ると空虚な結果に終わる。",
+      shapes:[["circle",{cx:38,cy:30,r:10}],["circle",{cx:62,cy:30,r:10}],["line",{x1:50,y1:50,x2:50,y2:100}],["circle",{cx:50,cy:108,r:4}]] },
+    { roman:"II", name:"女教皇", en:"The High Priestess", kw:["直感","静寂","知恵"],
+      up:"表には出ない静かな知恵と直感が導いてくれる。焦らず内なる声に耳を澄ませて。",
+      rev:"直感を無視したり、秘密を抱え込みすぎることでバランスを崩している状態。",
+      shapes:[["path",{d:"M42,15 A14,14 0 1,0 42,43 A10,10 0 1,1 42,15 Z"}],["line",{x1:28,y1:58,x2:28,y2:118}],["line",{x1:72,y1:58,x2:72,y2:118}],["line",{x1:28,y1:86,x2:72,y2:86}]] },
+    { roman:"III", name:"女帝", en:"The Empress", kw:["豊かさ","母性","成長"],
+      up:"豊かな実りと愛情に満ちた時期。育み、与えることで物事が自然と実を結ぶ。",
+      rev:"過保護や依存、あるいは豊かさの停滞。与えすぎて自分を見失っていないか確認を。",
+      shapes:[["circle",{cx:50,cy:35,r:14}],["line",{x1:50,y1:49,x2:50,y2:68}],["line",{x1:39,y1:68,x2:61,y2:68}],["line",{x1:30,y1:112,x2:40,y2:90}],["line",{x1:70,y1:112,x2:60,y2:90}]] },
+    { roman:"IV", name:"皇帝", en:"The Emperor", kw:["秩序","権威","意志"],
+      up:"揺るぎない意志と秩序で物事を築き上げる力。責任を持って主導権を握るとき。",
+      rev:"支配欲や頑固さが行き過ぎて、周囲との摩擦を生んでいる可能性。",
+      shapes:[["rect",{x:35,y:68,width:30,height:42}],["polygon",{points:"35,68 50,48 65,68"}],["circle",{cx:40,cy:44,r:6}],["circle",{cx:60,cy:44,r:6}]] },
+    { roman:"V", name:"教皇", en:"The Hierophant", kw:["伝統","学び","導き"],
+      up:"伝統や教えの中に答えがある。信頼できる導き手や制度から学ぶことで前進する。",
+      rev:"型にはまった考えへの反発、あるいは既存の価値観からの逸脱の兆し。",
+      shapes:[["polygon",{points:"38,32 44,16 50,32"}],["polygon",{points:"44,32 50,12 56,32"}],["polygon",{points:"50,32 56,16 62,32"}],["line",{x1:50,y1:36,x2:50,y2:92}],["line",{x1:36,y1:106,x2:64,y2:122}],["line",{x1:64,y1:106,x2:36,y2:122}]] },
+    { roman:"VI", name:"恋人", en:"The Lovers", kw:["結びつき","選択","調和"],
+      up:"心からの結びつきと、価値観に基づく選択の時。素直な気持ちが良い方向へ導く。",
+      rev:"心のすれ違いや優柔不断。目先の魅力に流され本質を見失っていないか注意。",
+      shapes:[["circle",{cx:50,cy:24,r:9}],["line",{x1:50,y1:8,x2:50,y2:14}],["line",{x1:36,y1:16,x2:40,y2:20}],["line",{x1:64,y1:16,x2:60,y2:20}],["circle",{cx:38,cy:75,r:20}],["circle",{cx:62,cy:75,r:20}]] },
+    { roman:"VII", name:"戦車", en:"The Chariot", kw:["勝利","推進力","自制"],
+      up:"相反する力を制御し、強い意志で目標へ突き進む勝利のカード。行動あるのみ。",
+      rev:"方向性を見失い制御不能に。焦りや過信が事態を悪化させている状態。",
+      shapes:[["polygon",{points:"50,32 57,44 50,56 43,44"}],["rect",{x:36,y:60,width:28,height:34}],["circle",{cx:40,cy:104,r:9}],["circle",{cx:60,cy:104,r:9}]] },
+    { roman:"VIII", name:"力", en:"Strength", kw:["内なる強さ","忍耐","勇気"],
+      up:"力ずくではなく、優しさと忍耐で困難を乗り越える真の強さを持っている。",
+      rev:"自信喪失や感情のコントロール不能。内なる不安に飲み込まれている状態。",
+      shapes:[["circle",{cx:44,cy:20,r:6}],["circle",{cx:56,cy:20,r:6}],["circle",{cx:50,cy:76,r:24}],["circle",{cx:50,cy:76,r:13}]] },
+    { roman:"IX", name:"隠者", en:"The Hermit", kw:["内省","探求","知恵"],
+      up:"一人静かに内面と向き合うことで、本当に大切な答えが見えてくる時期。",
+      rev:"孤立しすぎて視野が狭くなっている、あるいは孤独を恐れて逃げている状態。",
+      shapes:[["polygon",{points:"35,112 50,50 65,112"}],["circle",{cx:50,cy:34,r:10}],["line",{x1:50,y1:44,x2:50,y2:50}],["line",{x1:74,y1:58,x2:74,y2:116}]] },
+    { roman:"X", name:"運命の輪", en:"Wheel of Fortune", kw:["転機","循環","変化"],
+      up:"物事が大きく動き出す転機。流れに身を任せることで良い方向へ運ばれていく。",
+      rev:"悪い流れが続いている、あるいは変化に抗おうとして停滞している状態。",
+      shapes:[["circle",{cx:50,cy:70,r:36}],["circle",{cx:50,cy:70,r:8}],["line",{x1:14,y1:70,x2:86,y2:70}],["line",{x1:50,y1:34,x2:50,y2:106}]] },
+    { roman:"XI", name:"正義", en:"Justice", kw:["公正","均衡","決断"],
+      up:"冷静な判断とバランス感覚で、正しい選択ができる時。行いに見合う結果が返る。",
+      rev:"判断の偏りや不公正な扱い。感情に流された決断が後々の不均衡を生む。",
+      shapes:[["line",{x1:50,y1:18,x2:50,y2:60}],["line",{x1:41,y1:60,x2:59,y2:60}],["line",{x1:20,y1:80,x2:80,y2:80}],["line",{x1:20,y1:80,x2:20,y2:98}],["circle",{cx:20,cy:104,r:7}],["line",{x1:80,y1:80,x2:80,y2:98}],["circle",{cx:80,cy:104,r:7}]] },
+    { roman:"XII", name:"吊るされた男", en:"The Hanged Man", kw:["停滞","視点転換","忍耐"],
+      up:"一見身動きが取れない状況こそ、新しい視点を得るための大切な学びの時間。",
+      rev:"無駄な我慢や自己犠牲が続いている。停滞から抜け出す決断が必要な時。",
+      shapes:[["line",{x1:30,y1:28,x2:70,y2:28}],["line",{x1:50,y1:28,x2:50,y2:44}],["circle",{cx:50,cy:54,r:8}],["polygon",{points:"42,62 58,62 50,96"}],["line",{x1:50,y1:96,x2:60,y2:108}]] },
+    { roman:"XIII", name:"死神", en:"Death", kw:["終わり","再生","転換"],
+      up:"一つの時代の終わりと、新しい始まりへの転換点。手放すことで道が開ける。",
+      rev:"変化への抵抗や、終わらせるべきものを引きずっていることへの警告。",
+      shapes:[["line",{x1:14,y1:100,x2:86,y2:100}],["circle",{cx:66,cy:38,r:11}],["path",{d:"M30,42 Q52,30 46,72"}],["line",{x1:46,y1:72,x2:34,y2:112}]] },
+    { roman:"XIV", name:"節制", en:"Temperance", kw:["調和","バランス","融合"],
+      up:"相反するものを調和させ、穏やかなバランスの中で物事が上手く循環していく。",
+      rev:"過剰や不足による不調和。極端に振れすぎてバランスを崩している状態。",
+      shapes:[["circle",{cx:34,cy:92,r:12}],["circle",{cx:66,cy:92,r:12}],["path",{d:"M34,78 Q50,56 66,78"}],["circle",{cx:50,cy:24,r:8}]] },
+    { roman:"XV", name:"悪魔", en:"The Devil", kw:["執着","誘惑","束縛"],
+      up:"目先の快楽や執着に囚われている状態。自覚のないまま鎖に縛られていないか。",
+      rev:"束縛からの解放の兆し。依存や悪習を断ち切る勇気が芽生え始めている。",
+      shapes:[["polygon",{points:"50,25 61,55 35,38 65,38 39,55"}],["path",{d:"M38,58 Q30,44 40,34"}],["path",{d:"M62,58 Q70,44 60,34"}],["line",{x1:30,y1:118,x2:70,y2:118}]] },
+    { roman:"XVI", name:"塔", en:"The Tower", kw:["崩壊","衝撃","気づき"],
+      up:"積み上げてきた価値観が突然崩れる衝撃的な出来事。だが真実への気づきでもある。",
+      rev:"崩壊を恐れて変化を先延ばしにしている、あるいは小さな崩れが続いている状態。",
+      shapes:[["rect",{x:38,y:52,width:24,height:58}],["polyline",{points:"33,52 38,42 43,52 48,42 53,52 58,42 63,52"}],["polyline",{points:"78,20 66,46 78,46 60,80"}],["circle",{cx:22,cy:92,r:5}]] },
+    { roman:"XVII", name:"星", en:"The Star", kw:["希望","癒し","静けさ"],
+      up:"嵐が去った後の静かな希望。理想に向かって、穏やかな癒しの時間が訪れる。",
+      rev:"理想と現実のギャップに落胆し、希望を見失いかけている状態。",
+      shapes:[["polygon",{points:"50,15 55,32 72,26 60,40 76,48 58,48 63,64 50,52 37,64 42,48 24,48 40,40 28,26 45,32"}],["ellipse",{cx:50,cy:112,rx:26,ry:8}],["path",{d:"M38,90 Q44,102 40,112"}]] },
+    { roman:"XVIII", name:"月", en:"The Moon", kw:["不安","幻想","揺らぎ"],
+      up:"はっきりしない不安や幻想に惑わされやすい時期。物事の輪郭が曖昧に見える。",
+      rev:"混乱や不安が徐々に晴れていき、真実が明らかになり始める兆し。",
+      shapes:[["path",{d:"M48,14 A18,18 0 1,0 48,50 A13,13 0 1,1 48,14 Z"}],["rect",{x:20,y:76,width:10,height:26}],["rect",{x:70,y:76,width:10,height:26}],["path",{d:"M20,118 Q50,96 80,118"}],["circle",{cx:50,cy:124,r:4}]] },
+    { roman:"XIX", name:"太陽", en:"The Sun", kw:["成功","喜び","活力"],
+      up:"素直な喜びと生命力に満ちた、何もかもがうまくいく祝福の時。",
+      rev:"一時的な自信喪失や、喜びが素直に感じられない曇り空のような状態。",
+      shapes:[["circle",{cx:50,cy:45,r:20}],["line",{x1:50,y1:8,x2:50,y2:18}],["line",{x1:16,y1:45,x2:26,y2:45}],["line",{x1:74,y1:45,x2:84,y2:45}],["line",{x1:26,y1:21,x2:33,y2:28}],["circle",{cx:50,cy:110,r:7}]] },
+    { roman:"XX", name:"審判", en:"Judgement", kw:["覚醒","再生","決断"],
+      up:"過去の経験がすべて意味を持ち、新しいステージへ目覚める復活のとき。",
+      rev:"過去への後悔や、変化のための決断を先延ばしにしている状態。",
+      shapes:[["polygon",{points:"30,28 56,18 56,40"}],["line",{x1:60,y1:24,x2:70,y2:20}],["rect",{x:38,y:92,width:24,height:24}],["line",{x1:50,y1:92,x2:50,y2:72}],["line",{x1:42,y1:80,x2:58,y2:80}]] },
+    { roman:"XXI", name:"世界", en:"The World", kw:["完成","達成","統合"],
+      up:"一つのサイクルが見事に完成する。すべてが調和し、満たされた達成の時。",
+      rev:"完成目前での停滞や、物事が中途半端なまま終わってしまう未完の状態。",
+      shapes:[["ellipse",{cx:50,cy:70,rx:30,ry:45}],["circle",{cx:50,cy:52,r:8}],["line",{x1:50,y1:60,x2:50,y2:84}],["line",{x1:38,y1:96,x2:50,y2:84}],["line",{x1:62,y1:96,x2:50,y2:84}]] }
+  ];
+
+  const altar = document.getElementById("altar");
+  const drawBtn = document.getElementById("drawBtn");
+  const panel = document.getElementById("panel");
+  const panelName = document.getElementById("panelName");
+  const panelRoman = document.getElementById("panelRoman");
+  const panelKw = document.getElementById("panelKw");
+  const panelMeaning = document.getElementById("panelMeaning");
+  const historyWrap = document.getElementById("historyWrap");
+  const historyStrip = document.getElementById("historyStrip");
+  const modeBtns = document.querySelectorAll(".mode-btn");
+
+  let mode = 1;
+  let currentDraw = []; // {card, reversed}
+  let allHistory = [];
+
+  modeBtns.forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      modeBtns.forEach(b=>b.classList.remove("active"));
+      btn.classList.add("active");
+      mode = parseInt(btn.dataset.mode, 10);
+      buildSlots();
+      panel.classList.remove("show");
+    });
+  });
+
+  function buildSlots(){
+    document.body.classList.remove("mode-1", "mode-3");
+    document.body.classList.add("mode-" + mode);
+    altar.classList.toggle("single-mode", mode === 1);
+    altar.innerHTML = "";
+    const labels = mode === 3 ? ["過去","現在","未来"] : [""];
+    labels.forEach((label, i)=>{
+      const slot = document.createElement("div");
+      slot.className = "slot";
+      slot.dataset.index = i;
+      slot.innerHTML = `
+        <div class="slot-label">${label}</div>
+        <div class="card-stage">
+          <div class="card" data-i="${i}">
+            <div class="card-face card-back">
+              <svg class="rune-ring" viewBox="0 0 100 100">
+                <polygon points="50,6 58,38 90,38 64,58 74,90 50,70 26,90 36,58 10,38 42,38"
+                  fill="none" stroke="#c9a227" stroke-width="1.4" opacity="0.75"/>
+                <circle cx="50" cy="50" r="34" fill="none" stroke="#c9a227" stroke-width="1" opacity="0.4"/>
+              </svg>
+              <div class="core"></div>
+              <div class="mark">ARCANA</div>
+            </div>
+            <div class="card-face card-front">
+              <div class="roman"></div>
+              <svg viewBox="0 0 100 140"></svg>
+              <div class="card-name"></div>
+            </div>
+          </div>
+        </div>
+        <div class="badge">逆位置</div>
+        <div class="drawn-name"></div>
+        <div class="drawn-keywords"></div>
+        <div class="drawn-meaning"></div>
+      `;
+      altar.appendChild(slot);
+    });
+  }
+
+  function pickCards(n){
+    const idxs = [...Array(CARDS.length).keys()];
+    for(let i = idxs.length - 1; i > 0; i--){
+      const j = Math.floor(Math.random() * (i+1));
+      [idxs[i], idxs[j]] = [idxs[j], idxs[i]];
+    }
+    return idxs.slice(0, n).map(idx => ({
+      card: CARDS[idx],
+      reversed: Math.random() < 0.45
+    }));
+  }
+
+  function renderEmblem(svgEl, shapes){
+    svgEl.innerHTML = "";
+    shapes.forEach(([tag, attrs], i)=>{
+      const el = document.createElementNS(NS, tag);
+      Object.entries(attrs).forEach(([k,v])=> el.setAttribute(k, v));
+      el.setAttribute("pathLength", "1");
+      el.style.strokeDasharray = "1";
+      el.style.strokeDashoffset = "1";
+      el.style.transition = `stroke-dashoffset 0.9s ease ${0.15 + i*0.14}s`;
+      svgEl.appendChild(el);
+    });
+    requestAnimationFrame(()=>{
+      requestAnimationFrame(()=>{
+        svgEl.querySelectorAll("*").forEach(el=>{ el.style.strokeDashoffset = "0"; });
+      });
+    });
+  }
+
+  function drawAll(){
+    drawBtn.disabled = true;
+    panel.classList.remove("show");
+    currentDraw = pickCards(mode);
+
+    const slots = altar.querySelectorAll(".slot");
+    currentDraw.forEach((draw, i)=>{
+      const slot = slots[i];
+      const cardEl = slot.querySelector(".card");
+      const front = slot.querySelector(".card-front");
+      const roman = front.querySelector(".roman");
+      const svgEl = front.querySelector("svg");
+      const nameEl = front.querySelector(".card-name");
+      const drawnName = slot.querySelector(".drawn-name");
+      const drawnKw = slot.querySelector(".drawn-keywords");
+      const drawnMeaning = slot.querySelector(".drawn-meaning");
+
+      cardEl.classList.remove("flipped", "reversed");
+      slot.classList.remove("is-reversed");
+      roman.textContent = "";
+      nameEl.textContent = "";
+      svgEl.innerHTML = "";
+      drawnName.textContent = "";
+      drawnKw.textContent = "";
+      if(drawnMeaning) drawnMeaning.textContent = "";
+
+      setTimeout(()=>{
+        roman.textContent = draw.card.roman;
+        nameEl.textContent = draw.card.name;
+        renderEmblem(svgEl, draw.card.shapes);
+        cardEl.classList.add("flipped");
+        if(draw.reversed){
+          cardEl.classList.add("reversed");
+          slot.classList.add("is-reversed");
+        }
+        drawnName.textContent = `${draw.card.roman}　${draw.card.name}`;
+        drawnKw.textContent = draw.card.kw.join(" ・ ");
+        if(drawnMeaning){
+          drawnMeaning.textContent = draw.reversed ? draw.card.rev : draw.card.up;
+        }
+      }, i * 260 + 120);
+    });
+
+    const totalDelay = currentDraw.length * 260 + 900;
+    setTimeout(()=>{
+      drawBtn.disabled = false;
+      if(mode === 1){
+        showPanel(currentDraw[0]);
+      }
+      pushHistory(currentDraw);
+    }, totalDelay);
+  }
+
+  function showPanel(draw){
+    panelName.textContent = `${draw.card.roman}　${draw.card.name}`;
+    panelRoman.textContent = draw.card.en.toUpperCase() + (draw.reversed ? "  ／  逆位置" : "  ／  正位置");
+    panelKw.textContent = draw.card.kw.join(" ・ ");
+    panelMeaning.textContent = draw.reversed ? draw.card.rev : draw.card.up;
+    panel.classList.add("show");
+  }
+
+  function pushHistory(draws){
+    draws.forEach(d=> allHistory.unshift(d));
+    allHistory = allHistory.slice(0, 24);
+    historyStrip.innerHTML = "";
+    allHistory.forEach(d=>{
+      const chip = document.createElement("button");
+      chip.className = "chip" + (d.reversed ? " reversed-chip" : "");
+      chip.textContent = `${d.card.roman} ${d.card.name}`;
+      chip.addEventListener("click", ()=> showPanel(d));
+      historyStrip.appendChild(chip);
+    });
+    historyWrap.style.display = allHistory.length ? "block" : "none";
+  }
+
+  drawBtn.addEventListener("click", drawAll);
+  altar.addEventListener("click", (e)=>{
+    const card = e.target.closest(".card");
+    if(card && !drawBtn.disabled) drawAll();
+  });
+
+  buildSlots();
+})();
+</script>
+</body>
+</html>
