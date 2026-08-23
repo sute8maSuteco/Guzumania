@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>社会人あるある道場 - 5秒チャレンジ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&family=M+PLUS+Rounded+1c:wght@700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1A1033;
+    --pink:#FF3D7F;
+    --yellow:#FFE94A;
+    --cyan:#33F5D5;
+    --purple:#6B3FE0;
+    --white:#FFF9F0;
+    --danger:#FF5533;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent; user-select:none;}
+  html,body{
+    margin:0; padding:0; height:100%; overflow:hidden;
+    background:var(--ink);
+    font-family:'M PLUS Rounded 1c','Zen Maru Gothic',sans-serif;
+    touch-action:manipulation;
+  }
+  #stage{
+    position:relative;
+    width:100%; height:100dvh;
+    max-width:480px; margin:0 auto;
+    background:linear-gradient(160deg,#1A1033 0%, #2B1656 60%, #3B1B6E 100%);
+    overflow:hidden;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .screen{
+    position:absolute; inset:0;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    text-align:center; padding:24px;
+    opacity:0; pointer-events:none;
+    transition:opacity .18s ease;
+  }
+  .screen.active{opacity:1; pointer-events:auto;}
+
+  .confetti{position:absolute; inset:0; overflow:hidden; pointer-events:none;}
+  .confetti span{
+    position:absolute; width:10px; height:10px; border-radius:3px;
+    animation:float 6s linear infinite;
+    opacity:.7;
+  }
+  @keyframes float{
+    0%{ transform:translateY(110dvh) rotate(0deg); }
+    100%{ transform:translateY(-10dvh) rotate(360deg); }
+  }
+
+  .logo-wrap{position:relative;}
+  .logo-sub{
+    font-weight:800; color:var(--cyan); letter-spacing:.2em;
+    font-size:13px; margin-bottom:6px;
+  }
+  .logo-main{
+    font-weight:900; color:var(--white); font-size:44px; line-height:1.15;
+    text-shadow: 4px 4px 0 var(--pink), -2px -2px 0 var(--purple);
+    transform:rotate(-2deg);
+  }
+  .logo-tag{
+    margin-top:14px; font-weight:700; color:var(--yellow); font-size:16px;
+  }
+  .start-btn{
+    margin-top:34px;
+    background:var(--pink); color:var(--white);
+    border:none; border-radius:100px;
+    font-family:inherit; font-weight:900; font-size:20px;
+    padding:16px 44px;
+    box-shadow:0 6px 0 #A6194C;
+    transform:translateY(0);
+    transition:transform .08s, box-shadow .08s;
+  }
+  .start-btn:active{ transform:translateY(6px); box-shadow:0 0 0 #A6194C; }
+
+  .stage-count{
+    position:absolute; top:18px; left:50%; transform:translateX(-50%);
+    display:flex; gap:6px; flex-wrap:wrap; max-width:260px; justify-content:center;
+  }
+  .stage-count .dot{
+    width:9px; height:9px; border-radius:50%; background:rgba(255,255,255,.25);
+  }
+  .stage-count .dot.done{ background:var(--cyan); }
+  .stage-count .dot.now{ background:var(--yellow); }
+
+  .countdown-num{
+    font-weight:900; font-size:120px; color:var(--yellow);
+    text-shadow:5px 5px 0 var(--pink);
+    animation:pop .5s ease;
+  }
+  @keyframes pop{ 0%{transform:scale(.3); opacity:0;} 60%{transform:scale(1.15);} 100%{transform:scale(1); opacity:1;} }
+
+  .prompt-flash{
+    font-weight:900; font-size:34px; color:var(--white);
+    text-shadow:3px 3px 0 var(--pink);
+    margin-bottom:6px;
+  }
+  .sub-prompt{
+    font-weight:700; font-size:14px; color:var(--cyan); margin-bottom:16px;
+  }
+  .timer-bar-wrap{
+    position:absolute; top:0; left:0; right:0; height:8px;
+    background:rgba(255,255,255,.15);
+  }
+  .timer-bar{
+    height:100%; background:var(--yellow); width:100%;
+    transform-origin:left;
+  }
+
+  .scene-box{
+    width:100%; max-width:340px; height:170px;
+    background:rgba(255,255,255,.06);
+    border:3px solid rgba(255,255,255,.2);
+    border-radius:20px;
+    position:relative; overflow:hidden;
+    margin-bottom:18px;
+  }
+
+  /* Game1 */
+  .g1-track{
+    position:absolute; bottom:16px; left:16px; right:16px; height:14px;
+    background:rgba(0,0,0,.3); border-radius:10px; overflow:hidden;
+  }
+  .g1-safe{ position:absolute; top:0; bottom:0; background:var(--cyan); opacity:.55; }
+  .g1-marker{
+    position:absolute; top:-8px; width:0; height:0;
+    border-left:9px solid transparent; border-right:9px solid transparent;
+    border-top:14px solid var(--yellow);
+  }
+  .g1-boss{ position:absolute; top:24px; font-size:46px; }
+  .g1-line{ position:absolute; top:22px; left:50%; transform:translateX(-50%); font-size:12px; color:var(--white); font-weight:700; background:rgba(0,0,0,.35); padding:4px 10px; border-radius:10px; white-space:nowrap;}
+
+  /* Game2 / Game5 (choice style) */
+  .g2-mood{ position:absolute; top:14px; left:50%; transform:translateX(-50%); font-size:56px; }
+  .g5-pct{ position:absolute; top:10px; left:50%; transform:translateX(-50%); font-size:60px; font-weight:900; color:var(--yellow); text-shadow:3px 3px 0 var(--pink);}
+  .g2-choices{
+    position:absolute; bottom:14px; left:0; right:0;
+    display:flex; gap:8px; justify-content:center; flex-wrap:wrap; padding:0 10px;
+  }
+  .choice-btn{
+    font-family:inherit; font-weight:800; font-size:13px;
+    background:var(--white); color:var(--ink);
+    border:none; border-radius:12px; padding:9px 12px;
+    box-shadow:0 4px 0 rgba(0,0,0,.25);
+  }
+  .choice-btn.wrong-flash{ background:var(--danger); color:var(--white); }
+  .choice-btn.right-flash{ background:var(--cyan); }
+
+  /* Game3 / Game7 (mash / early tap) */
+  .g3-alert{ font-size:50px; margin-top:6px; }
+  .g3-meter-wrap{
+    position:absolute; bottom:16px; left:16px; right:16px; height:20px;
+    background:rgba(0,0,0,.3); border-radius:12px; overflow:hidden;
+  }
+  .g3-meter{ height:100%; width:0%; background:linear-gradient(90deg,var(--pink),var(--yellow)); }
+  .mash-btn{
+    font-family:inherit; font-weight:900; font-size:20px;
+    background:var(--pink); color:var(--white); border:none;
+    border-radius:100px; padding:16px 44px; margin-top:6px;
+    box-shadow:0 6px 0 #A6194C;
+  }
+  .mash-btn:active{ transform:translateY(4px); box-shadow:0 2px 0 #A6194C; }
+
+  .g7-tension-wrap{
+    position:absolute; bottom:16px; left:16px; right:16px; height:14px;
+    background:rgba(0,0,0,.3); border-radius:10px; overflow:hidden;
+  }
+  .g7-tension{ height:100%; width:0%; background:linear-gradient(90deg,var(--cyan),var(--danger)); }
+  .g7-faces{ position:absolute; top:20px; left:0; right:0; font-size:34px; letter-spacing:6px; }
+
+  /* Game4 / Game6 (wave) */
+  .g4-wave{
+    position:absolute; bottom:20px; left:0; right:0;
+    display:flex; align-items:flex-end; justify-content:center; gap:5px; height:100px;
+  }
+  .g4-bar{ width:14px; background:rgba(255,255,255,.35); border-radius:4px 4px 0 0; transition:background .1s; }
+  .g4-bar.gap{ background:var(--cyan); }
+  .g6-bar.gap{ background:var(--yellow) !important; }
+  .g6-boss{ position:absolute; top:10px; left:50%; transform:translateX(-50%); font-size:15px; font-weight:700; color:var(--white); background:rgba(255,0,0,.3); padding:4px 10px; border-radius:10px; white-space:nowrap;}
+
+  /* Game8 feedback QTE */
+  .g8-target{ position:absolute; top:18px; left:16px; font-size:40px; }
+  .g8-arrow{
+    position:absolute; top:30px; right:16px; font-size:26px; font-weight:900; color:var(--danger);
+    animation:flyIn 2.5s linear forwards;
+  }
+  @keyframes flyIn{ from{ right:16px; } to{ right:78%; } }
+  .g8-line{ position:absolute; top:70px; left:0; right:0; font-size:12px; font-weight:700; color:var(--white); padding:0 14px; }
+  .g8-choices{ position:absolute; bottom:16px; left:0; right:0; display:flex; gap:10px; justify-content:center; }
+  .g8-btn{
+    font-family:inherit; font-weight:800; font-size:14px;
+    border:none; border-radius:12px; padding:12px 16px;
+    box-shadow:0 4px 0 rgba(0,0,0,.25);
+  }
+  .g8-btn.memo{ background:var(--cyan); color:var(--ink); }
+  .g8-btn.hekomu{ background:var(--white); color:var(--ink); }
+
+  .tap-full{ position:absolute; inset:0; z-index:5; background:transparent; border:none; }
+
+  .stamp{
+    font-weight:900; font-size:44px;
+    transform:rotate(-8deg) scale(.5);
+    animation:stampIn .35s cubic-bezier(.2,1.4,.4,1) forwards;
+    padding:6px 24px; border-radius:14px; border:5px solid currentColor;
+  }
+  .stamp.good{ color:var(--cyan); }
+  .stamp.bad{ color:var(--danger); }
+  @keyframes stampIn{ to{ transform:rotate(-8deg) scale(1);} }
+  .stamp-sub{ margin-top:16px; font-weight:700; color:var(--white); font-size:14px; max-width:280px;}
+
+  .result-title{ font-weight:900; font-size:24px; color:var(--yellow); margin-bottom:4px;}
+  .result-score{
+    font-weight:900; font-size:58px; color:var(--white);
+    text-shadow:4px 4px 0 var(--pink); margin:6px 0 4px;
+  }
+  .result-comment{ font-weight:700; color:var(--cyan); font-size:14px; margin-bottom:18px; max-width:300px;}
+
+  .lineup{ width:100%; max-width:340px; display:flex; flex-direction:column; gap:6px; margin-bottom:18px; max-height:180px; overflow-y:auto; }
+  .lineup-item{
+    display:flex; align-items:center; gap:10px;
+    background:rgba(255,255,255,.07); border:2px solid rgba(255,255,255,.15);
+    border-radius:14px; padding:9px 12px; text-align:left;
+  }
+  .lineup-emoji{ font-size:22px; }
+  .lineup-name{ font-weight:800; color:var(--white); font-size:13px; }
+  .lineup-desc{ font-weight:500; color:#c9bfe8; font-size:10px; }
+  .coming{
+    font-weight:800; font-size:10px; color:var(--ink); background:var(--yellow);
+    padding:3px 7px; border-radius:100px; margin-left:auto; white-space:nowrap;
+  }
+  .mute-btn{
+    position:absolute; top:14px; right:14px; z-index:50;
+    width:36px; height:36px; border-radius:50%;
+    background:rgba(255,255,255,.12); border:2px solid rgba(255,255,255,.25);
+    color:var(--white); font-size:16px;
+    display:flex; align-items:center; justify-content:center;
+    font-family:inherit;
+  }
+  .mute-btn:active{ transform:scale(.92); }
+</style>
+</head>
+<body>
+<div id="stage">
+  <button class="mute-btn" id="btnMute">🔊</button>
+  <div class="confetti" id="confetti"></div>
+
+  <div class="screen active" id="screen-intro">
+    <div class="logo-wrap">
+      <div class="logo-sub">SHAKAIJIN COMM DOJO</div>
+      <div class="logo-main">社会人<br>あるある道場</div>
+      <div class="logo-tag">〜 5秒で試される、あの瞬間 〜</div>
+    </div>
+    <button class="start-btn" id="btnStart">はじめる ▶</button>
+  </div>
+
+  <div class="screen" id="screen-count">
+    <div class="stage-count" id="dots"></div>
+    <div class="countdown-num" id="countNum">3</div>
+  </div>
+
+  <div class="screen" id="screen-game">
+    <div class="timer-bar-wrap"><div class="timer-bar" id="timerBar"></div></div>
+    <div class="stage-count" id="dotsGame"></div>
+    <div class="prompt-flash" id="promptFlash">お題</div>
+    <div class="sub-prompt" id="subPrompt">サブ</div>
+    <div class="scene-box" id="sceneBox"></div>
+  </div>
+
+  <div class="screen" id="screen-judge">
+    <div class="stamp" id="stampEl">SAFE</div>
+    <div class="stamp-sub" id="stampSub"></div>
+  </div>
+
+  <div class="screen" id="screen-result">
+    <div class="result-title">あるある度 診断</div>
+    <div class="result-score" id="scoreNum">0<span style="font-size:26px;">/8</span></div>
+    <div class="result-comment" id="resultComment"></div>
+
+    <div class="lineup">
+      <div class="lineup-item">
+        <div class="lineup-emoji">⏱️</div>
+        <div><div class="lineup-name">報連相タイミング診断</div><div class="lineup-desc">いつ言う？を体で覚える</div></div>
+        <div class="coming">近日公開</div>
+      </div>
+      <div class="lineup-item">
+        <div class="lineup-emoji">🧑‍💼</div>
+        <div><div class="lineup-name">上司タイプ別 会話SIM</div><div class="lineup-desc">タイプ別に返し方が変わる</div></div>
+        <div class="coming">近日公開</div>
+      </div>
+      <div class="lineup-item">
+        <div class="lineup-emoji">🚨</div>
+        <div><div class="lineup-name">悪い報告ロールプレイ</div><div class="lineup-desc">早いほど傷が浅い</div></div>
+        <div class="coming">近日公開</div>
+      </div>
+      <div class="lineup-item">
+        <div class="lineup-emoji">🗣️</div>
+        <div><div class="lineup-name">会議発言リズムゲーム</div><div class="lineup-desc">間（ま）を制する者が会議を制す</div></div>
+        <div class="coming">近日公開</div>
+      </div>
+      <div class="lineup-item">
+        <div class="lineup-emoji">💬</div>
+        <div><div class="lineup-name">フィードバック受容トレーニング</div><div class="lineup-desc">へこまず、メモって成長</div></div>
+        <div class="coming">近日公開</div>
+      </div>
+    </div>
+
+    <button class="start-btn" id="btnRetry">もう一度あそぶ</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  const screens = {
+    intro: document.getElementById('screen-intro'),
+    count: document.getElementById('screen-count'),
+    game: document.getElementById('screen-game'),
+    judge: document.getElementById('screen-judge'),
+    result: document.getElementById('screen-result'),
+  };
+  function show(name){
+    Object.values(screens).forEach(s=>s.classList.remove('active'));
+    screens[name].classList.add('active');
+  }
+
+  const confettiColors = ['#FF3D7F','#FFE94A','#33F5D5','#6B3FE0'];
+  const confettiWrap = document.getElementById('confetti');
+  for(let i=0;i<18;i++){
+    const s = document.createElement('span');
+    s.style.left = Math.random()*100+'%';
+    s.style.background = confettiColors[i%confettiColors.length];
+    s.style.animationDelay = (Math.random()*6)+'s';
+    s.style.animationDuration = (5+Math.random()*4)+'s';
+    confettiWrap.appendChild(s);
+  }
+
+  // ================= SOUND ENGINE (synthesized, no audio files) =================
+  let audioCtx = null;
+  let muted = false;
+  let musicTimeoutId = null;
+
+  function ensureAudio(){
+    if(!audioCtx){
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if(audioCtx.state === 'suspended'){ audioCtx.resume(); }
+  }
+
+  function tone(freq, startTime, duration, type, gainVal){
+    if(muted || !audioCtx) return;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = type || 'square';
+    osc.frequency.value = freq;
+    gain.gain.setValueAtTime(gainVal || 0.12, startTime);
+    gain.gain.exponentialRampToValueAtTime(0.0001, startTime + duration);
+    osc.connect(gain); gain.connect(audioCtx.destination);
+    osc.start(startTime);
+    osc.stop(startTime + duration + 0.02);
+  }
+
+  function slide(freqFrom, freqTo, startTime, duration, type, gainVal){
+    if(muted || !audioCtx) return;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = type || 'sawtooth';
+    osc.frequency.setValueAtTime(freqFrom, startTime);
+    osc.frequency.exponentialRampToValueAtTime(Math.max(20,freqTo), startTime + duration);
+    gain.gain.setValueAtTime(gainVal || 0.14, startTime);
+    gain.gain.exponentialRampToValueAtTime(0.0001, startTime + duration);
+    osc.connect(gain); gain.connect(audioCtx.destination);
+    osc.start(startTime);
+    osc.stop(startTime + duration + 0.02);
+  }
+
+  function hihat(startTime, gainVal){
+    if(muted || !audioCtx) return;
+    const bufferSize = Math.floor(audioCtx.sampleRate * 0.04);
+    const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for(let i=0;i<bufferSize;i++){ data[i] = (Math.random()*2-1) * (1 - i/bufferSize); }
+    const src = audioCtx.createBufferSource();
+    src.buffer = buffer;
+    const filter = audioCtx.createBiquadFilter();
+    filter.type = 'highpass'; filter.frequency.value = 6000;
+    const gain = audioCtx.createGain();
+    gain.gain.setValueAtTime(gainVal || 0.06, startTime);
+    src.connect(filter); filter.connect(gain); gain.connect(audioCtx.destination);
+    src.start(startTime);
+  }
+
+  function playCountBeep(isGo){
+    ensureAudio();
+    const t = audioCtx.currentTime;
+    tone(isGo ? 880 : 523.25, t, 0.14, 'square', 0.18);
+  }
+
+  function stopMusic(){
+    if(musicTimeoutId) clearTimeout(musicTimeoutId);
+    musicTimeoutId = null;
+  }
+
+  // Accelerating pop arpeggio loop -- builds tension as the 5s timer runs down
+  function startGameMusic(duration){
+    stopMusic();
+    ensureAudio();
+    const startT = performance.now();
+    const chordUp = [523.25, 659.25, 783.99, 1046.50];   // C E G C (pop major, bright)
+    let step = 0;
+    function scheduleNext(){
+      const elapsed = performance.now() - startT;
+      const progress = Math.min(1, elapsed / duration);
+      const bpm = 132 + progress * 110; // 132 -> 242 BPM, ramps up the tension
+      const beatMs = (60000 / bpm) / 2;
+      if(!muted && audioCtx){
+        const now = audioCtx.currentTime;
+        const note = chordUp[step % chordUp.length];
+        tone(note, now, (beatMs/1000)*0.85, 'square', 0.075);
+        if(step % 2 === 0){ tone(note/2, now, (beatMs/1000)*0.85, 'triangle', 0.1); }
+        if(step % 4 === 2){ hihat(now, 0.045); }
+      }
+      step++;
+      if(elapsed < duration){
+        musicTimeoutId = setTimeout(scheduleNext, beatMs);
+      }
+    }
+    scheduleNext();
+  }
+
+  function playSuccessJingle(){
+    ensureAudio();
+    const t = audioCtx.currentTime;
+    tone(659.25, t, 0.1, 'square', 0.16);
+    tone(783.99, t+0.09, 0.1, 'square', 0.16);
+    tone(1046.50, t+0.18, 0.22, 'square', 0.18);
+  }
+
+  function playFailJingle(){
+    ensureAudio();
+    const t = audioCtx.currentTime;
+    slide(392, 130, t, 0.35, 'sawtooth', 0.16);
+  }
+
+  function playIntroJingle(){
+    ensureAudio();
+    const t = audioCtx.currentTime;
+    [523.25,659.25,783.99].forEach((f,i)=>tone(f, t+i*0.11, 0.14, 'square', 0.14));
+  }
+
+  function playResultFanfare(ratio){
+    ensureAudio();
+    const t = audioCtx.currentTime;
+    const notes = ratio >= 0.75 ? [523.25,659.25,783.99,1046.50] : [392,440,523.25];
+    notes.forEach((f,i)=>tone(f, t+i*0.13, 0.18, 'square', 0.15));
+  }
+
+  document.getElementById('btnMute').onclick = ()=>{
+    muted = !muted;
+    document.getElementById('btnMute').textContent = muted ? '🔇' : '🔊';
+    if(muted){ stopMusic(); }
+  };
+  // ================= END SOUND ENGINE =================
+
+  let score = 0;
+  let stageIndex = 0;
+  const TOTAL = 8;
+
+  function renderDots(container){
+    container.innerHTML = '';
+    for(let i=0;i<TOTAL;i++){
+      const d = document.createElement('div');
+      d.className = 'dot' + (i<stageIndex?' done':(i===stageIndex?' now':''));
+      container.appendChild(d);
+    }
+  }
+
+  let gameTimer = null;
+  let gameTimeoutFail = null;
+  let extraTimer = null;
+  const timerBar = document.getElementById('timerBar');
+
+  function clearGameTimers(){
+    if(gameTimer) cancelAnimationFrame(gameTimer);
+    if(gameTimeoutFail) clearTimeout(gameTimeoutFail);
+    if(extraTimer) clearTimeout(extraTimer);
+    gameTimer = null; gameTimeoutFail = null; extraTimer = null;
+    stopMusic();
+  }
+
+  function startTimerBar(duration, onExpire){
+    const start = performance.now();
+    timerBar.style.transform = 'scaleX(1)';
+    function step(now){
+      const t = Math.min(1, (now-start)/duration);
+      timerBar.style.transform = `scaleX(${1-t})`;
+      if(t<1){
+        gameTimer = requestAnimationFrame(step);
+      } else {
+        onExpire && onExpire();
+      }
+    }
+    gameTimer = requestAnimationFrame(step);
+  }
+
+  function judge(success, subText){
+    clearGameTimers();
+    if(success) score++;
+    if(success){ playSuccessJingle(); } else { playFailJingle(); }
+    const stampEl = document.getElementById('stampEl');
+    const stampSub = document.getElementById('stampSub');
+    stampEl.textContent = success ? 'SAFE!' : 'MISS...';
+    stampEl.className = 'stamp ' + (success ? 'good' : 'bad');
+    stampEl.style.animation = 'none';
+    void stampEl.offsetWidth;
+    stampEl.style.animation = '';
+    stampSub.textContent = subText;
+    show('judge');
+    setTimeout(()=>{
+      stageIndex++;
+      if(stageIndex>=TOTAL){
+        showResult();
+      } else {
+        runCountdown();
+      }
+    }, 1050);
+  }
+
+  // ---- GAME 1: report timing ----
+  function game1(){
+    const box = document.getElementById('sceneBox');
+    box.innerHTML = `
+      <div class="g1-boss" style="left:6%;">🧑‍💼</div>
+      <div class="g1-line">今日はちょっと機嫌悪いかも…</div>
+      <div class="g1-track">
+        <div class="g1-safe" id="g1safe"></div>
+        <div class="g1-marker" id="g1marker"></div>
+      </div>
+      <button class="tap-full" id="g1tap"></button>
+    `;
+    document.getElementById('promptFlash').textContent = '今、言う？';
+    document.getElementById('subPrompt').textContent = '緑ゾーンでタップ！話しかけるベストな瞬間は？';
+
+    const safeStart = 55 + Math.random()*10;
+    const safeWidth = 14;
+    const safe = document.getElementById('g1safe');
+    safe.style.left = safeStart+'%';
+    safe.style.width = safeWidth+'%';
+
+    const marker = document.getElementById('g1marker');
+    let markerPos = 0;
+    const duration = 5000;
+    const start = performance.now();
+    let resolved = false;
+
+    function step(now){
+      const t = Math.min(1, (now-start)/duration);
+      markerPos = t*100;
+      marker.style.left = `calc(${markerPos}% - 9px)`;
+      if(t<1 && !resolved){
+        gameTimer = requestAnimationFrame(step);
+      } else if(!resolved){
+        resolved = true;
+        judge(false, 'タイミングを逃した…上司はもう会議室へ。早めの声かけが吉！');
+      }
+    }
+    gameTimer = requestAnimationFrame(step);
+
+    document.getElementById('g1tap').onclick = ()=>{
+      if(resolved) return;
+      resolved = true;
+      const inSafe = markerPos >= safeStart && markerPos <= safeStart+safeWidth;
+      judge(inSafe, inSafe ? '声をかけるベストなタイミングを掴んだ！' : '早すぎ or 遅すぎ…間合いは経験で掴もう');
+    };
+  }
+
+  // ---- GAME 2: keigo choice ----
+  function game2(){
+    const box = document.getElementById('sceneBox');
+    const moods = [
+      {emoji:'😤', label:'ピリピリ上司', correct:'かしこまりました、すぐ確認します', wrong:['了解でーす','あー、はい','マジすか']},
+      {emoji:'😊', label:'フランク上司', correct:'了解です、確認しますね', wrong:['かしこまりました、恐れ入ります','はっ！直ちに！','検討させていただきます']},
+    ];
+    const mood = moods[Math.floor(Math.random()*moods.length)];
+    const opts = [mood.correct, ...mood.wrong].sort(()=>Math.random()-0.5);
+
+    box.innerHTML = `
+      <div class="g2-mood">${mood.emoji}</div>
+      <div class="g2-choices" id="g2choices"></div>
+    `;
+    document.getElementById('promptFlash').textContent = '何て返す？';
+    document.getElementById('subPrompt').textContent = mood.label + ' に合う返事はどれ？';
+
+    const choicesEl = document.getElementById('g2choices');
+    let resolved = false;
+    opts.forEach(text=>{
+      const b = document.createElement('button');
+      b.className = 'choice-btn';
+      b.textContent = text;
+      b.onclick = ()=>{
+        if(resolved) return;
+        resolved = true;
+        const correct = text === mood.correct;
+        b.classList.add(correct ? 'right-flash' : 'wrong-flash');
+        setTimeout(()=>{
+          judge(correct, correct ? '空気を読んだ返し、完璧！' : '悪くはないけど、ちょっと温度感がズレたかも');
+        }, 250);
+      };
+      choicesEl.appendChild(b);
+    });
+
+    startTimerBar(5000, ()=>{
+      if(!resolved){ resolved = true; judge(false, '固まってしまった…沈黙は一番気まずい'); }
+    });
+  }
+
+  // ---- GAME 3: mash to confess ----
+  function game3(){
+    const box = document.getElementById('sceneBox');
+    box.innerHTML = `
+      <div class="g3-alert">🚨💦</div>
+      <div class="g3-meter-wrap"><div class="g3-meter" id="g3meter"></div></div>
+    `;
+    document.getElementById('promptFlash').textContent = 'やらかした！！';
+    document.getElementById('subPrompt').textContent = '「すみません、実は…」を連打で言い切れ！';
+
+    const btn = document.createElement('button');
+    btn.className = 'mash-btn';
+    btn.textContent = '報告する！';
+    btn.style.position='relative';
+    btn.style.zIndex='6';
+    box.parentElement.insertBefore(btn, box.nextSibling);
+
+    let meter = 0;
+    let resolved = false;
+    const meterEl = document.getElementById('g3meter');
+
+    btn.onclick = ()=>{
+      if(resolved) return;
+      meter = Math.min(100, meter+9);
+      meterEl.style.width = meter+'%';
+      if(meter>=100){
+        resolved = true;
+        judge(true, '被害が広がる前に報告完了！えらい！');
+      }
+    };
+
+    startTimerBar(5000, ()=>{
+      if(!resolved){
+        resolved = true;
+        judge(false, '言い出せずタイムオーバー…被害が拡大した');
+      }
+    });
+
+    game3.cleanupBtn = btn;
+  }
+
+  // ---- GAME 4: find the gap to speak ----
+  function game4(){
+    const box = document.getElementById('sceneBox');
+    box.innerHTML = `<div class="g4-wave" id="g4wave"></div><button class="tap-full" id="g4tap"></button>`;
+    document.getElementById('promptFlash').textContent = '発言、今！';
+    document.getElementById('subPrompt').textContent = '会話が途切れた"間"でタップ！';
+
+    const wave = document.getElementById('g4wave');
+    const barCount = 12;
+    const bars = [];
+    for(let i=0;i<barCount;i++){
+      const b = document.createElement('div');
+      b.className = 'g4-bar';
+      b.style.height = (20+Math.random()*60)+'px';
+      wave.appendChild(b);
+      bars.push(b);
+    }
+
+    const gapIndex = 4 + Math.floor(Math.random()*4);
+    let resolved = false;
+    let currentActive = -1;
+    let i = 0;
+    const stepMs = 320;
+
+    const interval = setInterval(()=>{
+      bars.forEach(b=>b.classList.remove('gap'));
+      if(i>=barCount){ clearInterval(interval); return; }
+      if(i===gapIndex){
+        bars[i].style.height='10px';
+        bars[i].classList.add('gap');
+        currentActive = i;
+      } else {
+        bars[i].style.height=(20+Math.random()*60)+'px';
+        currentActive = -1;
+      }
+      i++;
+    }, stepMs);
+    game4.cleanupInterval = interval;
+
+    document.getElementById('g4tap').onclick = ()=>{
+      if(resolved) return;
+      resolved = true;
+      clearInterval(interval);
+      const success = currentActive === gapIndex;
+      judge(success, success ? 'ナイスな間合いで発言できた！' : currentActive===-1 ? '会話が続いてる時に発言…かぶった！' : '惜しい！');
+    };
+
+    startTimerBar(5000, ()=>{
+      if(!resolved){
+        resolved = true;
+        clearInterval(interval);
+        judge(false, '発言できないまま議題が変わった…');
+      }
+    });
+  }
+
+  // ---- GAME 5: 進捗どうですか ----
+  function game5(){
+    const box = document.getElementById('sceneBox');
+    const pct = Math.floor(Math.random()*100);
+    let correct, wrong;
+    if(pct>=80){
+      correct='順調です！'; wrong=['少し遅れてます','えっと、まだです…'];
+    } else if(pct>=40){
+      correct='少し遅れてますが挽回します'; wrong=['順調です！','えっと、まだです…'];
+    } else {
+      correct='正直、まだです…すみません'; wrong=['順調です！','少し遅れてます'];
+    }
+    const opts = [correct, ...wrong].sort(()=>Math.random()-0.5);
+
+    box.innerHTML = `
+      <div class="g5-pct">${pct}%</div>
+      <div class="g2-choices" id="g5choices"></div>
+    `;
+    document.getElementById('promptFlash').textContent = '進捗どうですか？';
+    document.getElementById('subPrompt').textContent = '実際の進み具合に合う報告を選べ！';
+
+    const choicesEl = document.getElementById('g5choices');
+    let resolved = false;
+    opts.forEach(text=>{
+      const b = document.createElement('button');
+      b.className = 'choice-btn';
+      b.textContent = text;
+      b.onclick = ()=>{
+        if(resolved) return;
+        resolved = true;
+        const isCorrect = text === correct;
+        b.classList.add(isCorrect ? 'right-flash' : 'wrong-flash');
+        setTimeout(()=>{
+          judge(isCorrect, isCorrect ? '実態に合った報告、信頼度アップ！' : '実際とズレた報告…後で困るやつ');
+        }, 250);
+      };
+      choicesEl.appendChild(b);
+    });
+
+    startTimerBar(5000, ()=>{
+      if(!resolved){ resolved = true; judge(false, '固まって答えられなかった…'); }
+    });
+  }
+
+  // ---- GAME 6: 詰められタイム（うなずきタイミング） ----
+  function game6(){
+    const box = document.getElementById('sceneBox');
+    box.innerHTML = `<div class="g6-boss">😠 それさっきも言ったよね？</div><div class="g4-wave" id="g6wave"></div><button class="tap-full" id="g6tap"></button>`;
+    document.getElementById('promptFlash').textContent = 'うなずけ！';
+    document.getElementById('subPrompt').textContent = '説教の"息継ぎ"でうなずくボタンを押せ！';
+
+    const wave = document.getElementById('g6wave');
+    const barCount = 12;
+    const bars = [];
+    for(let i=0;i<barCount;i++){
+      const b = document.createElement('div');
+      b.className = 'g4-bar';
+      b.style.height = (30+Math.random()*55)+'px';
+      wave.appendChild(b);
+      bars.push(b);
+    }
+
+    const gapIndex = 5 + Math.floor(Math.random()*4);
+    let resolved = false;
+    let currentActive = -1;
+    let i = 0;
+    const stepMs = 280;
+
+    const interval = setInterval(()=>{
+      bars.forEach(b=>b.classList.remove('gap','g6-bar'));
+      if(i>=barCount){ clearInterval(interval); return; }
+      if(i===gapIndex){
+        bars[i].style.height='8px';
+        bars[i].classList.add('gap','g6-bar');
+        currentActive = i;
+      } else {
+        bars[i].style.height=(30+Math.random()*55)+'px';
+        currentActive = -1;
+      }
+      i++;
+    }, stepMs);
+    game6.cleanupInterval = interval;
+
+    document.getElementById('g6tap').onclick = ()=>{
+      if(resolved) return;
+      resolved = true;
+      clearInterval(interval);
+      const success = currentActive === gapIndex;
+      judge(success, success ? '絶妙なうなずき、場が和んだ！' : '間違ったタイミング…さらに長引いた');
+    };
+
+    startTimerBar(5000, ()=>{
+      if(!resolved){
+        resolved = true;
+        clearInterval(interval);
+        judge(false, 'うなずけないまま固まった…気まずい沈黙');
+      }
+    });
+  }
+
+  // ---- GAME 7: 誰のせい（早く名乗り出る） ----
+  function game7(){
+    const box = document.getElementById('sceneBox');
+    box.innerHTML = `
+      <div class="g3-alert">💥</div>
+      <div class="g7-faces">🧑‍💼🧑‍💻🧑</div>
+      <div class="g7-tension-wrap"><div class="g7-tension" id="g7tension"></div></div>
+      <button class="tap-full" id="g7tap"></button>
+    `;
+    document.getElementById('promptFlash').textContent = '誰のせい…？';
+    document.getElementById('subPrompt').textContent = '空気が悪くなる前に、自分から名乗り出ろ！';
+
+    const threshold = 1800;
+    const start = performance.now();
+    let resolved = false;
+    const tension = document.getElementById('g7tension');
+
+    function step(now){
+      const t = Math.min(1, (now-start)/5000);
+      tension.style.width = (t*100)+'%';
+      if(t<1 && !resolved){
+        gameTimer = requestAnimationFrame(step);
+      } else if(!resolved){
+        resolved = true;
+        judge(false, '誰も言い出さないまま気まずさが最大に…');
+      }
+    }
+    gameTimer = requestAnimationFrame(step);
+
+    document.getElementById('g7tap').onclick = ()=>{
+      if(resolved) return;
+      resolved = true;
+      const elapsed = performance.now()-start;
+      const success = elapsed <= threshold;
+      judge(success, success ? '先に名乗り出た、えらい！信頼につながる一言' : '出遅れた…もう犯人探しムード');
+    };
+  }
+
+  // ---- GAME 8: それな、ダメージ（フィードバック受容） ----
+  function game8(){
+    const box = document.getElementById('sceneBox');
+    box.innerHTML = `
+      <div class="g8-target">🧑</div>
+      <div class="g8-arrow" id="g8arrow">💢指摘</div>
+      <div class="g8-line">「ここ、もう少し考えてから出してくれる？」</div>
+      <div class="g8-choices">
+        <button class="g8-btn hekomu" id="g8hekomu">へこむ…</button>
+        <button class="g8-btn memo" id="g8memo">メモる！</button>
+      </div>
+    `;
+    document.getElementById('promptFlash').textContent = 'それな、ダメージ！';
+    document.getElementById('subPrompt').textContent = '指摘が届く前に「メモる」で受け止めろ！';
+
+    let resolved = false;
+    const landMs = 2400;
+
+    document.getElementById('g8memo').onclick = ()=>{
+      if(resolved) return;
+      resolved = true;
+      judge(true, '建設的に受け止めた！次に活かせる一歩');
+    };
+    document.getElementById('g8hekomu').onclick = ()=>{
+      if(resolved) return;
+      resolved = true;
+      judge(false, 'へこんでしまった…気持ちはわかるけど次に活かそう');
+    };
+
+    extraTimer = setTimeout(()=>{
+      if(!resolved){
+        resolved = true;
+        judge(false, '受け止めきれず、指摘がダメージに…');
+      }
+    }, landMs);
+
+    startTimerBar(5000, ()=>{});
+  }
+
+  const games = [game1, game2, game3, game4, game5, game6, game7, game8];
+
+  function cleanupExtras(){
+    if(game3.cleanupBtn){ game3.cleanupBtn.remove(); game3.cleanupBtn=null; }
+    if(game4.cleanupInterval){ clearInterval(game4.cleanupInterval); game4.cleanupInterval=null; }
+    if(game6.cleanupInterval){ clearInterval(game6.cleanupInterval); game6.cleanupInterval=null; }
+  }
+
+  function runCountdown(){
+    cleanupExtras();
+    renderDots(document.getElementById('dots'));
+    show('count');
+    let n = 3;
+    const el = document.getElementById('countNum');
+    el.textContent = n;
+    el.style.animation='none'; void el.offsetWidth; el.style.animation='';
+    playCountBeep(false);
+    const iv = setInterval(()=>{
+      n--;
+      if(n<=0){
+        clearInterval(iv);
+        playCountBeep(true);
+        renderDots(document.getElementById('dotsGame'));
+        show('game');
+        startGameMusic(5000);
+        games[stageIndex]();
+      } else {
+        el.textContent = n;
+        el.style.animation='none'; void el.offsetWidth; el.style.animation='';
+        playCountBeep(false);
+      }
+    }, 550);
+  }
+
+  function showResult(){
+    document.getElementById('scoreNum').innerHTML = score + '<span style="font-size:26px;">/' + TOTAL + '</span>';
+    const comments = [
+      'てんやわんや…全ステージ特訓コースへGO！',
+      'まだまだ伸びしろあり…！',
+      '半分は切り抜けた、あと一歩',
+      'なかなかの反射神経！',
+      '折り返し地点、いい調子',
+      '社会人センスの片鱗あり',
+      'かなりデキる新人認定',
+      'ほぼパーフェクト、油断は禁物',
+      '完璧！あなたはもう即戦力かも？'
+    ];
+    document.getElementById('resultComment').textContent = comments[score];
+    playResultFanfare(score/TOTAL);
+    show('result');
+  }
+
+  document.getElementById('btnStart').onclick = ()=>{
+    ensureAudio();
+    playIntroJingle();
+    score = 0; stageIndex = 0;
+    runCountdown();
+  };
+  document.getElementById('btnRetry').onclick = ()=>{
+    ensureAudio();
+    score = 0; stageIndex = 0;
+    runCountdown();
+  };
+})();
+</script>
+</body>
+</html>
