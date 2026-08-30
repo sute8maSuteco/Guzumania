@@ -1,0 +1,1123 @@
+<title>電話応対シミュレーター</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700;900&family=Noto+Sans+JP:wght@400;500;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+  :root{
+    --bg:#EDEAE1;
+    --surface:#FBFAF6;
+    --surface-alt:#F1EFE7;
+    --ink:#232620;
+    --ink-soft:#6B6F66;
+    --border:#DAD6C9;
+    --accent:#2B5C63;
+    --accent-contrast:#FFFFFF;
+    --good:#3F7D4C;
+    --good-soft:#E4EEE2;
+    --warn:#A97A1E;
+    --warn-soft:#F3EAD4;
+    --bad:#B14A3D;
+    --bad-soft:#F5E2DE;
+    --catA:#2B5C63;
+    --catA-soft:#E1EBEA;
+    --catB:#8B5E0E;
+    --catB-soft:#F0E8D6;
+    --catC:#7A3E52;
+    --catC-soft:#F0E1E6;
+    --catD:#3C5A78;
+    --catD-soft:#E2E8EE;
+    --bezel:#1B1D1B;
+    --shadow: 0 20px 50px -20px rgba(20,20,15,0.35);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#141613;
+      --surface:#1D201C;
+      --surface-alt:#262922;
+      --ink:#ECE9DF;
+      --ink-soft:#A6A99C;
+      --border:#33362E;
+      --accent:#5AA3AA;
+      --accent-contrast:#0C1514;
+      --good:#6FBF7C;
+      --good-soft:#233127;
+      --warn:#D9A94A;
+      --warn-soft:#332C1C;
+      --bad:#E1786A;
+      --bad-soft:#38221E;
+      --catA:#5AA3AA;
+      --catA-soft:#20302F;
+      --catB:#C99A4A;
+      --catB-soft:#332A18;
+      --catC:#C98CA0;
+      --catC-soft:#32222A;
+      --catD:#8FB0D6;
+      --catD-soft:#212B36;
+      --bezel:#0B0C0B;
+      --shadow: 0 20px 50px -20px rgba(0,0,0,0.6);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#141613;
+    --surface:#1D201C;
+    --surface-alt:#262922;
+    --ink:#ECE9DF;
+    --ink-soft:#A6A99C;
+    --border:#33362E;
+    --accent:#5AA3AA;
+    --accent-contrast:#0C1514;
+    --good:#6FBF7C;
+    --good-soft:#233127;
+    --warn:#D9A94A;
+    --warn-soft:#332C1C;
+    --bad:#E1786A;
+    --bad-soft:#38221E;
+    --catA:#5AA3AA;
+    --catA-soft:#20302F;
+    --catB:#C99A4A;
+    --catB-soft:#332A18;
+    --catC:#C98CA0;
+    --catC-soft:#32222A;
+    --catD:#8FB0D6;
+    --catD-soft:#212B36;
+    --bezel:#0B0C0B;
+    --shadow: 0 20px 50px -20px rgba(0,0,0,0.6);
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  html{ height:100%; }
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:"Noto Sans JP","Hiragino Kaku Gothic ProN","Hiragino Sans",Meiryo,sans-serif;
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    padding:20px 14px;
+  }
+  h1,h2,h3,.display{
+    font-family:"Zen Kaku Gothic New","Noto Sans JP",sans-serif;
+    text-wrap:balance;
+    margin:0;
+  }
+  .mono{ font-family:"JetBrains Mono", ui-monospace, monospace; font-variant-numeric:tabular-nums; }
+  button{font-family:inherit;}
+  button:focus-visible, a:focus-visible, [tabindex]:focus-visible{
+    outline:3px solid var(--accent);
+    outline-offset:2px;
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0.001ms !important;}
+  }
+
+  /* ---- device frame ---- */
+  .device{
+    width:100%;
+    max-width:460px;
+    height:min(700px, calc(100vh - 40px));
+    background:var(--bezel);
+    border-radius:38px;
+    padding:14px 10px 20px;
+    box-shadow:var(--shadow);
+    display:flex;
+    flex-direction:column;
+  }
+  .notch{
+    width:120px;
+    height:18px;
+    background:var(--bezel);
+    border-radius:0 0 14px 14px;
+    margin:0 auto;
+    position:relative;
+    flex-shrink:0;
+  }
+  .notch::after{
+    content:"";
+    position:absolute;
+    left:50%;
+    top:5px;
+    transform:translateX(-50%);
+    width:44px;
+    height:5px;
+    border-radius:3px;
+    background:#3a3d38;
+  }
+  .screen{
+    background:var(--surface);
+    border-radius:26px;
+    margin-top:10px;
+    flex:1;
+    min-height:0;
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
+    position:relative;
+  }
+  .statusbar{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:10px 20px 4px;
+    font-size:12px;
+    color:var(--ink-soft);
+    flex-shrink:0;
+  }
+  .app{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    min-height:0;
+  }
+
+  /* ---- home screen ---- */
+  .home{ padding:6px 20px 20px; overflow-y:auto; flex:1; min-height:0; }
+  .home-head{ padding:6px 2px 18px; border-bottom:1px solid var(--border); margin-bottom:16px; }
+  .eyebrow{
+    font-size:11px;
+    letter-spacing:0.12em;
+    color:var(--accent);
+    font-weight:700;
+    text-transform:uppercase;
+  }
+  .home-title{ font-size:22px; font-weight:900; margin-top:6px; line-height:1.3; }
+  .home-sub{ font-size:13px; color:var(--ink-soft); margin-top:6px; line-height:1.6; }
+  .progress-row{
+    display:flex; align-items:center; gap:10px; margin-top:14px;
+  }
+  .progress-track{
+    flex:1; height:6px; background:var(--surface-alt); border-radius:4px; overflow:hidden; border:1px solid var(--border);
+  }
+  .progress-fill{ height:100%; background:var(--accent); border-radius:4px; transition:width .4s ease; }
+  .progress-label{ font-size:12px; color:var(--ink-soft); white-space:nowrap; }
+  .manual-link{
+    margin-top:14px;
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    font-size:13px;
+    font-weight:700;
+    color:var(--accent);
+    background:var(--surface-alt);
+    border:1px solid var(--border);
+    padding:9px 14px;
+    border-radius:10px;
+    cursor:pointer;
+  }
+  .cat-block{ margin-bottom:20px; }
+  .cat-head{
+    display:flex; align-items:center; gap:8px; margin-bottom:8px;
+  }
+  .cat-dot{ width:9px;height:9px;border-radius:50%; flex-shrink:0; }
+  .cat-name{ font-size:14px; font-weight:700; }
+  .cat-desc{ font-size:12px; color:var(--ink-soft); }
+  .card-list{ display:flex; flex-direction:column; gap:8px; }
+  .scenario-card{
+    display:flex; align-items:center; gap:12px;
+    background:var(--surface-alt);
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:11px 12px;
+    cursor:pointer;
+    text-align:left;
+    width:100%;
+  }
+  .scenario-card:hover{ border-color:var(--accent); }
+  .avatar{
+    width:38px;height:38px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    font-weight:700; font-size:14px; color:var(--accent-contrast);
+    flex-shrink:0;
+  }
+  .card-body{ flex:1; min-width:0; }
+  .card-title{ font-size:13.5px; font-weight:700; }
+  .card-meta{ font-size:11.5px; color:var(--ink-soft); margin-top:2px; }
+  .card-side{ display:flex; flex-direction:column; align-items:flex-end; gap:4px; }
+  .stars{ font-size:11px; color:var(--warn); letter-spacing:1px; }
+  .best-badge{
+    font-size:10.5px; font-weight:700; color:var(--good);
+    background:var(--good-soft); padding:2px 7px; border-radius:20px;
+  }
+
+  /* ---- manual screen ---- */
+  .manual{ padding:6px 20px 24px; overflow-y:auto; flex:1; min-height:0; }
+  .back-row{ display:flex; align-items:center; gap:10px; margin-bottom:14px; }
+  .icon-btn{
+    width:32px;height:32px;border-radius:50%;
+    background:var(--surface-alt); border:1px solid var(--border);
+    display:flex;align-items:center;justify-content:center;
+    cursor:pointer; color:var(--ink); font-size:16px; flex-shrink:0;
+  }
+  .screen-title{ font-size:17px; font-weight:900; }
+  .tip-card{
+    background:var(--surface-alt); border:1px solid var(--border);
+    border-radius:14px; padding:13px 14px; margin-bottom:10px;
+  }
+  .tip-num{ font-size:11px; font-weight:700; color:var(--accent); }
+  .tip-title{ font-size:13.5px; font-weight:700; margin-top:3px; }
+  .tip-desc{ font-size:12.5px; color:var(--ink-soft); margin-top:4px; line-height:1.6; }
+
+  /* ---- call: incoming splash ---- */
+  .incoming{ flex:1; min-height:0; overflow-y:auto; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:30px; text-align:center; gap:8px; }
+  .ring-wrap{ position:relative; width:104px; height:104px; margin-bottom:10px; }
+  .ring-pulse{
+    position:absolute; inset:0; border-radius:50%;
+    border:2px solid var(--accent); opacity:0.5;
+    animation:pulse 1.6s ease-out infinite;
+  }
+  @keyframes pulse{ 0%{transform:scale(0.9); opacity:0.6;} 100%{transform:scale(1.5); opacity:0;} }
+  .incoming .avatar{ width:88px; height:88px; font-size:28px; position:relative; z-index:1; }
+  .incoming-status{ font-size:12.5px; color:var(--ink-soft); letter-spacing:0.04em; margin-top:4px;}
+  .incoming-name{ font-size:19px; font-weight:900; margin-top:12px; }
+  .incoming-company{ font-size:13px; color:var(--ink-soft); margin-top:2px; }
+  .call-actions{ display:flex; gap:26px; margin-top:34px; }
+  .call-btn{
+    width:58px;height:58px;border-radius:50%; border:none; cursor:pointer;
+    display:flex;align-items:center;justify-content:center; font-size:22px;
+    color:#fff;
+  }
+  .call-btn.accept{ background:var(--good); }
+  .call-btn.decline{ background:var(--bad); }
+  .call-btn-label{ font-size:10.5px; color:var(--ink-soft); text-align:center; margin-top:6px; }
+
+  /* ---- call: active ---- */
+  .call-top{
+    display:flex; flex-direction:column; align-items:center;
+    padding:16px 20px 12px; border-bottom:1px solid var(--border); flex-shrink:0;
+  }
+  .call-top .avatar{ width:46px;height:46px; font-size:16px; margin-bottom:6px; }
+  .call-top-name{ font-size:14.5px; font-weight:700; }
+  .call-top-meta{ font-size:11.5px; color:var(--ink-soft); margin-top:2px; }
+  .call-timer{ font-size:12px; color:var(--accent); margin-top:6px; font-weight:700; }
+
+  .transcript{ flex:1; min-height:0; overflow-y:auto; padding:16px 16px 8px; display:flex; flex-direction:column; gap:10px; }
+  .bubble-row{ display:flex; }
+  .bubble-row.you{ justify-content:flex-end; }
+  .bubble{
+    max-width:82%; padding:9px 13px; border-radius:16px; font-size:13px; line-height:1.6;
+  }
+  .bubble.caller{ background:var(--surface-alt); border:1px solid var(--border); border-bottom-left-radius:4px; }
+  .bubble.you{ background:var(--accent); color:var(--accent-contrast); border-bottom-right-radius:4px; }
+  .bubble.system-note{
+    align-self:center; background:transparent; color:var(--ink-soft);
+    font-size:11.5px; text-align:center; max-width:90%; font-style:italic;
+  }
+  .who-label{ font-size:10px; color:var(--ink-soft); margin:0 4px 2px; }
+
+  .choices-panel{
+    border-top:1px solid var(--border); padding:12px 16px 16px; flex-shrink:0;
+    background:var(--surface);
+    max-height:46vh;
+    overflow-y:auto;
+  }
+  .choices-hint{ font-size:11px; color:var(--ink-soft); margin-bottom:8px; }
+  .choice-btn{
+    display:block; width:100%; text-align:left;
+    background:var(--surface-alt); border:1px solid var(--border);
+    border-radius:12px; padding:10px 13px; margin-bottom:8px;
+    font-size:13px; line-height:1.55; color:var(--ink); cursor:pointer;
+  }
+  .choice-btn:hover{ border-color:var(--accent); }
+  .choice-btn:last-child{ margin-bottom:0; }
+
+  .memo-card{
+    background:var(--warn-soft);
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:13px 13px 14px;
+  }
+  .memo-head{ font-size:12.5px; font-weight:700; color:var(--ink); margin-bottom:2px; }
+  .memo-hint{ font-size:11px; color:var(--ink-soft); margin-bottom:10px; }
+  .memo-items{ display:flex; flex-direction:column; gap:6px; margin-bottom:12px; }
+  .memo-row{
+    display:flex; align-items:flex-start; gap:9px; width:100%; text-align:left;
+    background:var(--surface); border:1px solid var(--border); border-radius:10px;
+    padding:9px 11px; cursor:pointer;
+  }
+  .memo-check{
+    width:18px; height:18px; border-radius:5px; border:1.5px solid var(--ink-soft);
+    flex-shrink:0; display:flex; align-items:center; justify-content:center;
+    font-size:12px; font-weight:900; color:#fff; margin-top:1px;
+  }
+  .memo-check.on{ background:var(--accent); border-color:var(--accent); }
+  .memo-label{ font-size:12.5px; line-height:1.5; color:var(--ink); }
+  .memo-submit{
+    width:100%; padding:11px; border-radius:12px; border:none;
+    background:var(--accent); color:var(--accent-contrast); font-weight:700; font-size:13.5px; cursor:pointer;
+  }
+
+  .feedback-panel{ padding:4px 2px 2px; }
+  .feedback-tag{
+    display:inline-flex; align-items:center; gap:6px;
+    font-size:12px; font-weight:700; padding:4px 11px; border-radius:20px; margin-bottom:8px;
+  }
+  .feedback-tag.good{ background:var(--good-soft); color:var(--good); }
+  .feedback-tag.ok{ background:var(--warn-soft); color:var(--warn); }
+  .feedback-tag.bad{ background:var(--bad-soft); color:var(--bad); }
+  .feedback-text{ font-size:13px; line-height:1.65; color:var(--ink); margin-bottom:12px; }
+  .next-btn{
+    width:100%; padding:11px; border-radius:12px; border:none;
+    background:var(--accent); color:var(--accent-contrast); font-weight:700; font-size:13.5px; cursor:pointer;
+  }
+
+  /* ---- result ---- */
+  .result{ padding:22px 22px 26px; overflow-y:auto; flex:1; min-height:0; display:flex; flex-direction:column;}
+  .result-badge{
+    width:96px;height:96px;border-radius:50%; margin:6px auto 14px;
+    display:flex; align-items:center; justify-content:center; flex-direction:column;
+    border:3px solid var(--accent); color:var(--accent);
+  }
+  .result-badge .grade{ font-size:30px; font-weight:900; font-family:"Zen Kaku Gothic New",sans-serif; }
+  .result-score{ text-align:center; font-size:13px; color:var(--ink-soft); }
+  .result-score .mono{ font-size:15px; color:var(--ink); font-weight:700; }
+  .result-title{ text-align:center; font-size:16px; font-weight:900; margin-top:14px; }
+  .result-msg{ text-align:center; font-size:12.5px; color:var(--ink-soft); margin-top:6px; line-height:1.7;}
+  .review-list{ margin-top:20px; display:flex; flex-direction:column; gap:8px; }
+  .review-item{
+    background:var(--surface-alt); border:1px solid var(--border); border-radius:12px; padding:10px 12px;
+  }
+  .review-head{ display:flex; align-items:center; gap:8px; }
+  .review-icon{
+    width:20px;height:20px;border-radius:50%; flex-shrink:0;
+    display:flex;align-items:center;justify-content:center; font-size:11px; font-weight:900; color:#fff;
+  }
+  .review-icon.good{ background:var(--good); }
+  .review-icon.ok{ background:var(--warn); }
+  .review-icon.bad{ background:var(--bad); }
+  .review-situation{ font-size:12px; font-weight:700; }
+  .review-feedback{ font-size:11.5px; color:var(--ink-soft); margin-top:5px; line-height:1.55; padding-left:28px;}
+  .result-actions{ display:flex; flex-direction:column; gap:8px; margin-top:22px; }
+  .btn-primary{
+    padding:12px; border-radius:12px; border:none; background:var(--accent);
+    color:var(--accent-contrast); font-weight:700; font-size:13.5px; cursor:pointer;
+  }
+  .btn-secondary{
+    padding:12px; border-radius:12px; border:1px solid var(--border); background:var(--surface-alt);
+    color:var(--ink); font-weight:700; font-size:13.5px; cursor:pointer;
+  }
+</style>
+
+<div class="device">
+  <div class="notch"></div>
+  <div class="screen">
+    <div class="statusbar">
+      <span class="mono" id="clock">9:41</span>
+      <span>📶 📡 🔋</span>
+    </div>
+    <div class="app" id="app"></div>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var CATEGORIES = [
+    {id:"A", name:"基本対応", desc:"電話を受ける・取り次ぐ基本の流れ", varc:"--catA", vars:"--catA-soft"},
+    {id:"B", name:"伝言メモ", desc:"用件を正確に預かって伝える", varc:"--catB", vars:"--catB-soft"},
+    {id:"C", name:"クレーム対応", desc:"お詫びと引き継ぎの基本", varc:"--catC", vars:"--catC-soft"},
+    {id:"D", name:"保留・転送", desc:"他部署へ丁寧につなぐ", varc:"--catD", vars:"--catD-soft"}
+  ];
+
+  function T(speaker, text){ return {speaker:speaker, text:text}; }
+  function C(text, tier, feedback){
+    var pts = tier === "good" ? 10 : (tier === "ok" ? 5 : 0);
+    return {text:text, tier:tier, feedback:feedback, points:pts};
+  }
+  function MI(key, label, required, note, distractor){
+    return {key:key, label:label, required:!!required, note:note||"", distractor:!!distractor};
+  }
+
+  var SCENARIOS = [
+    {
+      id:"A1", cat:"A", difficulty:1,
+      title:"スムーズな取り次ぎ", caller:"山田 太郎", company:"福井商事",
+      turns:[
+        { situation:T("system","電話が2コール鳴っている。受話器を取り、最初のひと言。"),
+          choices:[
+            C("「はい、みらい商事株式会社でございます」", "good", "正しい第一声です。社名を名乗ることで、相手に安心して用件を話してもらえます。"),
+            C("「はい、みらい商事です」", "ok", "間違いではありませんが、「〜でございます」のほうがより丁寧な印象になります。"),
+            C("「もしもし、みらい商事です」", "bad", "「もしもし」は友人同士で使う電話言葉です。ビジネスの場面では使いません。")
+          ]},
+        { situation:T("caller","お世話になっております。福井商事の山田と申します。営業部の鈴木様はいらっしゃいますでしょうか。"),
+          choices:[
+            C("「福井商事の山田様でいらっしゃいますね。いつもお世話になっております。鈴木におつなぎいたしますので、少々お待ちくださいませ」", "good", "相手の会社名・氏名を復唱して確認し、社内の人間には敬称をつけずに取り次ぐ、正しい対応です。"),
+            C("「少々お待ちください」とだけ言ってすぐ保留にする", "ok", "取り次ぎ自体はできていますが、相手の名前を復唱しないと、聞き間違いに後で気づけません。"),
+            C("「鈴木さん、いますよ。代わりますね」", "bad", "社外の方に対して身内の鈴木に「さん」を付け、言葉遣いも社内向けになっています。")
+          ]},
+        { situation:T("system","保留にして取り次ごうとしたところ、鈴木はちょうど自席に戻ってきてすぐ出られる状態だった。"),
+          choices:[
+            C("「お待たせいたしました。ただいま鈴木に代わります」と言ってから取り次ぐ", "good", "待たせた分の一言を添えてから取り次ぐのが基本です。"),
+            C("無言のまま保留を解除して鈴木に代わる", "ok", "取り次ぎ自体は完了しますが、一言添えないと相手は「聞こえているか」不安になります。"),
+            C("特に急がず、他の作業を済ませてから取り次ぐ", "bad", "すぐ取り次げる状況なのに後回しにすると、相手を無駄に待たせてしまいます。")
+          ]},
+        { situation:T("system","用件が終わり、相手が電話を切ったのが受話器から聞こえた。"),
+          choices:[
+            C("相手が切ったのを確認してから、静かに受話器を置く", "good", "相手より先に切らないのが基本マナーです。"),
+            C("「失礼します」と言うと同時に受話器を置く", "ok", "挨拶自体は正しいのですが、相手より先に切ると、受話器を置く音が相手側に響くことがあります。"),
+            C("会話が終わった時点ですぐガチャッと切る", "bad", "相手より先に、しかも勢いよく切るのは大変失礼な印象を与えます。")
+          ]}
+      ]
+    },
+    {
+      id:"A2", cat:"A", difficulty:2,
+      title:"名前が聞き取れない時", caller:"秋野 様", company:"あおば工業",
+      turns:[
+        { situation:T("system","電話が4コール鳴ってから出ることになった。"),
+          choices:[
+            C("「お待たせいたしました。みらい商事でございます」", "good", "4回以上鳴ってから出た時は、「お待たせいたしました」を添えるのがマナーです。"),
+            C("「はい、みらい商事でございます」", "ok", "名乗り方は正しいですが、複数回鳴らせてしまった後は、ひと言お詫びを添えるとより丁寧です。"),
+            C("「もしもし?」とだけ言う", "bad", "社名を名乗っておらず、相手はどこにかけたか分からず不安になります。")
+          ]},
+        { situation:T("caller","（早口・小声で）あの、えーっと、アキ…ノと申しますが…"),
+          choices:[
+            C("「恐れ入りますが、お電話が少々遠いようでして、もう一度お名前をお伺いしてもよろしいでしょうか」", "good", "相手を責めず、こちらの聞こえの問題として丁寧に聞き返す、感じの良い言い方です。"),
+            C("「え、なんて言いました?」", "ok", "聞き返すこと自体は必要な対応ですが、言葉遣いがカジュアルすぎます。"),
+            C("聞き取れないまま「少々お待ちください」と取り次ぐ", "bad", "誤った名前・会社名で取り次ぐと、担当者にも相手にも迷惑がかかります。")
+          ]},
+        { situation:T("caller","秋野（あきの）と申します。あおば工業の秋野です。"),
+          choices:[
+            C("「あおば工業の秋野様でいらっしゃいますね。恐れ入りました、ありがとうございます」", "good", "復唱による確認と、聞き返した手間へのお詫びを両立できています。"),
+            C("「秋野様ですね、少々お待ちください」", "ok", "復唱はできていますが、お詫びの一言があるとより印象が良くなります。"),
+            C("復唱せずにすぐ保留にする", "bad", "せっかく聞き取れても確認しないままでは、聞き間違いのリスクが残ります。")
+          ]},
+        { situation:T("system","取り次ぎ先の中村は、あいにく席を外していることが分かった。"),
+          choices:[
+            C("「あいにく中村は席を外しております。15時頃には戻る予定です。折り返しご連絡いたしましょうか、それともまたおかけ直しいただけますでしょうか」", "good", "状況を説明したうえで、相手の希望を確認できています。"),
+            C("「中村はいません」とだけ伝える", "ok", "事実は伝わりますが素っ気なく、今後どうするかの案内がありません。"),
+            C("「わかりません、さあ…」と曖昧に答える", "bad", "会社としての対応が無責任な印象を与えてしまいます。")
+          ]},
+        { situation:T("caller","では折り返しをお願いします。電話番号は090-xxxx-xxxxです。"),
+          choices:[
+            C("「念のため復唱いたします。090-xxxx-xxxxでお間違いないでしょうか」", "good", "電話番号の復唱確認は、伝言・折り返しの基本です。"),
+            C("番号だけメモして復唱しない", "ok", "記録はできていますが、確認を怠ると誤発信のリスクが残ります。"),
+            C("電話番号を聞かずに「では担当から連絡させます」とだけ伝える", "bad", "折り返し先が分からなければ、そもそも連絡ができません。")
+          ]}
+      ]
+    },
+    {
+      id:"B1", cat:"B", difficulty:1,
+      title:"外出中の担当者への伝言", caller:"木村 様", company:"ひまわりフーズ",
+      turns:[
+        { situation:T("system","電話が2コールで鳴っている。"),
+          choices:[
+            C("「はい、みらい商事でございます」", "good", "落ち着いたトーンでの正しい第一声です。"),
+            C("「はい」とだけ言う", "ok", "応答はできていますが、社名がなく、相手はかけ先が合っているか不安になります。"),
+            C("出るまで長く放置し、無言で受話器を上げる", "bad", "第一声がないと、相手は無言電話だと誤解しかねません。")
+          ]},
+        { situation:T("caller","ひまわりフーズの木村と申します。営業の田中様はいらっしゃいますか。"),
+          choices:[
+            C("「田中はただいま外出しており、17時頃に戻る予定でございます。戻り次第、折り返しご連絡させましょうか」", "good", "不在の状況を説明したうえで、次のアクションを提案できています。"),
+            C("「田中は外出中です」とだけ答える", "ok", "事実は伝わりますが、その先の案内がなく相手に判断を委ねてしまっています。"),
+            C("「さあ、いつ戻るか分かりません」", "bad", "社内の予定を把握していない、無責任な印象を与えます。")
+          ]},
+        { situation:T("caller","では、戻られたらお電話いただけますか。急ぎの件なので。"),
+          type:"memo",
+          memoHint:"伝言メモに記録する項目にチェックを入れてください（複数選択可）。",
+          items:[
+            MI("date","受電日時", true, "いつ電話があったかが分からないと、担当者が状況を把握できません。"),
+            MI("company","相手の会社名（ひまわりフーズ）", true, "会社名がないと、誰からの用件か分かりません。"),
+            MI("name","相手の氏名（木村様）", true, "氏名がないと、担当者が折り返す相手を特定できません。"),
+            MI("to","宛先（田中）", true, "誰宛ての伝言かを書かないと、他の人には伝わりません。"),
+            MI("content","用件（急ぎ戻り次第連絡がほしい旨）", true, "用件の内容がないと、電話があったことしか伝わりません。"),
+            MI("phone","電話番号", true, "電話番号がないと、折り返しの連絡ができません。"),
+            MI("chat","電話口での世間話の内容", false, "", true)
+          ]},
+        { situation:T("system","電話を切った直後、まずすべきことは？"),
+          choices:[
+            C("伝言メモをすぐに書き起こし、田中の机に置き、周りの人にも一声かける", "good", "確実に伝わるよう、メモと声かけの二重の工夫をしています。"),
+            C("記憶を頼りに、後でまとめて口頭で伝えようと思う", "ok", "記憶だけに頼ると忘れるリスクがあり、正式なメモに残すべきです。"),
+            C("特に何もせず、自分の仕事に戻る", "bad", "このままでは伝言が担当者に届かない可能性が高いです。")
+          ]}
+      ]
+    },
+    {
+      id:"B2", cat:"B", difficulty:2,
+      title:"至急の用件を預かる", caller:"佐々木 様", company:"取引先 情報システム部",
+      turns:[
+        { situation:T("system","電話が3コールで鳴っている。"),
+          choices:[
+            C("「はい、みらい商事でございます」", "good", "落ち着いた正しい第一声です。"),
+            C("「みらい商事の者です」", "ok", "誤りではありませんが、代表電話では社名をはっきり名乗る言い方のほうが伝わりやすいです。"),
+            C("いきなり「はい」とだけ言う", "bad", "社名がなく、相手はかけ先が合っているか不安になります。")
+          ]},
+        { situation:T("caller","（焦った様子で）大変申し訳ございません、緊急のご連絡です。情報システム部の佐々木と申します。システムに障害が発生していて、高橋部長に至急ご連絡したいのですが。"),
+          choices:[
+            C("「かしこまりました、大変な状況とお察しいたします。高橋はただいま席を外しておりますので、至急探して折り返させていただきます。差し支えなければ、少し状況を伺えますでしょうか」", "good", "緊急性を受け止めたうえで、状況把握と迅速な対応の姿勢を示せています。"),
+            C("「高橋部長は今いません。戻ったら伝えます」", "ok", "事実は伝えていますが、緊急事態への配慮が伝わりません。"),
+            C("「私にはわかりませんので、また後でおかけ直しください」", "bad", "緊急対応を放棄しており、大きなトラブルにつながりかねません。")
+          ]},
+        { situation:T("caller","基幹システムが完全に止まってしまっています。"),
+          type:"memo",
+          memoHint:"緊急の伝言メモです。記録する項目にチェックを入れてください（複数選択可）。",
+          items:[
+            MI("urgent","「至急」であることが分かる表示", true, "緊急案件は一目で分かるように表示しないと、対応が後回しにされてしまいます。"),
+            MI("time","受電日時", true, "いつからの障害か分からないと、状況の深刻さが伝わりません。"),
+            MI("who","相手の会社名・氏名（情報システム部 佐々木様）", true, "誰からの緊急連絡かが分からないと、折り返す際に困ります。"),
+            MI("to","宛先（高橋部長）", true, "誰宛ての緊急連絡かを明記しないと、他の人には伝わりません。"),
+            MI("content","起きている内容（基幹システムの停止）", true, "何が起きているかが分からないと、担当者が優先度を判断できません。"),
+            MI("phone","折り返し先の電話番号", true, "電話番号がないと、至急の折り返しができません。"),
+            MI("tone","電話口での相手の口調の詳細", false, "", true)
+          ]},
+        { situation:T("system","高橋部長を探しに行く前に、佐々木様へひと言かけるとしたら。"),
+          choices:[
+            C("「かしこまりました。至急高橋を探し、折り返しお電話させます。5分ほどお時間をいただけますでしょうか」と目安の時間を伝える", "good", "見通しを伝えることで、相手の不安を和らげることができます。"),
+            C("「わかりました、では」とだけ言って切る", "ok", "対応自体はしていますが、相手を安心させる一言が足りません。"),
+            C("何も言わずに保留にしたまま高橋部長を探しに行く", "bad", "相手を無言のまま放置することになり、不適切な対応です。")
+          ]}
+      ]
+    },
+    {
+      id:"C1", cat:"C", difficulty:2,
+      title:"商品不良のお申し出", caller:"田村 様", company:"個人のお客様",
+      turns:[
+        { situation:T("system","お客様サポート宛の電話が鳴っている。"),
+          choices:[
+            C("「はい、みらい商事お客様サポートでございます」", "good", "部署名まで名乗ることで、相手は正しい窓口につながったと安心できます。"),
+            C("「はい、みらい商事でございます」", "ok", "誤りではありませんが、部署名がないと相談窓口だと伝わりにくいことがあります。"),
+            C("「もしもし」とだけ言う", "bad", "ビジネスの場で「もしもし」は使いません。相手の不信感を招きます。")
+          ]},
+        { situation:T("caller","（怒った様子で）そちらで買った掃除機、1週間で壊れました！どうなってるんですか！"),
+          choices:[
+            C("「この度はご不便・ご迷惑をおかけし、誠に申し訳ございません。まず状況を詳しくお伺いしてもよろしいでしょうか」", "good", "まずお詫びをしてから事実確認へ移る、クレーム対応の基本の流れです。"),
+            C("すぐに「原因は何でしょうか?」と聞く（お詫びなし）", "ok", "事実確認は必要ですが、先にお詫びの言葉がないと相手の怒りが収まりにくくなります。"),
+            C("「それは製品の使い方の問題ではないですか?」と返す", "bad", "事実確認より先に相手を疑う発言は、クレーム対応で絶対に避けるべきです。")
+          ]},
+        { situation:T("caller","電源を入れると異音がして、そのまま止まってしまうんです。"),
+          choices:[
+            C("内容を復唱し、「大変ご迷惑をおかけしております。担当部署に確認のうえ、折り返しご連絡させていただいてもよろしいでしょうか」と伝える", "good", "自己判断で答えず、内容を正確に共有した上で引き継ぐ、適切な対応です。"),
+            C("「私には分かりかねますので、他の者に代わります」とだけ言ってすぐ保留にする", "ok", "引き継ぐ判断自体は正しいのですが、内容を復唱せずに回すと、お客様が最初から説明し直すことになります。"),
+            C("「その程度なら修理店に持ち込んでもらえますか」と自己判断で回答する", "bad", "権限のない自己判断での回答は絶対に避けるべき対応です。")
+          ]},
+        { situation:T("system","担当部署へ折り返す約束をする場面。"),
+          choices:[
+            C("折り返しの目安時間・担当者名・連絡先を明確に伝える", "good", "見通しを具体的に示すことで、相手の信頼につながります。"),
+            C("「追って連絡します」とだけ伝える", "ok", "曖昧で、いつ・誰から連絡が来るか分からず、不安が残ります。"),
+            C("何も約束せず電話を終える", "bad", "不誠実な印象を与え、クレームがさらに大きくなるおそれがあります。")
+          ]},
+        { situation:T("system","一通りのやり取りが終わり、電話を切る場面。"),
+          choices:[
+            C("改めてお詫びを伝え、相手が切るのを待ってから受話器を置く", "good", "最後まで丁寧な姿勢を貫く、クレーム対応の締めくくりとして適切です。"),
+            C("「失礼します」とだけ言ってすぐ切る", "ok", "挨拶はありますが、クレーム対応の締めとしては、もう一段の丁寧さが欲しいところです。"),
+            C("お詫びの言葉なく、事務的に切る", "bad", "最後まで誠意が伝わらず、悪い印象を残してしまいます。")
+          ]}
+      ]
+    },
+    {
+      id:"C2", cat:"C", difficulty:3,
+      title:"配送遅延のお申し出", caller:"伊藤 様", company:"取引先 総務担当",
+      turns:[
+        { situation:T("system","法人のお客様から電話が入った。"),
+          choices:[
+            C("「はい、みらい商事でございます。お世話になっております」", "good", "取引先への応答として、感じの良い第一声です。"),
+            C("「はい、みらい商事です」", "ok", "誤りではありませんが、取引先向けにはもう一段丁寧な言い回しが好ましいです。"),
+            C("無言で受話器を上げる", "bad", "第一声がなく、相手を戸惑わせてしまいます。")
+          ]},
+        { situation:T("caller","先週注文した備品がまだ届いていません。今日中に必要なのですが、どうなっていますか。"),
+          choices:[
+            C("「ご不便をおかけし申し訳ございません。すぐに配送状況を確認いたしますので、少々お時間をいただけますでしょうか」", "good", "まずお詫びをしたうえで、確認へ進む適切な流れです。"),
+            C("「確認しますので少々お待ちください」（お詫びなし）", "ok", "確認の姿勢は良いのですが、お詫びの一言がないと冷たい印象になります。"),
+            C("「配送会社の問題だと思います」とすぐ他責にする", "bad", "原因を確認する前に責任転嫁するのは不適切な対応です。")
+          ]},
+        { situation:T("system","確認したところ、配送遅延の原因は自社倉庫側のミスと判明した。"),
+          choices:[
+            C("「お調べしましたところ、弊社倉庫側の手配ミスにより発送が遅れておりました。誠に申し訳ございません。本日中に最短でお届けできるよう手配いたします」", "good", "原因の説明・お詫び・善後策の提示がそろった、模範的な対応です。"),
+            C("「発送が遅れていたようです。すみません」", "ok", "お詫びはありますが、原因や今後の対応が不明確なままです。"),
+            C("「配送業者に聞いてください」とたらい回しにする", "bad", "自社の原因であるにもかかわらず責任を回避する発言はNGです。")
+          ]},
+        { situation:T("system","調整の結果、今日中の納品はやはり難しいと分かった。"),
+          choices:[
+            C("「大変申し訳ございませんが、本日中のお届けは難しい状況です。担当より至急ご連絡し、代替案をご提案させていただきます」と正直に伝える", "good", "難しい状況を誠実に伝え、代替案の用意を約束する、信頼を保つ対応です。"),
+            C("「頑張ります」とだけ答え、できるかどうか曖昧にする", "ok", "誠実さは感じられますが、具体性がなく相手の不安が残ります。"),
+            C("難しいと分かっていても「大丈夫です、届きます」と根拠なく約束する", "bad", "守れない約束をすることは、信頼を大きく損なう最も避けるべき対応です。")
+          ]}
+      ]
+    },
+    {
+      id:"D1", cat:"D", difficulty:2,
+      title:"他部署への取り次ぎ", caller:"問い合わせ 様", company:"備品発注の件",
+      turns:[
+        { situation:T("system","代表電話が鳴っている。"),
+          choices:[
+            C("「はい、みらい商事でございます」", "good", "代表電話への正しい第一声です。"),
+            C("「はい、営業部です」", "ok", "内線であれば問題ありませんが、代表電話の場合は必ず社名を名乗ります。"),
+            C("「もしもし」", "bad", "ビジネスの場で「もしもし」は使いません。")
+          ]},
+        { situation:T("caller","総務部の方はいらっしゃいますか。備品の注文について伺いたく。（実際には誤って営業部に着信していた）"),
+          choices:[
+            C("「恐れ入りますが、こちらは営業部でございます。総務部にお繋ぎいたしますので、少々お待ちくださいませ」", "good", "自部署の名乗りと、これから何をするかを丁寧に案内できています。"),
+            C("何も説明せず無言で転送する", "ok", "転送自体はできますが、状況を伝えないと相手が不安になります。"),
+            C("「ここ営業部なんですけど」とぶっきらぼうに答える", "bad", "不親切で、会社全体の印象を損なう対応です。")
+          ]},
+        { situation:T("system","総務部の内線に取り次ぐ場面。"),
+          choices:[
+            C("保留にしてから内線発信し、「総務部宛のお電話です、備品注文の件で」と要件を伝えてからつなぐ", "good", "要件を事前に共有することで、相手が同じ説明を繰り返さずに済みます。"),
+            C("要件を伝えずに「電話代わってください」とだけ言ってつなぐ", "ok", "取り次ぎはできますが、相手が最初から説明し直す手間が生じます。"),
+            C("転送に失敗して電話が切れてしまったが、そのまま何もしない", "bad", "切れてしまった場合は、こちらから折り返すのがマナーです。")
+          ]},
+        { situation:T("system","総務部の誰も電話に出ない。"),
+          choices:[
+            C("保留を解除して電話に戻り、「大変申し訳ございません、ただいま総務部の担当者が席を外しているようです。折り返しご連絡させてもよろしいでしょうか」と説明する", "good", "状況を正直に伝え、次の対応を提案できています。"),
+            C("何も言わずに繋がるまでずっと保留にし続ける", "ok", "相手を長時間待たせることになり、状況説明が必要です。"),
+            C("繋がらないまま自分から電話を切ってしまう", "bad", "相手を置き去りにする、最も避けるべき対応です。")
+          ]}
+      ]
+    },
+    {
+      id:"D2", cat:"D", difficulty:3,
+      title:"転送できず伝言に切り替える", caller:"契約者 様", company:"個人のお客様",
+      turns:[
+        { situation:T("system","電話が少し長めに鳴ってから出ることになった。"),
+          choices:[
+            C("「お待たせいたしました、みらい商事でございます」", "good", "待たせた分の一言を添えた、丁寧な第一声です。"),
+            C("「みらい商事でございます」", "ok", "名乗り方は正しいのですが、待たせたことへの一言があるとより丁寧です。"),
+            C("「もしもし、はい」", "bad", "ビジネスの場では「もしもし」は使いません。")
+          ]},
+        { situation:T("caller","契約の件で斎藤様とお話ししたいのですが。"),
+          choices:[
+            C("「あいにく斎藤は本日終日外出しておりまして、お電話に出ることができません。よろしければご用件を承り、斎藤より折り返しご連絡させていただきますが、いかがでしょうか」", "good", "状況を説明したうえで、代わりの対応を提案できています。"),
+            C("「今日はいません」とだけ答える", "ok", "事実だけを伝えて終わっており、その先の案内がありません。"),
+            C("「わかりません、また今度かけてください」", "bad", "会社としての対応が投げやりで、大変失礼な印象を与えます。")
+          ]},
+        { situation:T("caller","では伝言をお願いします。契約更新の件で、今週中に返事が欲しいと伝えてください。"),
+          type:"memo",
+          memoHint:"伝言メモに記録する項目にチェックを入れてください（複数選択可）。",
+          items:[
+            MI("date","受電日時", true, "いつ電話があったかが分からないと、期限までの残り時間が読めません。"),
+            MI("name","相手の氏名", true, "氏名がないと、誰との契約の件か分からなくなります。"),
+            MI("to","宛先（斎藤）", true, "誰宛ての伝言かを書かないと、他の人には伝わりません。"),
+            MI("content","用件（契約更新の件）", true, "何の用件かが分からないと、担当者が調べる手がかりがありません。"),
+            MI("deadline","期限（今週中に返事がほしい旨）", true, "期限が抜けると、対応が後回しにされ、間に合わなくなるおそれがあります。"),
+            MI("phone","折り返し先の電話番号", true, "電話番号がないと、期限までに折り返せません。"),
+            MI("amount","契約金額についての世間話", false, "", true)
+          ]},
+        { situation:T("system","斎藤は夕方まで戻らない予定。伝言メモをどう扱うべきか。"),
+          choices:[
+            C("メモをすぐに斎藤の机に置き、さらにチャットやメールでも「至急確認をお願いします」と一報を入れる", "good", "紙のメモとデジタルの連絡を組み合わせ、確実に伝える工夫ができています。"),
+            C("メモを机に置くだけで済ませる", "ok", "基本はできていますが、期限のある案件は追加の一報があるとより安心です。"),
+            C("忙しさに紛れてメモを渡し忘れる", "bad", "伝言が伝わらず、お客様との信頼を大きく損なう最悪のケースです。")
+          ]}
+      ]
+    }
+  ];
+
+  var TIPS = [
+    {title:"3コール以内に出る", desc:"3コール以上鳴ってしまったら、出るときに「お待たせいたしました」とひと言添えます。"},
+    {title:"第一声は社名から", desc:"「はい、〇〇株式会社でございます」が基本。「もしもし」は友人同士の言葉なので、ビジネスでは使いません。"},
+    {title:"社名・氏名は復唱して確認", desc:"聞き取れなかった時は「恐れ入りますが、もう一度お名前をお伺いしてもよろしいでしょうか」と、自分の聞こえの問題として丁寧に聞き返します。"},
+    {title:"保留は30秒が目安", desc:"「少々お待ちくださいませ」と伝えて保留にし、長引く場合は一度電話に戻って状況を伝えます。"},
+    {title:"待たせたら必ずひと言", desc:"保留や取り次ぎの後は「お待たせいたしました」を忘れずに伝えます。"},
+    {title:"不在時は状況+提案", desc:"戻り時間を伝えたうえで、「折り返しましょうか、それともおかけ直しいただけますか」と相手の希望を確認します。"},
+    {title:"伝言は5W1Hで復唱", desc:"いつ・誰から・誰宛て・用件・折り返しの要否・電話番号を、正確に復唱して確認します。"},
+    {title:"クレームはお詫び→傾聴→引き継ぎ", desc:"まず謝罪し、相手の話を最後まで遮らずに聞きます。自己判断で回答せず、担当者や上長に正確に引き継ぎます。"},
+    {title:"電話は相手が切ってから", desc:"通話が終わったら、相手が切ったのを確認してから静かに受話器を置きます。自分から先には切りません。"},
+    {title:"声のトーンはワントーン高く", desc:"普段の会話より少し高めの声で、口角を上げて話すと、電話越しでも感じの良い印象になります。"}
+  ];
+
+  /* ---------------- storage ---------------- */
+  var STORE_KEY = "phone-sim-progress-v1";
+  function loadProgress(){
+    try{
+      var raw = localStorage.getItem(STORE_KEY);
+      return raw ? JSON.parse(raw) : {};
+    }catch(e){ return {}; }
+  }
+  function saveProgress(p){
+    try{ localStorage.setItem(STORE_KEY, JSON.stringify(p)); }catch(e){}
+  }
+
+  /* ---------------- state ---------------- */
+  var state = {
+    screen:"home",
+    scenarioId:null,
+    phase:"idle",
+    turnIndex:0,
+    currentChoices:null,
+    memoSelected:{},
+    transcript:[],
+    review:[],
+    score:0,
+    maxScore:0,
+    seconds:0,
+    timerHandle:null
+  };
+  var progress = loadProgress();
+
+  function shuffle(arr){
+    var a = arr.slice();
+    for(var i=a.length-1;i>0;i--){
+      var j = Math.floor(Math.random()*(i+1));
+      var t=a[i]; a[i]=a[j]; a[j]=t;
+    }
+    return a;
+  }
+  function catInfo(id){
+    for(var i=0;i<CATEGORIES.length;i++){ if(CATEGORIES[i].id===id) return CATEGORIES[i]; }
+    return CATEGORIES[0];
+  }
+  function scenarioById(id){
+    for(var i=0;i<SCENARIOS.length;i++){ if(SCENARIOS[i].id===id) return SCENARIOS[i]; }
+    return null;
+  }
+  function escapeHtml(s){
+    return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+  }
+  function tierLabel(tier){
+    return tier==="good" ? "とても良い対応です" : (tier==="ok" ? "OKですが、改善の余地があります" : "見直しが必要です");
+  }
+  function tierIcon(tier){
+    return tier==="good" ? "◎" : (tier==="ok" ? "○" : "✕");
+  }
+  function generateMemoFeedback(items, selected){
+    var missing = items.filter(function(i){ return i.required && !selected[i.key]; });
+    var extra = items.filter(function(i){ return i.distractor && selected[i.key]; });
+    var tier, feedback;
+    if(missing.length === 0 && extra.length === 0){
+      tier = "good";
+      feedback = "必要な項目をすべて正確に記録できています。この内容なら担当者もすぐに状況を把握できます。";
+    } else if(missing.length === 0 && extra.length > 0){
+      tier = "ok";
+      feedback = "必要な項目はきちんと記録できています。ただし「"+extra.map(function(i){return i.label;}).join("」「")+"」は伝言メモには不要です。要点を絞ってまとめましょう。";
+    } else if(missing.length === 1 && extra.length === 0){
+      tier = "ok";
+      feedback = "ほぼ記録できていますが、"+missing[0].note;
+    } else {
+      tier = "bad";
+      feedback = "重要な項目が抜けています。"+missing.map(function(i){return i.note;}).join(" ");
+    }
+    var pts = tier==="good" ? 10 : (tier==="ok" ? 5 : 0);
+    return {tier:tier, feedback:feedback, points:pts};
+  }
+
+  var app = document.getElementById("app");
+
+  function render(){
+    if(state.screen==="home") renderHome();
+    else if(state.screen==="manual") renderManual();
+    else if(state.screen==="call") renderCall();
+    else if(state.screen==="result") renderResult();
+  }
+
+  /* ---------------- HOME ---------------- */
+  function renderHome(){
+    stopTimer();
+    var completed = 0;
+    SCENARIOS.forEach(function(s){ if(progress[s.id]) completed++; });
+    var pct = Math.round(completed/SCENARIOS.length*100);
+
+    var html = '';
+    html += '<div class="home">';
+    html += '<div class="home-head">';
+    html += '<div class="eyebrow">新人研修プログラム</div>';
+    html += '<h1 class="home-title">電話応対シミュレーター</h1>';
+    html += '<p class="home-sub">よくある電話対応の場面を選んで、選択肢に答えるだけで学べます。実際に声を出す必要はありません。</p>';
+    html += '<div class="progress-row"><div class="progress-track"><div class="progress-fill" style="width:'+pct+'%"></div></div><div class="progress-label mono">'+completed+' / '+SCENARIOS.length+'</div></div>';
+    html += '<button class="manual-link" data-action="open-manual">📘 電話対応マナー帳を見る</button>';
+    html += '</div>';
+
+    CATEGORIES.forEach(function(cat){
+      var list = SCENARIOS.filter(function(s){ return s.cat===cat.id; });
+      html += '<div class="cat-block">';
+      html += '<div class="cat-head"><span class="cat-dot" style="background:var('+cat.varc+')"></span><span class="cat-name">'+cat.name+'</span></div>';
+      html += '<div class="cat-desc" style="margin-bottom:8px;">'+cat.desc+'</div>';
+      html += '<div class="card-list">';
+      list.forEach(function(s){
+        var stars = "★".repeat(s.difficulty) + "☆".repeat(3-s.difficulty);
+        var best = progress[s.id];
+        html += '<button class="scenario-card" data-action="open-scenario" data-id="'+s.id+'">';
+        html += '<span class="avatar" style="background:var('+cat.varc+')">'+escapeHtml(s.caller.slice(0,1))+'</span>';
+        html += '<span class="card-body"><span class="card-title">'+escapeHtml(s.title)+'</span><br><span class="card-meta">'+escapeHtml(s.caller)+'・'+escapeHtml(s.company)+'</span></span>';
+        html += '<span class="card-side"><span class="stars">'+stars+'</span>' + (best ? '<span class="best-badge">ベスト '+best.pct+'%</span>' : '') + '</span>';
+        html += '</button>';
+      });
+      html += '</div></div>';
+    });
+
+    html += '</div>';
+    app.innerHTML = html;
+  }
+
+  /* ---------------- MANUAL ---------------- */
+  function renderManual(){
+    stopTimer();
+    var html = '<div class="manual">';
+    html += '<div class="back-row"><button class="icon-btn" data-action="go-home">←</button><span class="screen-title">電話対応マナー帳</span></div>';
+    TIPS.forEach(function(tip, i){
+      html += '<div class="tip-card"><div class="tip-num">POINT '+(i+1)+'</div><div class="tip-title">'+escapeHtml(tip.title)+'</div><div class="tip-desc">'+escapeHtml(tip.desc)+'</div></div>';
+    });
+    html += '</div>';
+    app.innerHTML = html;
+  }
+
+  /* ---------------- CALL ---------------- */
+  function openScenario(id){
+    var sc = scenarioById(id);
+    if(!sc) return;
+    state.screen = "call";
+    state.scenarioId = id;
+    state.phase = "idle";
+    state.turnIndex = 0;
+    state.currentChoices = null;
+    state.memoSelected = {};
+    state.transcript = [];
+    state.review = [];
+    state.score = 0;
+    state.maxScore = sc.turns.length * 10;
+    state.seconds = 0;
+    render();
+  }
+
+  function startTimer(){
+    stopTimer();
+    state.timerHandle = setInterval(function(){
+      state.seconds++;
+      var el = document.getElementById("call-timer");
+      if(el) el.textContent = formatTime(state.seconds);
+    }, 1000);
+  }
+  function stopTimer(){
+    if(state.timerHandle){ clearInterval(state.timerHandle); state.timerHandle=null; }
+  }
+  function formatTime(sec){
+    var m = Math.floor(sec/60), s = sec%60;
+    return (m<10?"0":"")+m+":"+(s<10?"0":"")+s;
+  }
+
+  function renderCall(){
+    var sc = scenarioById(state.scenarioId);
+    var cat = catInfo(sc.cat);
+
+    if(state.phase === "idle"){
+      var html = '<div class="incoming">';
+      html += '<div class="ring-wrap"><div class="ring-pulse"></div><span class="avatar" style="background:var('+cat.varc+')">'+escapeHtml(sc.caller.slice(0,1))+'</span></div>';
+      html += '<div class="incoming-status">着信中…</div>';
+      html += '<div class="incoming-name">'+escapeHtml(sc.caller)+'</div>';
+      html += '<div class="incoming-company">'+escapeHtml(sc.company)+'</div>';
+      html += '<div class="call-actions">';
+      html += '<div><button class="call-btn decline" data-action="go-home">✕</button><div class="call-btn-label">戻る</div></div>';
+      html += '<div><button class="call-btn accept" data-action="accept-call">📞</button><div class="call-btn-label">応答</div></div>';
+      html += '</div></div>';
+      app.innerHTML = html;
+      return;
+    }
+
+    var turn = sc.turns[state.turnIndex];
+    var html2 = '';
+    html2 += '<div class="call-top">';
+    html2 += '<span class="avatar" style="background:var('+cat.varc+')">'+escapeHtml(sc.caller.slice(0,1))+'</span>';
+    html2 += '<div class="call-top-name">'+escapeHtml(sc.caller)+'</div>';
+    html2 += '<div class="call-top-meta">'+escapeHtml(sc.company)+' ・ 通話中</div>';
+    html2 += '<div class="call-timer mono" id="call-timer">'+formatTime(state.seconds)+'</div>';
+    html2 += '</div>';
+
+    html2 += '<div class="transcript" id="transcript">';
+    state.transcript.forEach(function(item){
+      if(item.speaker === "system"){
+        html2 += '<div class="bubble-row"><div class="bubble system-note">'+escapeHtml(item.text)+'</div></div>';
+      } else if(item.speaker === "caller"){
+        html2 += '<div><div class="who-label">'+escapeHtml(sc.caller)+'</div><div class="bubble-row"><div class="bubble caller">'+escapeHtml(item.text)+'</div></div></div>';
+      } else {
+        html2 += '<div><div class="who-label" style="text-align:right;">あなた</div><div class="bubble-row you"><div class="bubble you">'+escapeHtml(item.text)+'</div></div></div>';
+      }
+    });
+    html2 += '</div>';
+
+    html2 += '<div class="choices-panel">';
+    if(state.phase === "active" && turn.type === "memo"){
+      html2 += '<div class="memo-card">';
+      html2 += '<div class="memo-head">📝 伝言メモ</div>';
+      html2 += '<div class="memo-hint">'+escapeHtml(turn.memoHint || "記録する項目にチェックを入れてください。")+'</div>';
+      html2 += '<div class="memo-items">';
+      turn.items.forEach(function(item){
+        var checked = !!state.memoSelected[item.key];
+        html2 += '<button class="memo-row" data-action="toggle-memo" data-key="'+item.key+'" aria-pressed="'+(checked?"true":"false")+'">';
+        html2 += '<span class="memo-check'+(checked?' on':'')+'">'+(checked?"✓":"")+'</span>';
+        html2 += '<span class="memo-label">'+escapeHtml(item.label)+'</span>';
+        html2 += '</button>';
+      });
+      html2 += '</div>';
+      html2 += '<button class="memo-submit" data-action="submit-memo">この内容で記録する</button>';
+      html2 += '</div>';
+    } else if(state.phase === "active"){
+      html2 += '<div class="choices-hint">どう応対しますか？</div>';
+      state.currentChoices.forEach(function(choice, idx){
+        html2 += '<button class="choice-btn" data-action="pick-choice" data-idx="'+idx+'">'+escapeHtml(choice.text)+'</button>';
+      });
+    } else if(state.phase === "feedback"){
+      var last = state.review[state.review.length-1];
+      html2 += '<div class="feedback-panel">';
+      html2 += '<span class="feedback-tag '+last.tier+'">'+tierIcon(last.tier)+' '+tierLabel(last.tier)+'</span>';
+      html2 += '<div class="feedback-text">'+escapeHtml(last.feedback)+'</div>';
+      var isLast = state.turnIndex >= sc.turns.length - 1;
+      html2 += '<button class="next-btn" data-action="next-turn">'+(isLast ? "通話を終える" : "次へ")+'</button>';
+      html2 += '</div>';
+    }
+    html2 += '</div>';
+
+    app.innerHTML = html2;
+    var tEl = document.getElementById("transcript");
+    if(tEl) tEl.scrollTop = tEl.scrollHeight;
+  }
+
+  function acceptCall(){
+    var sc = scenarioById(state.scenarioId);
+    state.phase = "active";
+    state.turnIndex = 0;
+    state.memoSelected = {};
+    pushTurnSituation(sc, 0);
+    if(sc.turns[0].type !== "memo"){
+      state.currentChoices = shuffle(sc.turns[0].choices);
+    }
+    startTimer();
+    render();
+  }
+
+  function toggleMemo(key){
+    state.memoSelected[key] = !state.memoSelected[key];
+    render();
+  }
+
+  function submitMemo(){
+    var sc = scenarioById(state.scenarioId);
+    var turn = sc.turns[state.turnIndex];
+    var result = generateMemoFeedback(turn.items, state.memoSelected);
+    var chosenLabels = turn.items.filter(function(i){ return state.memoSelected[i.key]; }).map(function(i){ return i.label; });
+    var summaryText = chosenLabels.length ? "【メモに記録】" + chosenLabels.join("、") : "【メモに記録】(何も記録しなかった)";
+    state.transcript.push({speaker:"you", text:summaryText});
+    state.score += result.points;
+    state.review.push({
+      situation: turn.situation.text,
+      chosen: summaryText,
+      tier: result.tier,
+      feedback: result.feedback
+    });
+    state.phase = "feedback";
+    render();
+  }
+
+  function pushTurnSituation(sc, idx){
+    var turn = sc.turns[idx];
+    state.transcript.push({speaker: turn.situation.speaker, text: turn.situation.text});
+  }
+
+  function pickChoice(idx){
+    var sc = scenarioById(state.scenarioId);
+    var choice = state.currentChoices[idx];
+    state.transcript.push({speaker:"you", text:choice.text});
+    state.score += choice.points;
+    state.review.push({
+      situation: sc.turns[state.turnIndex].situation.text,
+      chosen: choice.text,
+      tier: choice.tier,
+      feedback: choice.feedback
+    });
+    state.phase = "feedback";
+    render();
+  }
+
+  function nextTurn(){
+    var sc = scenarioById(state.scenarioId);
+    if(state.turnIndex >= sc.turns.length - 1){
+      finishScenario();
+      return;
+    }
+    state.turnIndex++;
+    state.memoSelected = {};
+    pushTurnSituation(sc, state.turnIndex);
+    var nextT = sc.turns[state.turnIndex];
+    if(nextT.type !== "memo"){
+      state.currentChoices = shuffle(nextT.choices);
+    }
+    state.phase = "active";
+    render();
+  }
+
+  function finishScenario(){
+    stopTimer();
+    var pct = Math.round(state.score / state.maxScore * 100);
+    progress[state.scenarioId] = progress[state.scenarioId] && progress[state.scenarioId].pct > pct
+      ? progress[state.scenarioId]
+      : {pct: pct};
+    saveProgress(progress);
+    state.screen = "result";
+    render();
+  }
+
+  /* ---------------- RESULT ---------------- */
+  function renderResult(){
+    var sc = scenarioById(state.scenarioId);
+    var pct = Math.round(state.score / state.maxScore * 100);
+    var grade = pct >= 90 ? "S" : pct >= 75 ? "A" : pct >= 55 ? "B" : "C";
+    var msg = pct >= 90 ? "完璧に近い対応です。この調子で他のシナリオにも挑戦しましょう。"
+      : pct >= 75 ? "良い対応ができています。改善点を振り返って、さらに磨きましょう。"
+      : pct >= 55 ? "基本はできています。△や✕がついた場面をもう一度見直してみましょう。"
+      : "焦らず大丈夫です。下の振り返りを読んで、もう一度挑戦してみましょう。";
+
+    var html = '<div class="result">';
+    html += '<div class="result-badge"><span class="grade">'+grade+'</span></div>';
+    html += '<div class="result-score">スコア <span class="mono">'+state.score+' / '+state.maxScore+'</span>（'+pct+'%）</div>';
+    html += '<div class="result-title">'+escapeHtml(sc.title)+'・通話終了</div>';
+    html += '<div class="result-msg">'+msg+'</div>';
+
+    html += '<div class="review-list">';
+    state.review.forEach(function(r, i){
+      html += '<div class="review-item">';
+      html += '<div class="review-head"><span class="review-icon '+r.tier+'">'+tierIcon(r.tier)+'</span><span class="review-situation">Q'+(i+1)+'. '+escapeHtml(truncate(r.situation, 34))+'</span></div>';
+      html += '<div class="review-feedback">'+escapeHtml(r.feedback)+'</div>';
+      html += '</div>';
+    });
+    html += '</div>';
+
+    html += '<div class="result-actions">';
+    html += '<button class="btn-primary" data-action="retry-scenario">もう一度この場面に挑戦する</button>';
+    html += '<button class="btn-secondary" data-action="open-manual">マナー帳を振り返る</button>';
+    html += '<button class="btn-secondary" data-action="go-home">シナリオ一覧に戻る</button>';
+    html += '</div>';
+    html += '</div>';
+    app.innerHTML = html;
+  }
+
+  function truncate(s, n){
+    return s.length > n ? s.slice(0,n) + "…" : s;
+  }
+
+  /* ---------------- events ---------------- */
+  app.addEventListener("click", function(e){
+    var btn = e.target.closest("[data-action]");
+    if(!btn) return;
+    var action = btn.getAttribute("data-action");
+    if(action === "open-scenario"){
+      openScenario(btn.getAttribute("data-id"));
+    } else if(action === "open-manual"){
+      state.screen = "manual";
+      render();
+    } else if(action === "go-home"){
+      state.screen = "home";
+      render();
+    } else if(action === "accept-call"){
+      acceptCall();
+    } else if(action === "pick-choice"){
+      pickChoice(parseInt(btn.getAttribute("data-idx"), 10));
+    } else if(action === "toggle-memo"){
+      toggleMemo(btn.getAttribute("data-key"));
+    } else if(action === "submit-memo"){
+      submitMemo();
+    } else if(action === "next-turn"){
+      nextTurn();
+    } else if(action === "retry-scenario"){
+      openScenario(state.scenarioId);
+    }
+  });
+
+  /* clock (cosmetic) */
+  function updateClock(){
+    var now = new Date();
+    var h = now.getHours(), m = now.getMinutes();
+    var el = document.getElementById("clock");
+    if(el) el.textContent = h + ":" + (m<10?"0":"")+m;
+  }
+  updateClock();
+  setInterval(updateClock, 30000);
+
+  render();
+})();
+</script>
