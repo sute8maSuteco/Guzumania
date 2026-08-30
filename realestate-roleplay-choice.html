@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>不動産賃貸営業ロープレ（選択式）AI連携無し 簡易版</title>
+<style>
+  :root{
+    --bg:#f5f3ee;
+    --card:#ffffff;
+    --ink:#2b2b28;
+    --sub:#6b6b64;
+    --accent:#1f6f5c;
+    --accent-dark:#154f42;
+    --accent-soft:#e4efe9;
+    --line:#e3e0d6;
+    --good:#1f6f5c;
+    --neutral:#c98a2e;
+    --poor:#c0503c;
+    --radius:14px;
+    --shadow:0 2px 10px rgba(0,0,0,0.06);
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0;padding:0;height:100%;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:"Hiragino Sans","Hiragino Kaku Gothic ProN",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    -webkit-tap-highlight-color:transparent;
+    overscroll-behavior:none;
+  }
+  #app{
+    height:100vh;height:100dvh;
+    display:flex;flex-direction:column;
+    max-width:520px;margin:0 auto;
+    background:var(--bg);position:relative;overflow:hidden;
+  }
+  .screen{flex:1;display:none;flex-direction:column;overflow-y:auto;padding:16px 16px 20px;}
+  .screen.active{display:flex;}
+
+  h1{font-size:19px;margin:0 0 6px;}
+  h2{font-size:16px;margin:0 0 10px;}
+  .tagline{font-size:12.5px;color:var(--sub);margin:0 0 16px;line-height:1.65;}
+
+  .card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px;margin-bottom:12px;border:1px solid var(--line);}
+
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:6px;
+    background:var(--accent);color:#fff;border:none;padding:12px 18px;border-radius:12px;
+    font-size:14.5px;font-weight:600;cursor:pointer;width:100%;
+  }
+  .btn:active{opacity:.8;}
+  .btn.secondary{background:var(--card);color:var(--accent);border:1px solid var(--accent);}
+  .btn.ghost{background:transparent;color:var(--sub);border:1px solid var(--line);}
+  .btn:disabled{opacity:.4;cursor:not-allowed;}
+
+  .cust-grid{display:flex;flex-direction:column;gap:10px;}
+  .cust-card{
+    background:var(--card);border-radius:var(--radius);border:1.5px solid var(--line);
+    padding:12px;display:flex;gap:12px;cursor:pointer;box-shadow:var(--shadow);
+  }
+  .cust-avatar{width:52px;height:52px;border-radius:50%;background:#eee8d8;display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;}
+  .cust-body{flex:1;min-width:0;}
+  .cust-name{font-size:14.5px;font-weight:700;margin-bottom:2px;}
+  .cust-meta{font-size:11.5px;color:var(--sub);margin-bottom:4px;}
+  .cust-desc{font-size:12px;line-height:1.5;}
+  .cust-tags{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px;}
+  .tag{font-size:10.5px;background:#eef0e6;color:var(--accent-dark);padding:2px 7px;border-radius:20px;font-weight:600;}
+
+  /* CHAT */
+  #chatScreen{padding:0;}
+  .chat-header{padding:10px 14px;background:var(--card);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px;flex-shrink:0;}
+  .chat-header .cust-avatar{width:38px;height:38px;font-size:19px;}
+  .chat-header-info{flex:1;min-width:0;}
+  .chat-header-name{font-size:13.5px;font-weight:700;}
+  .chat-header-sub{font-size:10.5px;color:var(--sub);}
+  .icon-btn{background:none;border:none;color:var(--sub);font-size:16px;cursor:pointer;padding:4px 8px;}
+
+  .stage-bar{display:flex;padding:8px 12px;gap:4px;background:var(--card);border-bottom:1px solid var(--line);flex-shrink:0;}
+  .stage-step{flex:1;text-align:center;font-size:9.5px;color:var(--sub);padding:5px 2px;border-radius:8px;background:#f0efe9;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .stage-step.done{background:var(--accent-soft);color:var(--accent-dark);}
+  .stage-step.current{background:var(--accent);color:#fff;}
+
+  .chat-body{flex:1;overflow-y:auto;padding:14px 12px;display:flex;flex-direction:column;gap:10px;}
+  .msg{max-width:85%;padding:9px 12px;border-radius:14px;font-size:13.5px;line-height:1.55;white-space:pre-wrap;}
+  .msg.customer{align-self:flex-start;background:#fff;border:1px solid var(--line);border-bottom-left-radius:4px;}
+  .msg.sales{align-self:flex-end;background:var(--accent);color:#fff;border-bottom-right-radius:4px;}
+  .msg-name{font-size:10px;color:var(--sub);margin-bottom:2px;font-weight:600;}
+  .msg.sales .msg-name{color:rgba(255,255,255,0.75);text-align:right;}
+
+  .feedback-chip{
+    align-self:flex-end;max-width:85%;font-size:12px;line-height:1.55;
+    padding:8px 12px;border-radius:12px;border-left:4px solid var(--sub);background:#fbfaf7;
+  }
+  .feedback-chip.good{border-left-color:var(--good);}
+  .feedback-chip.neutral{border-left-color:var(--neutral);}
+  .feedback-chip.poor{border-left-color:var(--poor);}
+  .feedback-chip .fc-title{font-weight:700;font-size:11.5px;margin-bottom:3px;}
+  .feedback-chip.good .fc-title{color:var(--good);}
+  .feedback-chip.neutral .fc-title{color:var(--neutral);}
+  .feedback-chip.poor .fc-title{color:var(--poor);}
+
+  .chat-footer{flex-shrink:0;padding:10px 12px calc(10px + env(safe-area-inset-bottom));background:var(--card);border-top:1px solid var(--line);}
+  .choice-label{font-size:11.5px;color:var(--sub);font-weight:600;margin-bottom:6px;}
+  .choice-btn{
+    display:block;width:100%;text-align:left;background:#fbfaf7;border:1.5px solid var(--line);
+    border-radius:12px;padding:10px 12px;font-size:13px;line-height:1.5;margin-bottom:7px;cursor:pointer;color:var(--ink);
+  }
+  .choice-btn:active{background:var(--accent-soft);border-color:var(--accent);}
+  .choice-btn:disabled{opacity:.5;}
+  .next-btn-wrap{padding-top:2px;}
+
+  /* RESULT */
+  .score-hero{background:linear-gradient(135deg,var(--accent),var(--accent-dark));color:#fff;border-radius:var(--radius);padding:20px;text-align:center;margin-bottom:14px;}
+  .score-num{font-size:42px;font-weight:800;line-height:1;}
+  .score-label{font-size:12px;opacity:.85;margin-top:4px;}
+  .fb-section{margin-bottom:14px;}
+  .fb-section h3{font-size:13.5px;margin:0 0 8px;}
+  .result-row{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:8px;}
+  .result-row .rr-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;}
+  .rr-stage{font-size:12.5px;font-weight:700;}
+  .rr-badge{font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;}
+  .rr-badge.good{background:var(--accent-soft);color:var(--good);}
+  .rr-badge.neutral{background:#faf1de;color:var(--neutral);}
+  .rr-badge.poor{background:#fbe7e3;color:var(--poor);}
+  .rr-text{font-size:12px;color:var(--ink);line-height:1.55;}
+  .rr-chosen{font-size:11.5px;color:var(--sub);margin:4px 0;font-style:normal;}
+
+  ::-webkit-scrollbar{width:0;height:0;}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- SCREEN 1: TITLE -->
+  <div class="screen active" id="titleScreen">
+    <h1>🏠 不動産賃貸営業ロープレ（選択式）AI連携無し 簡易版</h1>
+    <p class="tagline">AI連携なしで動く練習ツールです。お客様のセリフに対して、営業担当の返答を3択から選んでください。英会話アプリの構文問題のように、より良い受け答えを選ぶ練習ができます。</p>
+    <div class="card">
+      <div style="font-size:13px;line-height:1.8;">
+        ✅ 各お客様につき5つの場面（アプローチ→ヒアリング→物件提案→内見調整→クロージング）<br>
+        ✅ 選択肢ごとに即フィードバック付き<br>
+        ✅ APIキー・通信不要、そのままローカルで動作
+      </div>
+    </div>
+    <p class="hint" style="font-size:11px;color:var(--sub);line-height:1.6;margin:-4px 0 14px;">
+      ※本ツールは営業トークの練習用シミュレーションです。登場する人物・物件・条件はすべて架空のものであり、実際の契約条件や法令上の取り扱い等を保証するものではありません。
+    </p>
+    <button class="btn" id="toSelectBtn">お客様を選ぶ →</button>
+  </div>
+
+  <!-- SCREEN 2: CUSTOMER SELECT -->
+  <div class="screen" id="selectScreen">
+    <h1>お客様を選んでください</h1>
+    <p class="tagline">タイプの異なる6組の入居希望者。それぞれ話し方や気にするポイントが異なります。</p>
+    <div class="cust-grid" id="custGrid"></div>
+  </div>
+
+  <!-- SCREEN 3: CHAT (choice-based) -->
+  <div class="screen" id="chatScreen">
+    <div class="chat-header">
+      <div class="cust-avatar" id="chatAvatar">🙂</div>
+      <div class="chat-header-info">
+        <div class="chat-header-name" id="chatCustName">お客様</div>
+        <div class="chat-header-sub" id="chatCustSub"></div>
+      </div>
+      <button class="icon-btn" id="restartBtn" title="最初からやり直す">🔄</button>
+    </div>
+    <div class="stage-bar" id="stageBar"></div>
+    <div class="chat-body" id="chatBody"></div>
+    <div class="chat-footer" id="chatFooter"></div>
+  </div>
+
+  <!-- SCREEN 4: RESULT -->
+  <div class="screen" id="resultScreen">
+    <h1>📋 結果</h1>
+    <div class="score-hero">
+      <div class="score-num" id="totalScore">--</div>
+      <div class="score-label" id="scoreLabel">/ 50点</div>
+    </div>
+    <div class="fb-section">
+      <h3>場面ごとの振り返り</h3>
+      <div id="resultDetail"></div>
+    </div>
+    <button class="btn" id="retryBtn">同じお客様でもう一度</button>
+    <button class="btn secondary" style="margin-top:8px;" id="newCustomerBtn">別のお客様を選ぶ</button>
+    <p class="hint" style="font-size:11px;color:var(--sub);line-height:1.6;margin-top:14px;text-align:center;">
+      ※本ツールは営業トークの練習用シミュレーションです。実際の契約条件等を保証するものではありません。
+    </p>
+  </div>
+
+</div>
+
+<script>
+/* =========================================================
+   REAL ESTATE RENTAL ROLEPLAY - CHOICE-BASED (NO AI)
+   Same customer-selection structure as the AI version,
+   but fully scripted branching dialogue with 3-choice
+   response selection at each of 5 sales stages.
+========================================================= */
+
+const STAGE_LABELS = ["アプローチ","ヒアリング","物件提案","内見調整","クロージング"];
+
+const CUSTOMERS = [
+{
+  id:"yamada", name:"山田 健太さん", avatar:"🧑", meta:"25歳・新社会人・独身",
+  desc:"今春就職したばかり。初めての一人暮らしで何もかも手探り。予算をとても気にする。",
+  tags:["初めての一人暮らし","予算重視","駅近希望"],
+  dialogue:[
+    { customer:"あの、看板を見て入ってきたんですけど…実は今日が初めてで、何をどう聞けばいいのか全然分からなくて…",
+      options:[
+        {text:"初めてで不安になりますよね、大丈夫ですよ。まずは簡単なことからゆっくりお伺いしますね。", tier:"good", score:10, feedback:"不安な気持ちを受け止めて安心感を与えられています。第一声として理想的な対応です。"},
+        {text:"では、ご希望の条件を教えてください。", tier:"neutral", score:6, feedback:"間違いではありませんが、事務的すぎて不安な気持ちに寄り添えていません。"},
+        {text:"皆さん最初はそうですよ。とりあえず予算を教えてください。", tier:"poor", score:2, feedback:"相手の不安を軽く扱っているように聞こえ、警戒心を強めてしまう恐れがあります。"}
+      ]},
+    { customer:"家賃はできるだけ抑えたいんですけど、親からオートロックは必須って言われてて…あと来月末までに引っ越したいんです。",
+      options:[
+        {text:"承知しました。オートロック必須、来月末までのご入居ですね。ご予算の上限はどのくらいまで見ておられますか？", tier:"good", score:10, feedback:"条件を復唱して確認しつつ、次に必要な予算情報を的確に引き出せています。"},
+        {text:"分かりました。他に何かご希望はありますか？", tier:"neutral", score:6, feedback:"悪くはありませんが、肝心の予算金額を具体的に確認できておらず、後の提案精度が下がります。"},
+        {text:"オートロックがあると家賃が上がりますが大丈夫ですか？", tier:"poor", score:2, feedback:"予算も聞かないうちに否定的な情報をぶつけており、相手を萎縮させかねません。"}
+      ]},
+    { customer:"オートロックもついてて、駅から8分なんですね…でも初期費用ってどのくらいかかるんでしょうか、実はそこが一番不安で…",
+      options:[
+        {text:"いいところに気づかれましたね。実は初期費用が想定以上になるケースは多いので、内訳を一緒に確認しましょう。", tier:"good", score:10, feedback:"相手の隠れた不安（初期費用）に共感的に向き合えており、信頼構築の絶好の対応です。"},
+        {text:"だいたい家賃の4〜5ヶ月分が目安ですね。", tier:"neutral", score:6, feedback:"情報自体は正しいですが、不安な気持ちへの共感が抜けており事務的な印象です。"},
+        {text:"そこは契約時にご説明しますので、まずは内見しましょう。", tier:"poor", score:2, feedback:"本音の不安をはぐらかす形になり、不信感につながる恐れがあります。"}
+      ]},
+    { customer:"内見、行きたいんですけど、平日は仕事で夜しか時間が取れなくて…",
+      options:[
+        {text:"夜のご案内も可能ですので、今週いつがご都合よろしいか候補を2〜3日教えてください。", tier:"good", score:10, feedback:"相手の制約に柔軟に対応し、日程調整を具体的に前進させられています。"},
+        {text:"そうですか、では土日はいかがですか？", tier:"neutral", score:6, feedback:"代案は出せていますが、「平日は夜しか無理」という相手の言葉を汲み取れていません。"},
+        {text:"夜は難しいので、なんとか都合をつけていただけますか。", tier:"poor", score:2, feedback:"相手の制約を軽視し、負担を強いる印象を与えてしまいます。"}
+      ]},
+    { customer:"初めての一人暮らしで契約とか正直まだよく分かってないんですけど…この部屋、決めてしまって大丈夫でしょうか。",
+      options:[
+        {text:"焦って決める必要はありません。気になる点があれば遠慮なく聞いてください。一緒に確認してから決めましょう。", tier:"good", score:10, feedback:"即決を迫らず、相手の理解と納得を最優先にした模範的なクロージングです。"},
+        {text:"いい物件なので早めに決めた方がいいと思いますよ。", tier:"neutral", score:6, feedback:"間違いではありませんが、不安を抱えた相手にはやや急かす印象を与えます。"},
+        {text:"今日決めていただければ初期費用を割引できます。", tier:"poor", score:2, feedback:"不安な顧客を価格で即決に誘導しており、望ましい対応とは言えません。"}
+      ]}
+  ]
+},
+{
+  id:"sato", name:"佐藤 大輔さん・美咲さん", avatar:"👫", meta:"20代後半・同棲予定カップル",
+  desc:"結婚を見据えて同棲を計画中の二人。二人でお店を訪れ、意見が分かれることもある。",
+  tags:["同棲","二人暮らし","収納重視"],
+  dialogue:[
+    { customer:"こんにちは。実は同棲を考えていて、二人で来たんですけど、こういうのって普通どこから話を進めればいいんでしょうか？",
+      options:[
+        {text:"お二人でいらしていただき安心です。まずはそれぞれのご希望を伺いながら、一緒に条件を整理していきましょう。", tier:"good", score:10, feedback:"お二人の存在を尊重し、双方の意見を拾う姿勢を最初に示せています。"},
+        {text:"承知しました。ご予算はおいくらですか？", tier:"neutral", score:6, feedback:"進行としては自然ですが、お二人それぞれへの配慮がまだ見えません。"},
+        {text:"お二人の意見が合わないと大変ですよね、まとまってから来てください。", tier:"poor", score:2, feedback:"来店したばかりの二人を突き放すような発言で、信頼を損ないます。"}
+      ]},
+    { customer:"（美咲さん）浴室乾燥機は絶対欲しいんですけど…（大輔さん）家賃はできれば抑えたいかな。",
+      options:[
+        {text:"お二人それぞれ大事にしたいポイントがあるんですね。浴室乾燥機を条件に入れつつ、ご予算内で収まるプランを一緒に探しましょう。", tier:"good", score:10, feedback:"双方の希望を両方拾い、対立ではなく統合する提案姿勢が示せています。"},
+        {text:"分かりました、じゃあ浴室乾燥機がある物件を探しますね。", tier:"neutral", score:6, feedback:"美咲さんの希望のみ拾っており、大輔さんの家賃への配慮が抜けています。"},
+        {text:"設備を増やすと家賃も上がるので、優先順位を決めてください。", tier:"poor", score:2, feedback:"間違いではありませんが、お二人に決断を丸投げする言い方でサポートに欠けます。"}
+      ]},
+    { customer:"1LDKで浴室乾燥機もついてる…でも二人の職場からだと少し遠いかも。",
+      options:[
+        {text:"確かに少し距離がありますね。もう少し中間エリアで、設備条件に近い物件も合わせてご覧いただけますか。", tier:"good", score:10, feedback:"懸念点を認めた上で代替案を提示しており、誠実な対応です。"},
+        {text:"駅からは少し歩きますが、部屋は広いですよ。", tier:"neutral", score:6, feedback:"フォローにはなっていますが、通勤という核心の懸念に直接応えていません。"},
+        {text:"多少の距離は仕方ないと思いますよ。", tier:"poor", score:2, feedback:"懸念を軽視する発言で、顧客の納得感を得づらくなります。"}
+      ]},
+    { customer:"内見、平日は二人とも仕事なので、休日に合わせたいんですけど。",
+      options:[
+        {text:"承知しました。お二人そろって来られる休日で候補を2つ3つ挙げていただけますか。", tier:"good", score:10, feedback:"お二人一緒の来店を前提に、具体的な日程調整に進められています。"},
+        {text:"休日は混みやすいので早めに決めていただけますか。", tier:"neutral", score:6, feedback:"急かすニュアンスが先に立ち、要望への直接的な回答になっていません。"},
+        {text:"では大輔さんだけ先に見てきてもらえますか。", tier:"poor", score:2, feedback:"「二人で決めたい」という前提を崩す提案で、望ましくありません。"}
+      ]},
+    { customer:"私たち、まだ意見が完全に一致してないんですけど、この物件で決めてもいいのかな…",
+      options:[
+        {text:"無理にまとめる必要はありません。もう一度お二人でじっくり話す時間を作っていただいて大丈夫ですよ。", tier:"good", score:10, feedback:"二人の意思決定プロセスを尊重した、信頼される対応です。"},
+        {text:"いい物件なのでお早めにご判断いただけると助かります。", tier:"neutral", score:6, feedback:"営業都合が先に立っており、意見が割れている状況への配慮が不足しています。"},
+        {text:"美咲さんの希望は満たしているので、大丈夫だと思いますよ。", tier:"poor", score:2, feedback:"片方の意見だけを根拠に決断を促しており、公平さに欠けます。"}
+      ]}
+  ]
+},
+{
+  id:"suzuki", name:"鈴木 由美さん", avatar:"👩‍👧", meta:"30代・お子様(6歳)のいるファミリー",
+  desc:"小学校入学を控え、学区と治安を最重視して物件を探している母親。",
+  tags:["ファミリー","学区重視","広さ重視"],
+  dialogue:[
+    { customer:"こんにちは。来年子供が小学校に上がるので、学区内で探しているんですが。",
+      options:[
+        {text:"承知しました。学区は絶対条件ですね。まず対象の小学校区を教えていただけますか。", tier:"good", score:10, feedback:"最重要条件をすぐに正確に把握しようとしており、的確な入り方です。"},
+        {text:"分かりました、ご希望の条件を伺いますね。", tier:"neutral", score:6, feedback:"間違いではありませんが、学区という最重要ポイントへの反応が薄いです。"},
+        {text:"学区にこだわりすぎると物件が少なくなりますよ。", tier:"poor", score:2, feedback:"最重要視している条件をいきなり否定的に扱っており、不信感につながります。"}
+      ]},
+    { customer:"治安がいいところがいいんです。あと、夫は転勤が多くてあまり相談できていなくて…",
+      options:[
+        {text:"お一人で決めるのは心細いですよね。治安面のデータも一緒に確認しながら、安心して選べるようサポートしますね。", tier:"good", score:10, feedback:"言葉にされた不安に共感し、具体的なサポートを約束できています。"},
+        {text:"分かりました、治安のいいエリアを探しますね。", tier:"neutral", score:6, feedback:"要望には応えていますが、一人で判断する不安への言及がありません。"},
+        {text:"旦那様のご意見も聞いてから来ていただいた方がいいかもしれません。", tier:"poor", score:2, feedback:"今まさに相談してくれている顧客を突き放す発言で、逆効果です。"}
+      ]},
+    { customer:"学区内で2LDK…子供部屋も取れそうですね。ただ、実際どのくらい安全なエリアか気になります。",
+      options:[
+        {text:"そのお気持ち、当然だと思います。周辺の交番の有無や地域の防犯情報も一緒に確認しましょう。", tier:"good", score:10, feedback:"懸念に対して具体的な確認手段を提示できており、説得力があります。"},
+        {text:"この辺りは落ち着いた住宅街ですよ。", tier:"neutral", score:6, feedback:"印象論にとどまっており、客観的な根拠を求める顧客には物足りません。"},
+        {text:"そこまで気にされる方は少ないですよ。", tier:"poor", score:2, feedback:"顧客固有の懸念を一般化して軽視しており、不快感を与えかねません。"}
+      ]},
+    { customer:"内見、できれば子供が学校にいる平日の昼間がいいです。",
+      options:[
+        {text:"承知しました。平日昼間で候補日をいくつか挙げていただけますか。", tier:"good", score:10, feedback:"要望をそのまま受け止め、具体的な調整に進められています。"},
+        {text:"平日は空いているのでいつでも大丈夫ですよ。", tier:"neutral", score:6, feedback:"回答としては可ですが、候補日を出す一歩を踏み込めていません。"},
+        {text:"お子様も一緒に見た方が安心すると思いますよ。", tier:"poor", score:2, feedback:"顧客が明確に希望した「子供が学校の間」という条件と矛盾する提案です。"}
+      ]},
+    { customer:"夫にちゃんと相談してから決めたいんですけど、それでもいいですか。",
+      options:[
+        {text:"もちろんです。ご主人とご相談いただく時間を大切にしてください。必要な資料はすぐにお渡しします。", tier:"good", score:10, feedback:"意思決定の時間を尊重しつつ、実務的なサポートも添えられています。"},
+        {text:"入学式までに時間がないので、なるべく早めにお願いします。", tier:"neutral", score:6, feedback:"事実の共有としては妥当ですが、相談したい気持ちへの配慮が先にあるべきです。"},
+        {text:"由美様が決めれば大丈夫だと思いますよ。", tier:"poor", score:2, feedback:"夫婦で相談したいという意向を軽視する発言です。"}
+      ]}
+  ]
+},
+{
+  id:"tanaka", name:"田中 誠一さん", avatar:"👨‍💼", meta:"42歳・単身赴任のビジネスマン",
+  desc:"会社都合の急な転勤。忙しく、物件探しに割ける時間が少ない。スピード重視。",
+  tags:["単身赴任","短期契約","スピード重視"],
+  dialogue:[
+    { customer:"急な転勤で時間がないんです。結論から言うと、2週間後には入居したいんですが可能ですか。",
+      options:[
+        {text:"承知しました。時間が限られていますので、要点を絞って効率よく進めますね。まず会社の住宅補助の上限額を教えていただけますか。", tier:"good", score:10, feedback:"相手のスピード重視のニーズを汲み取り、即座に要点を絞れています。"},
+        {text:"分かりました、頑張って探しますね。", tier:"neutral", score:6, feedback:"前向きですが、具体的にどう進めるかが見えず、せっかちな相手には物足りません。"},
+        {text:"2週間は結構タイトなので難しいかもしれません。", tier:"poor", score:2, feedback:"いきなり否定的な反応をしており、急いでいる顧客の不安をあおります。"}
+      ]},
+    { customer:"予算は補助内の9万円まで、単身用で十分です。",
+      options:[
+        {text:"承知しました。9万円以内、単身用ですね。最短で入居できる物件を優先してすぐに候補をお出しします。", tier:"good", score:10, feedback:"条件を復唱しつつ、相手が最も重視する「速さ」を前面に出せています。"},
+        {text:"分かりました、探してみますね。", tier:"neutral", score:6, feedback:"悪くはありませんが、スピード感が伝わらず物足りない印象です。"},
+        {text:"9万円だとあまり選択肢は多くないかもしれません。", tier:"poor", score:2, feedback:"急いでいる相手に不安要素を先出しする必要はなく、逆効果です。"}
+      ]},
+    { customer:"この物件、駅からも近いし条件に合ってますね。決めていいと思います。",
+      options:[
+        {text:"ありがとうございます。では入居に必要な書類を今すぐご案内しますので、このまま進めましょう。", tier:"good", score:10, feedback:"相手の即決意向を汲み取り、間を置かず次のアクションに移せています。"},
+        {text:"ありがとうございます、少しお時間をいただいて手続きを進めますね。", tier:"neutral", score:6, feedback:"丁寧ですが、スピード重視の相手には「今すぐ」の一言が欲しいところです。"},
+        {text:"もう少し他の物件も見てから決めた方がいいかもしれません。", tier:"poor", score:2, feedback:"即決したい相手の意向を無視しており、時間を無駄にする対応です。"}
+      ]},
+    { customer:"内見の時間、あまり取れないんですけど。",
+      options:[
+        {text:"承知しました。移動時間を考慮して、最短で1件に絞ってご案内できるよう調整します。", tier:"good", score:10, feedback:"相手の制約に対して具体的な効率化案を即座に示せています。"},
+        {text:"では空いている時間に合わせますね。", tier:"neutral", score:6, feedback:"対応自体は良いですが、効率化の工夫がもう一歩欲しいところです。"},
+        {text:"せっかくなので3件くらい見て回りましょう。", tier:"poor", score:2, feedback:"「時間が取れない」という発言と矛盾しており、相手の状況を無視しています。"}
+      ]},
+    { customer:"書類さえ揃えば今日中に決めたいです。",
+      options:[
+        {text:"承知しました。今すぐ必要書類をご案内し、最短で契約手続きを進めます。", tier:"good", score:10, feedback:"相手の要望通りのスピード対応ができており、信頼を得られます。"},
+        {text:"承知しました、少しお時間をいただきますね。", tier:"neutral", score:6, feedback:"「今日中に」という明確な要望に対してやや曖昧な返答です。"},
+        {text:"今日中は難しいので明日以降になります。", tier:"poor", score:2, feedback:"相手の最優先事項であるスピードに応えられておらず、不満につながります。"}
+      ]}
+  ]
+},
+{
+  id:"takahashi", name:"高橋 麻衣さん", avatar:"🐱", meta:"31歳・ペットと暮らす独身女性",
+  desc:"愛猫と暮らせる物件を探しているが、ペット可物件が少なく妥協点を探っている。",
+  tags:["ペット可希望","独身","こだわり強め"],
+  dialogue:[
+    { customer:"こんにちは。猫と暮らせる物件を探しているんですが、ペット可物件って少ないですよね。",
+      options:[
+        {text:"はい、少ないからこそしっかり探しましょう。猫ちゃんの種類や頭数など、詳しく伺ってもよろしいですか。", tier:"good", score:10, feedback:"難しさを認めつつ前向きに、必要な情報をすぐに深掘りできています。"},
+        {text:"そうですね、条件を教えてください。", tier:"neutral", score:6, feedback:"進行としては可ですが、共感の一言が抜けています。"},
+        {text:"ペット可は家賃が高くなりがちですが大丈夫ですか。", tier:"poor", score:2, feedback:"出会って早々にネガティブな条件を提示しており、印象を悪くします。"}
+      ]},
+    { customer:"以前ペット可物件に住んでいて、退去時に高額な原状回復費用を請求されたことがあって…契約内容が心配です。",
+      options:[
+        {text:"それは不安になりますよね。今回は契約書のペット関連条項を事前にしっかり確認して、同じことが起きないようにしましょう。", tier:"good", score:10, feedback:"過去のつらい経験に共感し、再発防止の具体策を示せています。信頼獲得のポイントです。"},
+        {text:"分かりました、確認しておきますね。", tier:"neutral", score:6, feedback:"対応はしていますが、過去の経験への共感が不足しています。"},
+        {text:"物件によって違うので、契約時に確認してください。", tier:"poor", score:2, feedback:"顧客が抱える不安を自己対応に委ねており、無責任な印象を与えます。"}
+      ]},
+    { customer:"1LDKでキャットウォークも設置できそうな壁がある…いいですね。",
+      options:[
+        {text:"気に入っていただけて良かったです。飼育頭数の制限や退去時の原状回復についても、この物件の規定を一緒に確認しましょう。", tier:"good", score:10, feedback:"良い反応の中でも、顧客が特に気にしている条項の確認を忘れず提案できています。"},
+        {text:"はい、猫を飼っている方にも人気の物件です。", tier:"neutral", score:6, feedback:"共感的な返答ですが、契約条項への配慮に一歩踏み込めていません。"},
+        {text:"細かい規定は契約のときに読んでおいてください。", tier:"poor", score:2, feedback:"顧客が最も気にしている点を先送りにしており、不安を残したままです。"}
+      ]},
+    { customer:"内見はいつでも大丈夫です、在宅ワークなので。",
+      options:[
+        {text:"ありがとうございます。では管理会社にペットに関する規定も確認した上で、日程をご案内しますね。", tier:"good", score:10, feedback:"日程調整のついでに、顧客の懸念事項の確認まで一歩先回りできています。"},
+        {text:"では今週で調整しましょう。", tier:"neutral", score:6, feedback:"日程調整としては妥当ですが、ペット関連の確認への言及がありません。"},
+        {text:"特にこだわりがないなら早めに決めてしまいましょう。", tier:"poor", score:2, feedback:"顧客の慎重な性格や懸念を無視して急かしており、逆効果です。"}
+      ]},
+    { customer:"契約書のペット条項、ちゃんと確認できてから決めたいです。",
+      options:[
+        {text:"もちろんです。ペット関連の条項を一つずつ一緒に確認してから、ご納得の上でお決めください。", tier:"good", score:10, feedback:"顧客の慎重な姿勢を全面的に尊重した、模範的なクロージング対応です。"},
+        {text:"分かりました、確認できたらご連絡ください。", tier:"neutral", score:6, feedback:"対応としては問題ありませんが、一緒に確認する姿勢を示せるとより良いです。"},
+        {text:"そこまで細かく気にする方は少ないですよ。", tier:"poor", score:2, feedback:"顧客が最も重視している慎重さを軽視しており、不信感を招きます。"}
+      ]}
+  ]
+},
+{
+  id:"ito", name:"伊藤 正夫さん・和子さん", avatar:"👴", meta:"60代・住み替えを検討するシニア夫婦",
+  desc:"戸建てからマンション賃貸への住み替えを検討中。バリアフリーと静けさを重視。",
+  tags:["シニア","バリアフリー","住み替え"],
+  dialogue:[
+    { customer:"こんにちは。歳も歳なので、若い方に軽くあしらわれないか少し心配していたんですが…",
+      options:[
+        {text:"とんでもございません。じっくり時間をかけて、ご納得いただけるまで丁寧にご案内させていただきます。", tier:"good", score:10, feedback:"率直に打ち明けられた不安をきちんと受け止め、安心感を与える対応です。"},
+        {text:"そんなことはないので安心してください。", tier:"neutral", score:6, feedback:"否定はしていますが、やや軽い言い方で安心感としては弱めです。"},
+        {text:"皆様同じように対応していますのでご安心ください。", tier:"poor", score:2, feedback:"型どおりの返答に聞こえ、個別の不安に向き合えていない印象を与えます。"}
+      ]},
+    { customer:"エレベーターは必須です。あと、保証人のことも少し不安で…",
+      options:[
+        {text:"承知しました。エレベーター必須ですね。保証会社を利用する方法もございますので、ご不安な点は一つずつご説明しますね。", tier:"good", score:10, feedback:"必須条件の確認と、不安の種である保証面への具体的な解決策を同時に示せています。"},
+        {text:"分かりました、探しておきます。", tier:"neutral", score:6, feedback:"必須条件には答えていますが、保証人の不安への言及が抜けています。"},
+        {text:"ご年齢的に審査が心配な点はあるかもしれません。", tier:"poor", score:2, feedback:"不安を口にした直後にさらに不安をあおる発言で、逆効果です。"}
+      ]},
+    { customer:"段差もなくて和室もある…落ち着けそうです。",
+      options:[
+        {text:"お気に召していただけて嬉しいです。保証会社の審査についても、この物件での実績を含めてご説明しますね。", tier:"good", score:10, feedback:"良い反応を受けつつ、根底にある保証面の不安にも先回りしてケアできています。"},
+        {text:"この物件は人気があるので早めがおすすめです。", tier:"neutral", score:6, feedback:"急かす言い方になっており、じっくり考えたいシニア層には不向きです。"},
+        {text:"良ければこのまま決めてしまいましょう。", tier:"poor", score:2, feedback:"即決を促しており、慎重に検討したい顧客の意向と合っていません。"}
+      ]},
+    { customer:"内見は急いでいないので、ゆっくり日程を決めたいです。",
+      options:[
+        {text:"承知しました。ご都合の良い日でゆっくりご案内しますので、焦らず決めていただいて大丈夫です。", tier:"good", score:10, feedback:"顧客のペースを尊重する姿勢が明確に伝わる対応です。"},
+        {text:"では来月あたりでもよろしいですか。", tier:"neutral", score:6, feedback:"対応はしていますが、こちらから先に期限を提示してしまっています。"},
+        {text:"あまり先延ばしにすると良い物件がなくなりますよ。", tier:"poor", score:2, feedback:"「急いでいない」という要望と真逆の圧力をかけており、不適切です。"}
+      ]},
+    { customer:"保証会社の審査、本当に通るのか心配なんですが。",
+      options:[
+        {text:"ご心配なお気持ち、よく分かります。事前に審査基準を確認し、必要であれば対策も一緒に考えますのでご安心ください。", tier:"good", score:10, feedback:"不安に共感した上で、具体的な解決プロセスを提示できており、安心して契約に進める対応です。"},
+        {text:"多くの方が通っていますので大丈夫だと思います。", tier:"neutral", score:6, feedback:"励ましにはなっていますが、根拠が曖昧で不安の解消には弱いです。"},
+        {text:"審査は保証会社次第なので、こちらでは何とも言えません。", tier:"poor", score:2, feedback:"不安を訴える顧客を突き放す返答で、信頼を損ないます。"}
+      ]}
+  ]
+}
+];
+
+/* ---------- STATE ---------- */
+let state = { customer:null, stageIndex:0, choices:[] };
+
+/* ---------- SCREENS ---------- */
+const screens = {
+  title: document.getElementById('titleScreen'),
+  select: document.getElementById('selectScreen'),
+  chat: document.getElementById('chatScreen'),
+  result: document.getElementById('resultScreen'),
+};
+function showScreen(name){
+  Object.values(screens).forEach(s=>s.classList.remove('active'));
+  screens[name].classList.add('active');
+}
+
+document.getElementById('toSelectBtn').addEventListener('click', () => {
+  renderCustomerGrid();
+  showScreen('select');
+});
+
+function renderCustomerGrid(){
+  const grid = document.getElementById('custGrid');
+  grid.innerHTML = "";
+  CUSTOMERS.forEach(c => {
+    const card = document.createElement('div');
+    card.className = 'cust-card';
+    card.innerHTML = `
+      <div class="cust-avatar">${c.avatar}</div>
+      <div class="cust-body">
+        <div class="cust-name">${c.name}</div>
+        <div class="cust-meta">${c.meta}</div>
+        <div class="cust-desc">${c.desc}</div>
+        <div class="cust-tags">${c.tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>
+      </div>`;
+    card.addEventListener('click', () => {
+      state.customer = c;
+      state.stageIndex = 0;
+      state.choices = [];
+      startChat();
+    });
+    grid.appendChild(card);
+  });
+}
+
+/* ---------- CHAT (choice flow) ---------- */
+function startChat(){
+  const c = state.customer;
+  document.getElementById('chatAvatar').textContent = c.avatar;
+  document.getElementById('chatCustName').textContent = c.name;
+  document.getElementById('chatCustSub').textContent = c.meta;
+  document.getElementById('chatBody').innerHTML = "";
+  renderStageBar();
+  showScreen('chat');
+  renderCurrentStage();
+}
+
+function renderStageBar(){
+  const bar = document.getElementById('stageBar');
+  bar.innerHTML = "";
+  STAGE_LABELS.forEach((label, i) => {
+    const el = document.createElement('div');
+    el.className = 'stage-step';
+    if (i < state.stageIndex) el.classList.add('done');
+    if (i === state.stageIndex) el.classList.add('current');
+    el.textContent = label;
+    bar.appendChild(el);
+  });
+}
+
+function appendCustomerMsg(text){
+  const body = document.getElementById('chatBody');
+  const div = document.createElement('div');
+  div.className = 'msg customer';
+  div.innerHTML = `<div class="msg-name">${state.customer.name}</div><div>${text}</div>`;
+  body.appendChild(div);
+  body.scrollTop = body.scrollHeight;
+}
+function appendSalesMsg(text){
+  const body = document.getElementById('chatBody');
+  const div = document.createElement('div');
+  div.className = 'msg sales';
+  div.innerHTML = `<div class="msg-name">あなた（営業担当）</div><div>${text}</div>`;
+  body.appendChild(div);
+  body.scrollTop = body.scrollHeight;
+}
+function appendFeedbackChip(tier, feedback){
+  const body = document.getElementById('chatBody');
+  const div = document.createElement('div');
+  div.className = 'feedback-chip ' + tier;
+  const titleMap = { good:"◎ 良い対応です", neutral:"△ 及第点", poor:"✕ 見直しましょう" };
+  div.innerHTML = `<div class="fc-title">${titleMap[tier]}</div><div>${feedback}</div>`;
+  body.appendChild(div);
+  body.scrollTop = body.scrollHeight;
+}
+
+function renderCurrentStage(){
+  renderStageBar();
+  const stage = state.customer.dialogue[state.stageIndex];
+  appendCustomerMsg(stage.customer);
+  renderChoiceButtons(stage);
+}
+
+function renderChoiceButtons(stage){
+  const footer = document.getElementById('chatFooter');
+  footer.innerHTML = "";
+  const label = document.createElement('div');
+  label.className = 'choice-label';
+  label.textContent = '返答を選んでください：';
+  footer.appendChild(label);
+
+  // shuffle option display order but keep tier/score data intact
+  const shuffled = [...stage.options].map((o,idx)=>({...o, idx})).sort(()=>Math.random()-0.5);
+
+  shuffled.forEach(opt => {
+    const btn = document.createElement('button');
+    btn.className = 'choice-btn';
+    btn.textContent = opt.text;
+    btn.addEventListener('click', () => handleChoice(stage, opt, footer));
+    footer.appendChild(btn);
+  });
+}
+
+function handleChoice(stage, opt, footer){
+  // disable all buttons
+  footer.querySelectorAll('.choice-btn').forEach(b => b.disabled = true);
+
+  appendSalesMsg(opt.text);
+  appendFeedbackChip(opt.tier, opt.feedback);
+
+  state.choices.push({
+    stageLabel: STAGE_LABELS[state.stageIndex],
+    chosenText: opt.text,
+    tier: opt.tier,
+    score: opt.score,
+    feedback: opt.feedback
+  });
+
+  footer.innerHTML = "";
+  const wrap = document.createElement('div');
+  wrap.className = 'next-btn-wrap';
+  const nextBtn = document.createElement('button');
+  nextBtn.className = 'btn';
+  const isLast = state.stageIndex >= state.customer.dialogue.length - 1;
+  nextBtn.textContent = isLast ? '結果を見る →' : '次の場面へ →';
+  nextBtn.addEventListener('click', () => {
+    if (isLast){
+      showResult();
+    } else {
+      state.stageIndex++;
+      renderCurrentStage();
+    }
+  });
+  wrap.appendChild(nextBtn);
+  footer.appendChild(wrap);
+}
+
+document.getElementById('restartBtn').addEventListener('click', () => {
+  if (confirm('この場面を最初からやり直しますか？')){
+    state.stageIndex = 0;
+    state.choices = [];
+    startChat();
+  }
+});
+
+/* ---------- RESULT ---------- */
+function showResult(){
+  const total = state.choices.reduce((sum,c)=>sum+c.score,0);
+  const max = state.customer.dialogue.length * 10;
+  document.getElementById('totalScore').textContent = total;
+  document.getElementById('scoreLabel').textContent = `/ ${max}点`;
+
+  const detail = document.getElementById('resultDetail');
+  detail.innerHTML = "";
+  state.choices.forEach(c => {
+    const row = document.createElement('div');
+    row.className = 'result-row';
+    const badgeLabel = { good:"◎ 良い対応", neutral:"△ 及第点", poor:"✕ 要改善" }[c.tier];
+    row.innerHTML = `
+      <div class="rr-top">
+        <div class="rr-stage">${c.stageLabel}</div>
+        <div class="rr-badge ${c.tier}">${badgeLabel}</div>
+      </div>
+      <div class="rr-chosen">選んだセリフ：「${c.chosenText}」</div>
+      <div class="rr-text">${c.feedback}</div>
+    `;
+    detail.appendChild(row);
+  });
+
+  showScreen('result');
+}
+
+document.getElementById('retryBtn').addEventListener('click', () => {
+  state.stageIndex = 0;
+  state.choices = [];
+  startChat();
+});
+document.getElementById('newCustomerBtn').addEventListener('click', () => {
+  renderCustomerGrid();
+  showScreen('select');
+});
+
+</script>
+</body>
+</html>
