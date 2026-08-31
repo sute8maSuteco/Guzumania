@@ -1,0 +1,823 @@
+<title>倫理判断シミュレーター</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700;900&family=Noto+Sans+JP:wght@400;500;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+  :root{
+    --bg:#EFEAE0;
+    --surface:#FBF8F2;
+    --surface-alt:#F1ECDF;
+    --ink:#26231D;
+    --ink-soft:#726C5C;
+    --border:#DCD5C4;
+    --accent:#3A3F63;
+    --accent-contrast:#FFFFFF;
+    --good:#3F7D4C;
+    --good-soft:#E4EEE2;
+    --warn:#A97A1E;
+    --warn-soft:#F3EAD4;
+    --bad:#B14A3D;
+    --bad-soft:#F5E2DE;
+    --catHonesty:#2B5C63;
+    --catHonesty-soft:#E1EBEA;
+    --catConflict:#8B5E0E;
+    --catConflict-soft:#F0E8D6;
+    --catInfo:#7A3E52;
+    --catInfo-soft:#F0E1E6;
+    --catPeople:#3C5A78;
+    --catPeople-soft:#E2E8EE;
+    --cover:#33232E;
+    --cover-text:#EEE6DE;
+    --shadow: 0 20px 50px -20px rgba(20,20,15,0.35);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#141310;
+      --surface:#1D1C17;
+      --surface-alt:#26241D;
+      --ink:#ECE8DC;
+      --ink-soft:#A8A290;
+      --border:#37342A;
+      --accent:#8B93D6;
+      --accent-contrast:#14131F;
+      --good:#6FBF7C;
+      --good-soft:#233127;
+      --warn:#D9A94A;
+      --warn-soft:#332C1C;
+      --bad:#E1786A;
+      --bad-soft:#38221E;
+      --catHonesty:#5AA3AA;
+      --catHonesty-soft:#20302F;
+      --catConflict:#C99A4A;
+      --catConflict-soft:#332A18;
+      --catInfo:#C98CA0;
+      --catInfo-soft:#32222A;
+      --catPeople:#8FB0D6;
+      --catPeople-soft:#212B36;
+      --shadow: 0 20px 50px -20px rgba(0,0,0,0.6);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#141310;
+    --surface:#1D1C17;
+    --surface-alt:#26241D;
+    --ink:#ECE8DC;
+    --ink-soft:#A8A290;
+    --border:#37342A;
+    --accent:#8B93D6;
+    --accent-contrast:#14131F;
+    --good:#6FBF7C;
+    --good-soft:#233127;
+    --warn:#D9A94A;
+    --warn-soft:#332C1C;
+    --bad:#E1786A;
+    --bad-soft:#38221E;
+    --catHonesty:#5AA3AA;
+    --catHonesty-soft:#20302F;
+    --catConflict:#C99A4A;
+    --catConflict-soft:#332A18;
+    --catInfo:#C98CA0;
+    --catInfo-soft:#32222A;
+    --catPeople:#8FB0D6;
+    --catPeople-soft:#212B36;
+    --shadow: 0 20px 50px -20px rgba(0,0,0,0.6);
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;height:100%;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:"Noto Sans JP","Hiragino Kaku Gothic ProN","Hiragino Sans",Meiryo,sans-serif;
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    padding:20px 14px;
+  }
+  h1,h2,h3,.display{
+    font-family:"Zen Kaku Gothic New","Noto Sans JP",sans-serif;
+    text-wrap:balance;
+    margin:0;
+  }
+  .mono{ font-family:"JetBrains Mono", ui-monospace, monospace; font-variant-numeric:tabular-nums; }
+  button{font-family:inherit;}
+  button:focus-visible, a:focus-visible, [tabindex]:focus-visible{
+    outline:3px solid var(--accent);
+    outline-offset:2px;
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0.001ms !important;}
+  }
+
+  /* ---- outer frame (notebook cover) ---- */
+  .frame{
+    width:100%;
+    max-width:480px;
+    height:min(720px, calc(100vh - 40px));
+    background:var(--cover);
+    border-radius:22px;
+    padding:14px;
+    box-shadow:var(--shadow);
+    display:flex;
+    flex-direction:column;
+  }
+  .frame-label{
+    flex-shrink:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:7px;
+    padding:2px 0 12px;
+    color:var(--cover-text);
+    font-size:12.5px;
+    font-weight:700;
+    letter-spacing:0.03em;
+  }
+  .frame-label .dot{ width:6px;height:6px;border-radius:50%; background:var(--cover-text); opacity:0.55; }
+  .page{
+    background:var(--surface);
+    border-radius:16px;
+    flex:1;
+    min-height:0;
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
+    position:relative;
+  }
+
+  /* ---- home ---- */
+  .home{ padding:20px 20px 20px; overflow-y:auto; flex:1; min-height:0; }
+  .home-head{ padding:0 2px 18px; border-bottom:1px solid var(--border); margin-bottom:16px; }
+  .eyebrow{ font-size:11px; letter-spacing:0.12em; color:var(--accent); font-weight:700; text-transform:uppercase; }
+  .home-title{ font-size:21px; font-weight:900; margin-top:6px; line-height:1.35; }
+  .home-sub{ font-size:12.5px; color:var(--ink-soft); margin-top:7px; line-height:1.65; }
+  .progress-row{ display:flex; align-items:center; gap:10px; margin-top:14px; }
+  .progress-track{ flex:1; height:6px; background:var(--surface-alt); border-radius:4px; overflow:hidden; border:1px solid var(--border); }
+  .progress-fill{ height:100%; background:var(--accent); border-radius:4px; transition:width .4s ease; }
+  .progress-label{ font-size:12px; color:var(--ink-soft); white-space:nowrap; }
+  .manual-link{
+    margin-top:14px; display:inline-flex; align-items:center; gap:6px; font-size:13px; font-weight:700;
+    color:var(--accent); background:var(--surface-alt); border:1px solid var(--border);
+    padding:9px 14px; border-radius:10px; cursor:pointer;
+  }
+  .cat-block{ margin-bottom:20px; }
+  .cat-head{ display:flex; align-items:center; gap:8px; margin-bottom:2px; }
+  .cat-dot{ width:9px;height:9px;border-radius:50%; flex-shrink:0; }
+  .cat-name{ font-size:14px; font-weight:700; }
+  .cat-desc{ font-size:11.5px; color:var(--ink-soft); margin:2px 0 8px 17px; }
+  .card-list{ display:flex; flex-direction:column; gap:8px; }
+  .scenario-card{
+    display:flex; align-items:center; gap:12px;
+    background:var(--surface-alt); border:1px solid var(--border); border-radius:14px;
+    padding:11px 12px; cursor:pointer; text-align:left; width:100%;
+  }
+  .scenario-card:hover{ border-color:var(--accent); }
+  .avatar{
+    width:38px;height:38px;border-radius:12px;
+    display:flex;align-items:center;justify-content:center;
+    font-size:17px; flex-shrink:0;
+  }
+  .card-body{ flex:1; min-width:0; }
+  .card-title{ font-size:13.5px; font-weight:700; }
+  .card-meta{ font-size:11.5px; color:var(--ink-soft); margin-top:2px; line-height:1.5; }
+  .card-side{ display:flex; flex-direction:column; align-items:flex-end; gap:4px; flex-shrink:0; }
+  .stars{ font-size:11px; color:var(--warn); letter-spacing:1px; white-space:nowrap; }
+  .best-badge{ font-size:10.5px; font-weight:700; color:var(--good); background:var(--good-soft); padding:2px 7px; border-radius:20px; white-space:nowrap; }
+
+  /* ---- manual ---- */
+  .manual{ padding:20px 20px 24px; overflow-y:auto; flex:1; min-height:0; }
+  .back-row{ display:flex; align-items:center; gap:10px; margin-bottom:14px; }
+  .icon-btn{
+    width:32px;height:32px;border-radius:50%; background:var(--surface-alt); border:1px solid var(--border);
+    display:flex;align-items:center;justify-content:center; cursor:pointer; color:var(--ink); font-size:16px; flex-shrink:0;
+  }
+  .screen-title{ font-size:16.5px; font-weight:900; }
+  .tip-card{ background:var(--surface-alt); border:1px solid var(--border); border-radius:14px; padding:13px 14px; margin-bottom:10px; }
+  .tip-num{ font-size:11px; font-weight:700; color:var(--accent); }
+  .tip-desc{ font-size:12.5px; color:var(--ink); margin-top:4px; line-height:1.7; }
+
+  /* ---- scenario: intro ---- */
+  .intro{ flex:1; min-height:0; overflow-y:auto; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:34px 28px; text-align:center; gap:6px; }
+  .intro .avatar{ width:76px; height:76px; border-radius:22px; font-size:32px; margin-bottom:14px; }
+  .intro-cat{ font-size:11.5px; font-weight:700; letter-spacing:0.04em; color:var(--ink-soft); text-transform:uppercase; }
+  .intro-title{ font-size:19px; font-weight:900; margin-top:8px; line-height:1.4; }
+  .intro-lead{ font-size:12.5px; color:var(--ink-soft); margin-top:12px; line-height:1.75; max-width:320px; }
+  .intro-actions{ display:flex; flex-direction:column; gap:9px; width:100%; max-width:260px; margin-top:26px; }
+
+  /* ---- scenario: active ---- */
+  .rec-top{
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    padding:14px 18px 12px; border-bottom:1px solid var(--border); flex-shrink:0;
+  }
+  .rec-top-title{ font-size:13.5px; font-weight:700; line-height:1.4; }
+  .rec-top-cat{ font-size:11px; color:var(--ink-soft); margin-top:2px; }
+  .rec-step{ font-size:11.5px; color:var(--accent); font-weight:700; white-space:nowrap; flex-shrink:0; }
+
+  .record{ flex:1; min-height:0; overflow-y:auto; padding:16px 16px 8px; display:flex; flex-direction:column; gap:12px; }
+  .sit-card{
+    background:var(--surface-alt); border:1px solid var(--border); border-left:4px solid var(--cat-color, var(--accent));
+    border-radius:10px; padding:11px 13px; font-size:13px; line-height:1.7;
+  }
+  .sit-label{ font-size:10.5px; font-weight:700; color:var(--ink-soft); letter-spacing:0.04em; margin-bottom:4px; text-transform:uppercase; }
+  .act-row{ display:flex; justify-content:flex-end; }
+  .act-bubble{
+    max-width:86%; background:var(--accent); color:var(--accent-contrast);
+    border-radius:12px; border-bottom-right-radius:4px; padding:9px 13px; font-size:12.5px; line-height:1.65;
+  }
+  .act-label{ font-size:10px; color:var(--ink-soft); text-align:right; margin:0 2px 3px; }
+
+  .choices-panel{ border-top:1px solid var(--border); padding:12px 16px 16px; flex-shrink:0; background:var(--surface); max-height:46vh; overflow-y:auto; }
+  .choices-hint{ font-size:11px; color:var(--ink-soft); margin-bottom:8px; }
+  .choice-btn{
+    display:block; width:100%; text-align:left; background:var(--surface-alt); border:1px solid var(--border);
+    border-radius:12px; padding:10px 13px; margin-bottom:8px; font-size:13px; line-height:1.6; color:var(--ink); cursor:pointer;
+  }
+  .choice-btn:hover{ border-color:var(--accent); }
+  .choice-btn:last-child{ margin-bottom:0; }
+
+  .feedback-panel{ padding:4px 2px 2px; }
+  .feedback-tag{ display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:700; padding:4px 11px; border-radius:20px; margin-bottom:8px; }
+  .feedback-tag.good{ background:var(--good-soft); color:var(--good); }
+  .feedback-tag.ok{ background:var(--warn-soft); color:var(--warn); }
+  .feedback-tag.bad{ background:var(--bad-soft); color:var(--bad); }
+  .feedback-text{ font-size:13px; line-height:1.7; color:var(--ink); margin-bottom:12px; }
+  .next-btn{ width:100%; padding:11px; border-radius:12px; border:none; background:var(--accent); color:var(--accent-contrast); font-weight:700; font-size:13.5px; cursor:pointer; }
+  .ghost-btn{ width:100%; padding:11px; border-radius:12px; border:1px solid var(--border); background:var(--surface-alt); color:var(--ink); font-weight:700; font-size:13.5px; cursor:pointer; }
+
+  /* ---- result ---- */
+  .result{ padding:22px 22px 26px; overflow-y:auto; flex:1; min-height:0; display:flex; flex-direction:column;}
+  .result-badge{
+    width:92px;height:92px;border-radius:50%; margin:6px auto 14px;
+    display:flex; align-items:center; justify-content:center; border:3px solid var(--accent); color:var(--accent);
+  }
+  .result-badge .grade{ font-size:28px; font-weight:900; font-family:"Zen Kaku Gothic New",sans-serif; }
+  .result-score{ text-align:center; font-size:13px; color:var(--ink-soft); }
+  .result-score .mono{ font-size:15px; color:var(--ink); font-weight:700; }
+  .result-title{ text-align:center; font-size:15.5px; font-weight:900; margin-top:14px; }
+  .result-msg{ text-align:center; font-size:12.5px; color:var(--ink-soft); margin-top:6px; line-height:1.75;}
+  .review-list{ margin-top:20px; display:flex; flex-direction:column; gap:8px; }
+  .review-item{ background:var(--surface-alt); border:1px solid var(--border); border-radius:12px; padding:10px 12px; }
+  .review-head{ display:flex; align-items:center; gap:8px; }
+  .review-icon{ width:20px;height:20px;border-radius:50%; flex-shrink:0; display:flex;align-items:center;justify-content:center; font-size:11px; font-weight:900; color:#fff; }
+  .review-icon.good{ background:var(--good); }
+  .review-icon.ok{ background:var(--warn); }
+  .review-icon.bad{ background:var(--bad); }
+  .review-situation{ font-size:12px; font-weight:700; }
+  .review-feedback{ font-size:11.5px; color:var(--ink-soft); margin-top:5px; line-height:1.6; padding-left:28px;}
+  .result-actions{ display:flex; flex-direction:column; gap:8px; margin-top:22px; }
+  .btn-primary{ padding:12px; border-radius:12px; border:none; background:var(--accent); color:var(--accent-contrast); font-weight:700; font-size:13.5px; cursor:pointer; }
+  .btn-secondary{ padding:12px; border-radius:12px; border:1px solid var(--border); background:var(--surface-alt); color:var(--ink); font-weight:700; font-size:13.5px; cursor:pointer; }
+</style>
+
+<div class="frame">
+  <div class="frame-label"><span>倫理判断ノート</span><span class="dot"></span><span>新人研修用</span></div>
+  <div class="page" id="app"></div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var CATEGORIES = [
+    {id:"honesty", name:"誠実さ・正直さ", desc:"小さなごまかしとどう向き合うか", varc:"--catHonesty", vars:"--catHonesty-soft"},
+    {id:"conflict", name:"公私の区別", desc:"贈り物や会社の資源との距離感", varc:"--catConflict", vars:"--catConflict-soft"},
+    {id:"info", name:"情報の取り扱い", desc:"顧客情報・社内情報との付き合い方", varc:"--catInfo", vars:"--catInfo-soft"},
+    {id:"people", name:"周囲との関わり方", desc:"約束・同僚・上司との間で迷う場面", varc:"--catPeople", vars:"--catPeople-soft"}
+  ];
+
+  function T(text){ return {text:text}; }
+  function C(text, tier, feedback){
+    var pts = tier === "good" ? 10 : (tier === "ok" ? 5 : 0);
+    return {text:text, tier:tier, feedback:feedback, points:pts};
+  }
+
+  var SCENARIOS = [
+    {
+      id:"E1", cat:"honesty", difficulty:1, icon:"🧾",
+      title:"送ってしまった見積書のミス", lead:"取引先に送った見積書の金額欄を、1桁間違えて送信してしまった。まだ誰も気づいていない。",
+      turns:[
+        { situation:T("送信直後にミスに気づいた。まず取るべき行動は?"),
+          choices:[
+            C("すぐに上司に報告し、訂正版をどう送るか指示を仰ぐ", "good", "早期報告が被害を最小限に抑える基本です。自分だけで抱え込まないことが重要です。"),
+            C("まず自分で訂正版を作成してから、事後報告として上司に伝える", "ok", "訂正版を用意する姿勢は良いですが、対外的な訂正連絡を送る前に上司の確認を挟まないと、対応方針がずれるリスクがあります。"),
+            C("相手が気づかなければそのままにしておく", "bad", "発覚した時の信用の失墜は、正直に報告するより遥かに大きくなります。")
+          ]},
+        { situation:T("上司に報告したところ、上司も慌てて「先方にはまだバレていないだろうから、何もなかったことにして次回受注時にこっそり調整しよう」と提案してきた。"),
+          choices:[
+            C("金額の誤りは早めに先方へお詫びし、正しい見積書を再送するべきだと伝える", "good", "隠すほど発覚時のリスクが増します。誠実な訂正を提案するのは適切な対応です。"),
+            C("上司の判断に従い、ひとまず様子を見る", "ok", "上司の指示に従うこと自体は間違いではありませんが、誤りを隠す提案には一言懸念を伝えるべきでした。"),
+            C("上司の言う通り、黙っておくのが一番だと納得する", "bad", "誤りを隠す判断に安易に同調すると、後で自分も責任を問われかねません。")
+          ]},
+        { situation:T("結局、正しい見積書を先方に再送し謝罪することになった。この経験から学ぶべきことは?"),
+          choices:[
+            C("ミスは隠さず早く報告するほど、被害も信用への影響も小さく済む", "good", "その通りです。早期報告こそが最善のリスク管理です。"),
+            C("ミスをしないよう今後は特に注意する、で終わらせる", "ok", "注意力の向上も大事ですが、それだけでは同じような場面で再び隠したくなる誘惑に対処できません。"),
+            C("今回はバレなかったから結果オーライだと思う", "bad", "結果的に大事にならなかったとしても、隠そうとした判断自体が問題だったことに変わりありません。")
+          ]}
+      ]
+    },
+    {
+      id:"E2", cat:"honesty", difficulty:2, icon:"💴",
+      title:"経費精算を少し盛る誘い", lead:"出張の交通費精算で、先輩から「領収書がない分は、だいたいの金額を多めに書いておけば経理は気づかないよ」と言われた。",
+      turns:[
+        { situation:T("先輩からそう言われた時の返答は?"),
+          choices:[
+            C("実費で分かる範囲で正確に記入します。領収書がない分は、区間や乗車駅を記録して算出根拠を残します、と答える", "good", "実費精算の原則を守りつつ、算出根拠を残す誠実な対応です。"),
+            C("先輩がそう言うならと思い、少しだけ多めに書く", "ok", "周囲に合わせたい気持ちは分かりますが、実費を超える請求は不正受給にあたります。"),
+            C("バレなければ問題ないと思い、先輩の言う通り多めに書く", "bad", "少額でも会社の資金を不正に受け取る行為であり、発覚すれば懲戒の対象になり得ます。")
+          ]},
+        { situation:T("後日、経理から「先月の交通費が実際の経路より高く計算されているようです」と確認の連絡が来た。"),
+          choices:[
+            C("正直に事情を説明し、正しい金額に訂正してもらうよう依頼する", "good", "早めに正直に訂正することが、信用を守る最善の方法です。"),
+            C("たまたま計算を間違えただけだと言い訳し、こっそり訂正する", "ok", "訂正すること自体は正しいですが、事実と異なる言い訳を重ねると、後でつじつまが合わなくなるリスクがあります。"),
+            C("経理の勘違いだと押し通す", "bad", "事実を偽り続けることは、より重い処分につながる可能性があります。")
+          ]},
+        { situation:T("この件について、先輩からのアドバイスにどう向き合うべきだったか。"),
+          choices:[
+            C("たとえ先輩や周囲のやり方でも、会社のルールに反すると感じたら流されずに自分の判断を持つ", "good", "周囲に流されない姿勢こそが大切です。"),
+            C("次からは先輩の言うことでも一度立ち止まって考えるようにする", "ok", "良い心がけですが、実際に「おかしい」と思った場面でどう断るかまで考えておく必要があります。"),
+            C("先輩に逆らうのも気まずいので、今後も適当に合わせておく", "bad", "不正への同調を続けることは、自分自身のリスクにもなります。")
+          ]}
+      ]
+    },
+    {
+      id:"E3", cat:"conflict", difficulty:2, icon:"🎁",
+      title:"取引先からの高額な贈り物", lead:"担当している取引先の社長から、お中元として明らかに高額な、会社の規定を超えるギフト券が自宅に届いた。",
+      turns:[
+        { situation:T("ギフト券を受け取った直後の行動は?"),
+          choices:[
+            C("受け取ったことと金額を上司に報告し、会社の規定に沿って対応する", "good", "個人で判断せず、会社のルールに沿って処理するのが適切です。"),
+            C("ひとまず自分の判断で保管しておき、聞かれたら答えようと思う", "ok", "保管するだけでなく、自分から早めに報告する姿勢が必要です。"),
+            C("取引先との関係を考えて、ありがたく個人的に受け取っておく", "bad", "会社の規定を超える贈答品を無断で受け取ることは、癒着や利益供与の疑いを招きます。")
+          ]},
+        { situation:T("上司に報告したところ、「今後の関係もあるから、今回だけは黙って受け取っておいていいよ」と言われた。"),
+          choices:[
+            C("会社としての受領記録を残す、もしくは丁重にお断りする対応にしてもらうよう改めて相談する", "good", "私的な受領にしないことが重要です。記録を残す・返礼するなど、透明性のある対応を提案するのは適切です。"),
+            C("上司がそう言うならと、そのまま個人で受け取ることにする", "ok", "上司の指示であっても、社内規定に反する対応には注意が必要な場面でした。"),
+            C("これで取引先との関係が良くなるならいいことだと思う", "bad", "個人的な利益供与を関係強化の手段と捉えるのは危険な考え方です。")
+          ]},
+        { situation:T("この一件を振り返って、今後同じような贈り物を受け取った際にすべきことは?"),
+          choices:[
+            C("金額にかかわらず、贈答品を受け取った際は必ず会社に報告し、規定に沿って対応する", "good", "ルール化して習慣にすることが、癒着を防ぐ最善の方法です。"),
+            C("高額なものだけ報告し、少額なものは自己判断で処理する", "ok", "金額の線引きは会社の規定次第です。自己判断せず、迷ったら都度確認するのが安全です。"),
+            C("今後も取引先との関係を優先して柔軟に対応する", "bad", "「関係を優先する」という理由で規定を曲げる考え方自体を見直す必要があります。")
+          ]}
+      ]
+    },
+    {
+      id:"E4", cat:"people", difficulty:2, icon:"🤝",
+      title:"顧客への安易な「できます」", lead:"商談中、お客様から「この納期は絶対に守ってもらえますよね?」と念押しされた。社内で確認していないが、断ると契約が流れそうな空気がある。",
+      turns:[
+        { situation:T("この場でどう答えるか。"),
+          choices:[
+            C("持ち帰って製造・物流部門に確認したうえで、正式にお約束できる納期を改めてご連絡します、と伝える", "good", "確認できないことをその場で安易に約束しないのが基本です。"),
+            C("たぶん大丈夫だと思います、と伝えて契約を進める", "ok", "契約を進めたい気持ちは分かりますが、確認前の期待値を相手に持たせるのはリスクがあります。"),
+            C("契約を逃したくないので、確実に守りますと言い切る", "bad", "守れるか分からない約束をすることは、後で大きな信頼問題に発展します。")
+          ]},
+        { situation:T("社内で確認したところ、その納期は実現が難しいことが分かった。お客様への伝え方は?"),
+          choices:[
+            C("難しい理由と、実現可能な代替案(短縮できる部分・段階納品など)を早めに正直に伝える", "good", "早期に正直な情報共有と代替案の提示ができています。"),
+            C("ギリギリまで粘ってから、直前になって難しいと伝える", "ok", "誠実さはありますが、伝えるタイミングが遅いとお客様側の対応の余地を奪ってしまいます。"),
+            C("何とか間に合わせると強がって、社内に無理な負担を強いる", "bad", "無理を押し通すと、品質の低下や社内の疲弊など、別の問題を生みます。")
+          ]},
+        { situation:T("この経験を今後にどう活かすべきか。"),
+          choices:[
+            C("自分の裁量を超える約束は、その場で即答せず必ず確認してから返答する習慣をつける", "good", "契約や納期など重要な約束ほど、確認のワンクッションが大切です。"),
+            C("次はもっと自信を持って即答できるように知識をつける", "ok", "知識をつけること自体は良いことですが、確認が必要な場面まで即答で乗り切ろうとするのは危険です。"),
+            C("今回はうまくいかなかったが、次はもっとうまく期待を持たせる話し方をする", "bad", "期待を持たせる話術ではなく、確認と正直な情報共有こそが信頼につながります。")
+          ]}
+      ]
+    },
+    {
+      id:"E5", cat:"honesty", difficulty:2, icon:"📄",
+      title:"資料のコピペ・出典を書かない引用", lead:"社内向けの提案資料を作る際、他部署が過去に作った資料や、ネット上の記事のグラフをそのまま使いたい誘惑にかられている。",
+      turns:[
+        { situation:T("他部署の過去資料のデータをそのまま流用する際の対応は?"),
+          choices:[
+            C("作成者に一言確認したうえで、資料内に出典(作成部署・作成時期)を明記して使う", "good", "確認と出典明記の両方ができている、模範的な対応です。"),
+            C("確認はせず、出典だけ小さく記載して使う", "ok", "出典を書く意識は良いですが、無断で使う前に一言確認する配慮があるとより丁寧です。"),
+            C("自分が作ったように見せて、出典も書かずにそのまま使う", "bad", "他者の成果物を自分のものとして提示することは、社内であっても信頼を損なう行為です。")
+          ]},
+        { situation:T("ネット記事のグラフ画像もそのまま資料に貼り付けたくなった。"),
+          choices:[
+            C("出典元を明記したうえで引用する、または自分で同じデータをもとに作り直す", "good", "著作権や引用のルールを意識した適切な対応です。"),
+            C("社内資料だから大丈夫だろうと思い、出典だけ添えて画像をそのまま使う", "ok", "出典明記は良い判断ですが、社外の著作物を無断で複製すること自体のリスクは残ります。"),
+            C("社内資料だしバレないだろうと思い、そのまま何も書かずに使う", "bad", "社内向けであっても著作権の侵害にあたる可能性があり、会社として問題になり得ます。")
+          ]},
+        { situation:T("資料作成における今後の心がけとして適切なのは?"),
+          choices:[
+            C("誰かの成果物を使うときは必ず許可と出典明記を徹底し、迷ったら使わない選択肢も持つ", "good", "慎重な判断軸を持つことが、トラブルの予防になります。"),
+            C("効率を優先して、多少のグレーな流用は仕方ないと割り切る", "ok", "効率を意識すること自体は悪くありませんが、「多少なら」という基準の曖昧さが問題を招きます。"),
+            C("バレなければ問題ないので、今まで通り気にせず使う", "bad", "この考え方のまま続けると、いずれ大きなトラブルにつながる可能性が高いです。")
+          ]}
+      ]
+    },
+    {
+      id:"E6", cat:"people", difficulty:2, icon:"🔍",
+      title:"同僚がルールを破っているのを見た時", lead:"同じチームの同僚が、本来必要な検品作業を「忙しいから」と省略して次工程に回しているのを見てしまった。",
+      turns:[
+        { situation:T("見てしまった直後の行動は?"),
+          choices:[
+            C("まず同僚本人に、検品を省略すると後工程や品質にどう影響するか率直に伝える", "good", "本人への直接の声かけは、関係を保ちながら問題に対処する第一歩です。"),
+            C("見なかったことにして、自分の担当分だけしっかりやる", "ok", "自分の担当を守る姿勢は大切ですが、見過ごすことで問題が続いてしまう可能性があります。"),
+            C("自分も忙しい時は同じようにしていいと思い、真似する", "bad", "一人の手抜きが広がると、品質全体に関わる重大な問題になりかねません。")
+          ]},
+        { situation:T("同僚に伝えたところ、「今だけだから、上司には言わないでほしい」と頼まれた。"),
+          choices:[
+            C("個人的に黙っておくのではなく、品質に関わる問題として上司やチームで共有すべきだと伝える", "good", "個人の口約束で済ませず、組織として対処すべき問題だと伝えられています。"),
+            C("今回だけは黙っておくが、次からはやめるよう釘を刺す", "ok", "気持ちは分かりますが、品質に関わる問題を個人間の約束だけで済ませるのはリスクが残ります。"),
+            C("頼まれた通り、誰にも言わずにおく", "bad", "品質問題を放置すると、後で自分も「知っていて黙っていた」責任を問われる可能性があります。")
+          ]},
+        { situation:T("この一件から学べる、同僚の不正やルール違反を見た時の基本姿勢は?"),
+          choices:[
+            C("個人の関係を優先して見過ごすのではなく、必要な場面では上司やチームに共有する", "good", "見て見ぬふりをしないことが、結果的にチーム全体を守ります。"),
+            C("よほど深刻な場合以外は、あまり関わらないようにする", "ok", "深刻さの見極めは大切ですが、線引きが曖昧だと結局見過ごしてしまいがちです。"),
+            C("同僚との関係を壊したくないので、基本的には見て見ぬふりをする", "bad", "関係を優先して問題を放置し続けると、いずれ大きなトラブルとして自分に返ってくることがあります。")
+          ]}
+      ]
+    },
+    {
+      id:"E7", cat:"people", difficulty:3, icon:"📝",
+      title:"上司の指示に引っかかりを感じた場面", lead:"上司から「この書類の日付を、実際より1週間早い日付にして提出しておいて」と指示された。理由ははっきり説明されなかった。",
+      turns:[
+        { situation:T("この指示を受けた時の対応は?"),
+          choices:[
+            C("日付を変更する理由を確認し、社内ルール上問題がないか一度確認させてほしいと伝える", "good", "指示の背景を確認する姿勢は、問題を未然に防ぐために重要です。"),
+            C("上司の指示だからと、特に確認せずそのまま従う", "ok", "指示に従うこと自体は自然な反応ですが、日付の改ざんに関わる指示には注意が必要でした。"),
+            C("上司の指示なので、何も考えずにそのまま書き換えて提出する", "bad", "文書の日付を実態と異なるものにすることは、記録の改ざんにあたる可能性があります。")
+          ]},
+        { situation:T("確認したところ、上司から「大した問題じゃないから、細かいことは気にしなくていい」と言われた。"),
+          choices:[
+            C("それでも判断に迷う場合は、上司のさらに上や管理部門・コンプライアンス窓口に相談する", "good", "一人で抱え込まず、適切な相談先を頼るのは正しい対応です。"),
+            C("上司がそう言うならと、指示通りに書き換えて提出する", "ok", "上司の説明で納得しきれない場合は、さらに確認する選択肢もあったかもしれません。"),
+            C("上司に何度も聞くのも気まずいので、諦めて指示通りにする", "bad", "気まずさを理由に不正の可能性がある指示に従うと、自分も責任を問われる立場になり得ます。")
+          ]},
+        { situation:T("このような場面に今後遭遇したときの基本姿勢として適切なのは?"),
+          choices:[
+            C("上司の指示であっても、ルールや法律に反すると感じたときは、まず確認し、必要なら別の相談窓口も使う", "good", "上下関係に関わらず、おかしいと感じたことは確認する姿勢が大切です。"),
+            C("基本的には上司の指示に従いつつ、明らかにおかしい時だけ声を上げる", "ok", "「明らかに」の基準は人によって曖昧になりがちなので、迷った時点で確認する習慣が望ましいです。"),
+            C("新人のうちは、上司の指示には黙って従うのが一番だと考える", "bad", "立場に関わらず、不正の疑いがある指示には慎重になるべきです。")
+          ]}
+      ]
+    },
+    {
+      id:"E8", cat:"info", difficulty:2, icon:"🗂️",
+      title:"顧客情報を興味本位で覗きたくなる", lead:"社内システムで、たまたま自分の担当ではない有名企業の顧客情報が閲覧できることに気づいた。特に業務上見る必要はない。",
+      turns:[
+        { situation:T("この状況に気づいた時の行動は?"),
+          choices:[
+            C("業務上必要のない情報は閲覧しない。閲覧権限の設定がおかしい可能性があるので、情報システム部門に報告する", "good", "興味本位で見ないこと、そして権限の不備を報告することの両方ができています。"),
+            C("見るだけなら問題ないだろうと思い、少しだけ内容を確認してしまう", "ok", "実害がなくても、業務外の顧客情報を閲覧すること自体がルール違反にあたる可能性があります。"),
+            C("興味があるので、担当者に気づかれない範囲で色々な顧客情報を見てみる", "bad", "業務上の必要がない個人情報・顧客情報の閲覧は、重大な情報管理違反です。")
+          ]},
+        { situation:T("同僚にこの話をしたところ、「見れるなら見てもバレないよ、みんなやってるよ」と言われた。"),
+          choices:[
+            C("みんながやっているとしても、それ自体が問題だと思うので自分は見ないし、同僚にもリスクを伝える", "good", "周囲に流されず、正しい行動を貫く姿勢です。"),
+            C("同僚の言葉を聞いても、自分は特に何もしない(見ないが、指摘もしない)", "ok", "自分の行動は正しいですが、周囲のリスクを黙認する形になっています。"),
+            C("みんなやっているなら大丈夫だろうと思い、自分も見るようになる", "bad", "「みんなやっている」は、情報漏洩事故の典型的な始まり方です。")
+          ]},
+        { situation:T("顧客情報の取り扱いについて、今後徹底すべきことは?"),
+          choices:[
+            C("業務上必要な範囲でしか情報にアクセスしない、を徹底し、不審な閲覧権限は都度報告する", "good", "原則を明確に持つことが、情報漏洩の予防につながります。"),
+            C("特に問題がなければ、多少の興味本位の閲覧は仕方ないと考える", "ok", "「多少なら」という線引きの曖昧さが、情報管理事故の原因になります。"),
+            C("閲覧できる情報は、仕事に関係なくても見て良いと考える", "bad", "この考え方は、個人情報保護の観点から重大なリスクです。")
+          ]}
+      ]
+    },
+    {
+      id:"E9", cat:"info", difficulty:1, icon:"📱",
+      title:"SNSでの会社の話・愚痴", lead:"仕事で嫌なことがあった日、鍵アカウント(非公開)のSNSに、取引先の名前を出して愚痴を投稿しようとしている。",
+      turns:[
+        { situation:T("投稿する直前、どうするべきか。"),
+          choices:[
+            C("鍵アカウントでも情報が広まるリスクはあるので、取引先名や特定できる情報は書かず、投稿自体を控える", "good", "鍵アカウントであっても情報漏洩のリスクはゼロではないという認識が正しいです。"),
+            C("取引先名は伏せ字にして、内容だけ愚痴として投稿する", "ok", "名前を伏せる配慮は良いですが、状況の詳細から特定される可能性が残ります。"),
+            C("鍵アカウントだから大丈夫だろうと思い、取引先名を出したまま愚痴を投稿する", "bad", "非公開アカウントでも、フォロワー経由で情報が広がるリスクは常にあります。")
+          ]},
+        { situation:T("投稿後、フォロワーの一人から「それって前に一緒に仕事した会社のことじゃない?」とコメントがついた。"),
+          choices:[
+            C("すぐに投稿を削除し、今後は仕事の話をSNSに書かないよう気をつける", "good", "気づいた時点ですぐに対処する判断は適切です。"),
+            C("コメントには答えず、そのまま投稿だけ残しておく", "ok", "削除せずに放置すると、情報が特定されたまま拡散し続けるリスクがあります。"),
+            C("面白がって、もう少し詳しい内容を追加で投稿してしまう", "bad", "一度気づきがあった時点でさらに情報を出すのは、リスクを大きく広げる行為です。")
+          ]},
+        { situation:T("今後、SNSと仕事の話の付き合い方として適切な考え方は?"),
+          choices:[
+            C("鍵アカウントかどうかに関わらず、仕事に関する具体的な内容や不満はSNSに書かないようにする", "good", "一番安全で、かつ実践しやすい基本方針です。"),
+            C("仲の良いフォロワーだけの環境なら、多少の愚痴は問題ないと考える", "ok", "「仲が良いから大丈夫」という前提が崩れた時に、リスクが表面化します。"),
+            C("ストレス発散のためにも、今まで通りSNSに仕事の話を書き続ける", "bad", "情報漏洩やトラブルの火種になり得る習慣です。")
+          ]}
+      ]
+    },
+    {
+      id:"E10", cat:"conflict", difficulty:1, icon:"🖨️",
+      title:"就業時間中の私的な用事", lead:"上司が外出中で誰も見ていない時間、会社のプリンターで自分の趣味の資料を大量に印刷したくなった。少しくらいならという気持ちがある。",
+      turns:[
+        { situation:T("この状況でどうするか。"),
+          choices:[
+            C("私的な印刷はせず、必要であれば自宅や外部のコンビニなどを利用する", "good", "会社の備品・経費は業務目的以外に使わないという原則を守れています。"),
+            C("少量(1〜2枚)だけなら良いだろうと思い、少しだけ印刷する", "ok", "「少しだけなら」という基準は曖昧になりやすく、積み重なると問題になります。"),
+            C("誰も見ていないので、まとめて大量に印刷してしまう", "bad", "会社の備品を私的に使うことは、程度の大小に関わらずルール違反です。")
+          ]},
+        { situation:T("後日、上司から「最近プリンターの用紙とインクの減りが早い」と雑談で話題に出た。"),
+          choices:[
+            C("正直に自分が私的に使ったことを伝え、費用を精算するか謝罪する", "good", "早めに正直に申し出ることで、問題を小さいうちに収められます。"),
+            C("自分のことだとは言わず、聞かれるまで黙っておく", "ok", "自分から名乗り出る勇気は次への課題です。聞かれたら正直に答える姿勢は保ちましょう。"),
+            C("他の人が使ったのではないかとごまかす", "bad", "話をそらして他人に疑いを向けさせるのは、誠実さに欠ける対応です。")
+          ]},
+        { situation:T("この経験から、会社の備品や時間の私的利用について学ぶべきことは?"),
+          choices:[
+            C("「誰も見ていないから」ではなく、「誰かに見られても説明できるか」を基準に行動する", "good", "良い判断基準です。この考え方は多くの倫理的な場面に応用できます。"),
+            C("今度からは、もう少しバレないように気をつける", "ok", "視点がずれています。「バレないように」ではなく「そもそもしない」ことが目指すべき方向です。"),
+            C("会社の備品くらい、多少私的に使っても大した問題ではないと考え続ける", "bad", "この考え方のままでは、同じような判断ミスを繰り返す可能性が高いです。")
+          ]}
+      ]
+    }
+  ];
+
+  var TIPS = [
+    {desc:"「バレなければいい」ではなく、「誰かに見られても説明できるか」を判断基準にする。"},
+    {desc:"小さなミスほど、早く報告する。隠す時間が長いほど、発覚した時の代償は大きくなる。"},
+    {desc:"「みんなやっている」「今回だけ」という言葉は、不正が始まる典型的なサインだと心得る。"},
+    {desc:"自分の裁量を超える約束(納期・金額・仕様など)は、その場で即答せず一度持ち帰って確認する。"},
+    {desc:"他人の成果物やデータを使うときは、必ず許可を取り、出典を明記する。"},
+    {desc:"会社の規定を超える贈答品・接待は、個人で判断せず必ず会社に報告する。"},
+    {desc:"業務上必要のない個人情報・顧客情報には、興味があっても近づかない。"},
+    {desc:"同僚や周囲の不正・ルール違反を見て見ぬふりすることは、加担することと同じ結果を招きうる。"},
+    {desc:"上司の指示であっても、ルールや法律に反すると感じたら、まず確認し、必要なら別の相談窓口を使う。"},
+    {desc:"SNSや私的な場でも、仕事に関する具体的な内容(取引先名・社内情報など)は話さない・書かないを徹底する。"}
+  ];
+
+  /* ---------------- storage ---------------- */
+  var STORE_KEY = "ethics-sim-progress-v1";
+  function loadProgress(){
+    try{ var raw = localStorage.getItem(STORE_KEY); return raw ? JSON.parse(raw) : {}; }catch(e){ return {}; }
+  }
+  function saveProgress(p){ try{ localStorage.setItem(STORE_KEY, JSON.stringify(p)); }catch(e){} }
+
+  /* ---------------- state ---------------- */
+  var state = {
+    screen:"home",
+    scenarioId:null,
+    phase:"intro",
+    turnIndex:0,
+    currentChoices:null,
+    record:[],
+    review:[],
+    score:0,
+    maxScore:0
+  };
+  var progress = loadProgress();
+
+  function shuffle(arr){
+    var a = arr.slice();
+    for(var i=a.length-1;i>0;i--){ var j = Math.floor(Math.random()*(i+1)); var t=a[i]; a[i]=a[j]; a[j]=t; }
+    return a;
+  }
+  function catInfo(id){ for(var i=0;i<CATEGORIES.length;i++){ if(CATEGORIES[i].id===id) return CATEGORIES[i]; } return CATEGORIES[0]; }
+  function scenarioById(id){ for(var i=0;i<SCENARIOS.length;i++){ if(SCENARIOS[i].id===id) return SCENARIOS[i]; } return null; }
+  function escapeHtml(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+  function tierLabel(tier){ return tier==="good" ? "とても良い判断です" : (tier==="ok" ? "OKですが、改善の余地があります" : "見直しが必要です"); }
+  function tierIcon(tier){ return tier==="good" ? "◎" : (tier==="ok" ? "○" : "✕"); }
+  function truncate(s, n){ return s.length > n ? s.slice(0,n) + "…" : s; }
+
+  var app = document.getElementById("app");
+
+  function render(){
+    if(state.screen==="home") renderHome();
+    else if(state.screen==="manual") renderManual();
+    else if(state.screen==="scenario") renderScenario();
+    else if(state.screen==="result") renderResult();
+  }
+
+  /* ---------------- HOME ---------------- */
+  function renderHome(){
+    var completed = 0;
+    SCENARIOS.forEach(function(s){ if(progress[s.id]) completed++; });
+    var pct = Math.round(completed/SCENARIOS.length*100);
+
+    var html = '';
+    html += '<div class="home">';
+    html += '<div class="home-head">';
+    html += '<div class="eyebrow">新人研修プログラム</div>';
+    html += '<h1 class="home-title">倫理判断シミュレーター</h1>';
+    html += '<p class="home-sub">職場で起こりがちな「ちょっとした迷い」の場面を選んで、選択肢に答えるだけで学べます。正解を暗記するより、判断の軸を身につけることが目的です。</p>';
+    html += '<div class="progress-row"><div class="progress-track"><div class="progress-fill" style="width:'+pct+'%"></div></div><div class="progress-label mono">'+completed+' / '+SCENARIOS.length+'</div></div>';
+    html += '<button class="manual-link" data-action="open-manual">📘 判断の物差し帳を見る</button>';
+    html += '</div>';
+
+    CATEGORIES.forEach(function(cat){
+      var list = SCENARIOS.filter(function(s){ return s.cat===cat.id; });
+      if(list.length===0) return;
+      html += '<div class="cat-block">';
+      html += '<div class="cat-head"><span class="cat-dot" style="background:var('+cat.varc+')"></span><span class="cat-name">'+cat.name+'</span></div>';
+      html += '<div class="cat-desc">'+cat.desc+'</div>';
+      html += '<div class="card-list">';
+      list.forEach(function(s){
+        var stars = "★".repeat(s.difficulty) + "☆".repeat(3-s.difficulty);
+        var best = progress[s.id];
+        html += '<button class="scenario-card" data-action="open-scenario" data-id="'+s.id+'">';
+        html += '<span class="avatar" style="background:var('+cat.vars+')">'+s.icon+'</span>';
+        html += '<span class="card-body"><span class="card-title">'+escapeHtml(s.title)+'</span><br><span class="card-meta">'+escapeHtml(truncate(s.lead, 30))+'</span></span>';
+        html += '<span class="card-side"><span class="stars">'+stars+'</span>' + (best ? '<span class="best-badge">ベスト '+best.pct+'%</span>' : '') + '</span>';
+        html += '</button>';
+      });
+      html += '</div></div>';
+    });
+
+    html += '</div>';
+    app.innerHTML = html;
+  }
+
+  /* ---------------- MANUAL ---------------- */
+  function renderManual(){
+    var html = '<div class="manual">';
+    html += '<div class="back-row"><button class="icon-btn" data-action="go-home">←</button><span class="screen-title">判断の物差し帳</span></div>';
+    TIPS.forEach(function(tip, i){
+      html += '<div class="tip-card"><div class="tip-num">POINT '+(i+1)+'</div><div class="tip-desc">'+escapeHtml(tip.desc)+'</div></div>';
+    });
+    html += '</div>';
+    app.innerHTML = html;
+  }
+
+  /* ---------------- SCENARIO ---------------- */
+  function openScenario(id){
+    var sc = scenarioById(id);
+    if(!sc) return;
+    state.screen = "scenario";
+    state.scenarioId = id;
+    state.phase = "intro";
+    state.turnIndex = 0;
+    state.currentChoices = null;
+    state.record = [];
+    state.review = [];
+    state.score = 0;
+    state.maxScore = sc.turns.length * 10;
+    render();
+  }
+
+  function renderScenario(){
+    var sc = scenarioById(state.scenarioId);
+    var cat = catInfo(sc.cat);
+
+    if(state.phase === "intro"){
+      var html = '<div class="intro">';
+      html += '<span class="avatar" style="background:var('+cat.vars+')">'+sc.icon+'</span>';
+      html += '<div class="intro-cat">'+escapeHtml(cat.name)+'</div>';
+      html += '<div class="intro-title">'+escapeHtml(sc.title)+'</div>';
+      html += '<div class="intro-lead">'+escapeHtml(sc.lead)+'</div>';
+      html += '<div class="intro-actions">';
+      html += '<button class="next-btn" data-action="start-scenario">この場面を始める</button>';
+      html += '<button class="ghost-btn" data-action="go-home">一覧に戻る</button>';
+      html += '</div></div>';
+      app.innerHTML = html;
+      return;
+    }
+
+    var html2 = '';
+    html2 += '<div class="rec-top">';
+    html2 += '<div><div class="rec-top-title">'+escapeHtml(sc.title)+'</div><div class="rec-top-cat">'+escapeHtml(cat.name)+'</div></div>';
+    html2 += '<div class="rec-step mono">STEP '+(state.turnIndex+1)+' / '+sc.turns.length+'</div>';
+    html2 += '</div>';
+
+    html2 += '<div class="record" id="record" style="--cat-color:var('+cat.varc+')">';
+    state.record.forEach(function(item){
+      if(item.speaker === "situation"){
+        html2 += '<div class="sit-card"><div class="sit-label">状況</div>'+escapeHtml(item.text)+'</div>';
+      } else {
+        html2 += '<div><div class="act-label">あなたの行動</div><div class="act-row"><div class="act-bubble">'+escapeHtml(item.text)+'</div></div></div>';
+      }
+    });
+    html2 += '</div>';
+
+    html2 += '<div class="choices-panel">';
+    if(state.phase === "active"){
+      html2 += '<div class="choices-hint">どう判断しますか?</div>';
+      state.currentChoices.forEach(function(choice, idx){
+        html2 += '<button class="choice-btn" data-action="pick-choice" data-idx="'+idx+'">'+escapeHtml(choice.text)+'</button>';
+      });
+    } else if(state.phase === "feedback"){
+      var last = state.review[state.review.length-1];
+      html2 += '<div class="feedback-panel">';
+      html2 += '<span class="feedback-tag '+last.tier+'">'+tierIcon(last.tier)+' '+tierLabel(last.tier)+'</span>';
+      html2 += '<div class="feedback-text">'+escapeHtml(last.feedback)+'</div>';
+      var isLast = state.turnIndex >= sc.turns.length - 1;
+      html2 += '<button class="next-btn" data-action="next-turn">'+(isLast ? "この場面を終える" : "次へ")+'</button>';
+      html2 += '</div>';
+    }
+    html2 += '</div>';
+
+    app.innerHTML = html2;
+    var rEl = document.getElementById("record");
+    if(rEl) rEl.scrollTop = rEl.scrollHeight;
+  }
+
+  function startScenario(){
+    var sc = scenarioById(state.scenarioId);
+    state.phase = "active";
+    state.turnIndex = 0;
+    pushSituation(sc, 0);
+    state.currentChoices = shuffle(sc.turns[0].choices);
+    render();
+  }
+
+  function pushSituation(sc, idx){
+    state.record.push({speaker:"situation", text: sc.turns[idx].situation.text});
+  }
+
+  function pickChoice(idx){
+    var sc = scenarioById(state.scenarioId);
+    var choice = state.currentChoices[idx];
+    state.record.push({speaker:"you", text: choice.text});
+    state.score += choice.points;
+    state.review.push({
+      situation: sc.turns[state.turnIndex].situation.text,
+      chosen: choice.text,
+      tier: choice.tier,
+      feedback: choice.feedback
+    });
+    state.phase = "feedback";
+    render();
+  }
+
+  function nextTurn(){
+    var sc = scenarioById(state.scenarioId);
+    if(state.turnIndex >= sc.turns.length - 1){
+      finishScenario();
+      return;
+    }
+    state.turnIndex++;
+    pushSituation(sc, state.turnIndex);
+    state.currentChoices = shuffle(sc.turns[state.turnIndex].choices);
+    state.phase = "active";
+    render();
+  }
+
+  function finishScenario(){
+    var pct = Math.round(state.score / state.maxScore * 100);
+    progress[state.scenarioId] = progress[state.scenarioId] && progress[state.scenarioId].pct > pct
+      ? progress[state.scenarioId] : {pct: pct};
+    saveProgress(progress);
+    state.screen = "result";
+    render();
+  }
+
+  /* ---------------- RESULT ---------------- */
+  function renderResult(){
+    var sc = scenarioById(state.scenarioId);
+    var pct = Math.round(state.score / state.maxScore * 100);
+    var grade = pct >= 90 ? "S" : pct >= 75 ? "A" : pct >= 55 ? "B" : "C";
+    var msg = pct >= 90 ? "軸のぶれない、とても誠実な判断ができています。この調子で他の場面にも挑戦しましょう。"
+      : pct >= 75 ? "良い判断ができています。○や✕がついた場面の理由を振り返ると、さらに軸がはっきりします。"
+      : pct >= 55 ? "基本はできています。迷った場面を見直して、判断の物差しを整理してみましょう。"
+      : "焦らず大丈夫です。下の振り返りを読んで、もう一度この場面に挑戦してみましょう。";
+
+    var html = '<div class="result">';
+    html += '<div class="result-badge"><span class="grade">'+grade+'</span></div>';
+    html += '<div class="result-score">スコア <span class="mono">'+state.score+' / '+state.maxScore+'</span>(' + pct + '%)</div>';
+    html += '<div class="result-title">'+escapeHtml(sc.title)+'・振り返り</div>';
+    html += '<div class="result-msg">'+msg+'</div>';
+
+    html += '<div class="review-list">';
+    state.review.forEach(function(r, i){
+      html += '<div class="review-item">';
+      html += '<div class="review-head"><span class="review-icon '+r.tier+'">'+tierIcon(r.tier)+'</span><span class="review-situation">場面'+(i+1)+'. '+escapeHtml(truncate(r.situation, 32))+'</span></div>';
+      html += '<div class="review-feedback">'+escapeHtml(r.feedback)+'</div>';
+      html += '</div>';
+    });
+    html += '</div>';
+
+    html += '<div class="result-actions">';
+    html += '<button class="btn-primary" data-action="retry-scenario">もう一度この場面に挑戦する</button>';
+    html += '<button class="btn-secondary" data-action="open-manual">物差し帳を振り返る</button>';
+    html += '<button class="btn-secondary" data-action="go-home">シナリオ一覧に戻る</button>';
+    html += '</div>';
+    html += '</div>';
+    app.innerHTML = html;
+  }
+
+  /* ---------------- events ---------------- */
+  app.addEventListener("click", function(e){
+    var btn = e.target.closest("[data-action]");
+    if(!btn) return;
+    var action = btn.getAttribute("data-action");
+    if(action === "open-scenario"){
+      openScenario(btn.getAttribute("data-id"));
+    } else if(action === "open-manual"){
+      state.screen = "manual";
+      render();
+    } else if(action === "go-home"){
+      state.screen = "home";
+      render();
+    } else if(action === "start-scenario"){
+      startScenario();
+    } else if(action === "pick-choice"){
+      pickChoice(parseInt(btn.getAttribute("data-idx"), 10));
+    } else if(action === "next-turn"){
+      nextTurn();
+    } else if(action === "retry-scenario"){
+      openScenario(state.scenarioId);
+    }
+  });
+
+  render();
+})();
+</script>
