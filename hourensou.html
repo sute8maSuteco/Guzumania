@@ -1,0 +1,772 @@
+<title>報連相シミュレーター</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700;900&family=Noto+Sans+JP:wght@400;500;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+  :root{
+    --bg:#EEEAE0;
+    --surface:#FBF8F2;
+    --surface-alt:#F1ECDF;
+    --ink:#232620;
+    --ink-soft:#6E6C5C;
+    --border:#DCD5C4;
+    --accent:#B4552F;
+    --accent-contrast:#FFFFFF;
+    --good:#3F7D4C;
+    --good-soft:#E4EEE2;
+    --warn:#A97A1E;
+    --warn-soft:#F3EAD4;
+    --bad:#B14A3D;
+    --bad-soft:#F5E2DE;
+    --catReport:#2B5C63;
+    --catReport-soft:#E1EBEA;
+    --catContact:#3C5A78;
+    --catContact-soft:#E2E8EE;
+    --catConsult:#7A3E52;
+    --catConsult-soft:#F0E1E6;
+    --catTiming:#8B5E0E;
+    --catTiming-soft:#F0E8D6;
+    --cover:#1F3B2C;
+    --cover-text:#EDE9DA;
+    --shadow: 0 20px 50px -20px rgba(20,20,15,0.35);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#141310;
+      --surface:#1D1C17;
+      --surface-alt:#26241D;
+      --ink:#ECE8DC;
+      --ink-soft:#A8A290;
+      --border:#37342A;
+      --accent:#E08256;
+      --accent-contrast:#1B140F;
+      --good:#6FBF7C;
+      --good-soft:#233127;
+      --warn:#D9A94A;
+      --warn-soft:#332C1C;
+      --bad:#E1786A;
+      --bad-soft:#38221E;
+      --catReport:#5AA3AA;
+      --catReport-soft:#20302F;
+      --catContact:#8FB0D6;
+      --catContact-soft:#212B36;
+      --catConsult:#C98CA0;
+      --catConsult-soft:#32222A;
+      --catTiming:#C99A4A;
+      --catTiming-soft:#332A18;
+      --shadow: 0 20px 50px -20px rgba(0,0,0,0.6);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#141310;
+    --surface:#1D1C17;
+    --surface-alt:#26241D;
+    --ink:#ECE8DC;
+    --ink-soft:#A8A290;
+    --border:#37342A;
+    --accent:#E08256;
+    --accent-contrast:#1B140F;
+    --good:#6FBF7C;
+    --good-soft:#233127;
+    --warn:#D9A94A;
+    --warn-soft:#332C1C;
+    --bad:#E1786A;
+    --bad-soft:#38221E;
+    --catReport:#5AA3AA;
+    --catReport-soft:#20302F;
+    --catContact:#8FB0D6;
+    --catContact-soft:#212B36;
+    --catConsult:#C98CA0;
+    --catConsult-soft:#32222A;
+    --catTiming:#C99A4A;
+    --catTiming-soft:#332A18;
+    --shadow: 0 20px 50px -20px rgba(0,0,0,0.6);
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;height:100%;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:"Noto Sans JP","Hiragino Kaku Gothic ProN","Hiragino Sans",Meiryo,sans-serif;
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    padding:20px 14px;
+  }
+  h1,h2,h3,.display{ font-family:"Zen Kaku Gothic New","Noto Sans JP",sans-serif; text-wrap:balance; margin:0; }
+  .mono{ font-family:"JetBrains Mono", ui-monospace, monospace; font-variant-numeric:tabular-nums; }
+  button{font-family:inherit;}
+  button:focus-visible, a:focus-visible, [tabindex]:focus-visible{ outline:3px solid var(--accent); outline-offset:2px; }
+  @media (prefers-reduced-motion: reduce){ *{animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0.001ms !important;} }
+
+  /* ---- outer frame (cover) ---- */
+  .frame{
+    width:100%; max-width:480px; height:min(720px, calc(100vh - 40px));
+    background:var(--cover); border-radius:22px; padding:14px; box-shadow:var(--shadow);
+    display:flex; flex-direction:column;
+  }
+  .frame-label{
+    flex-shrink:0; display:flex; align-items:center; justify-content:center; gap:7px;
+    padding:2px 0 12px; color:var(--cover-text); font-size:12.5px; font-weight:700; letter-spacing:0.03em;
+  }
+  .frame-label svg{ width:16px; height:16px; }
+  .frame-label .dot{ width:6px;height:6px;border-radius:50%; background:var(--cover-text); opacity:0.55; }
+  .page{
+    background:var(--surface); border-radius:16px; flex:1; min-height:0;
+    display:flex; flex-direction:column; overflow:hidden; position:relative;
+  }
+
+  /* ---- home ---- */
+  .home{ padding:20px 20px 20px; overflow-y:auto; flex:1; min-height:0; }
+  .cover-art{ display:flex; flex-direction:column; align-items:center; padding:6px 0 14px; }
+  .cover-art svg{ width:84px; height:84px; }
+  .cover-caption{ font-size:10.5px; color:var(--ink-soft); margin-top:6px; letter-spacing:0.03em; }
+  .home-head{ padding:0 2px 18px; border-bottom:1px solid var(--border); margin-bottom:16px; }
+  .eyebrow{ font-size:11px; letter-spacing:0.12em; color:var(--accent); font-weight:700; text-transform:uppercase; text-align:center; }
+  .home-title{ font-size:21px; font-weight:900; margin-top:6px; line-height:1.35; text-align:center; }
+  .home-sub{ font-size:12.5px; color:var(--ink-soft); margin-top:8px; line-height:1.65; text-align:center; }
+  .progress-row{ display:flex; align-items:center; gap:10px; margin-top:14px; }
+  .progress-track{ flex:1; height:6px; background:var(--surface-alt); border-radius:4px; overflow:hidden; border:1px solid var(--border); }
+  .progress-fill{ height:100%; background:var(--accent); border-radius:4px; transition:width .4s ease; }
+  .progress-label{ font-size:12px; color:var(--ink-soft); white-space:nowrap; }
+  .manual-link{
+    margin-top:14px; display:flex; align-items:center; justify-content:center; gap:6px; font-size:13px; font-weight:700;
+    color:var(--accent); background:var(--surface-alt); border:1px solid var(--border); padding:9px 14px; border-radius:10px; cursor:pointer; width:100%;
+  }
+  .cat-block{ margin-bottom:20px; }
+  .cat-head{ display:flex; align-items:center; gap:8px; margin-bottom:2px; }
+  .cat-dot{ width:9px;height:9px;border-radius:50%; flex-shrink:0; }
+  .cat-name{ font-size:14px; font-weight:700; }
+  .cat-desc{ font-size:11.5px; color:var(--ink-soft); margin:2px 0 8px 17px; }
+  .card-list{ display:flex; flex-direction:column; gap:8px; }
+  .scenario-card{
+    display:flex; align-items:center; gap:12px; background:var(--surface-alt); border:1px solid var(--border);
+    border-radius:14px; padding:11px 12px; cursor:pointer; text-align:left; width:100%;
+  }
+  .scenario-card:hover{ border-color:var(--accent); }
+  .avatar{ width:38px;height:38px;border-radius:12px; display:flex;align-items:center;justify-content:center; font-size:17px; flex-shrink:0; }
+  .card-body{ flex:1; min-width:0; }
+  .card-title{ font-size:13.5px; font-weight:700; }
+  .card-meta{ font-size:11.5px; color:var(--ink-soft); margin-top:2px; line-height:1.5; }
+  .card-side{ display:flex; flex-direction:column; align-items:flex-end; gap:4px; flex-shrink:0; }
+  .stars{ font-size:11px; color:var(--warn); letter-spacing:1px; white-space:nowrap; }
+  .best-badge{ font-size:10.5px; font-weight:700; color:var(--good); background:var(--good-soft); padding:2px 7px; border-radius:20px; white-space:nowrap; }
+
+  /* ---- manual ---- */
+  .manual{ padding:20px 20px 24px; overflow-y:auto; flex:1; min-height:0; }
+  .back-row{ display:flex; align-items:center; gap:10px; margin-bottom:14px; }
+  .icon-btn{
+    width:32px;height:32px;border-radius:50%; background:var(--surface-alt); border:1px solid var(--border);
+    display:flex;align-items:center;justify-content:center; cursor:pointer; color:var(--ink); font-size:16px; flex-shrink:0;
+  }
+  .screen-title{ font-size:16.5px; font-weight:900; }
+  .tip-card{ background:var(--surface-alt); border:1px solid var(--border); border-radius:14px; padding:13px 14px; margin-bottom:10px; }
+  .tip-num{ font-size:11px; font-weight:700; color:var(--accent); }
+  .tip-desc{ font-size:12.5px; color:var(--ink); margin-top:4px; line-height:1.7; }
+
+  /* ---- scenario: intro ---- */
+  .intro{ flex:1; min-height:0; overflow-y:auto; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:34px 28px; text-align:center; gap:6px; }
+  .intro .avatar{ width:76px; height:76px; border-radius:22px; font-size:32px; margin-bottom:14px; }
+  .intro-cat{ font-size:11.5px; font-weight:700; letter-spacing:0.04em; color:var(--ink-soft); text-transform:uppercase; }
+  .intro-title{ font-size:19px; font-weight:900; margin-top:8px; line-height:1.4; }
+  .intro-lead{ font-size:12.5px; color:var(--ink-soft); margin-top:12px; line-height:1.75; max-width:320px; }
+  .intro-actions{ display:flex; flex-direction:column; gap:9px; width:100%; max-width:260px; margin-top:26px; }
+
+  /* ---- scenario: active ---- */
+  .rec-top{ display:flex; align-items:center; justify-content:space-between; gap:10px; padding:14px 18px 12px; border-bottom:1px solid var(--border); flex-shrink:0; }
+  .rec-top-title{ font-size:13.5px; font-weight:700; line-height:1.4; }
+  .rec-top-cat{ font-size:11px; color:var(--ink-soft); margin-top:2px; }
+  .rec-step{ font-size:11.5px; color:var(--accent); font-weight:700; white-space:nowrap; flex-shrink:0; }
+
+  .record{ flex:1; min-height:0; overflow-y:auto; padding:16px 16px 8px; display:flex; flex-direction:column; gap:12px; }
+  .sit-card{ background:var(--surface-alt); border:1px solid var(--border); border-left:4px solid var(--cat-color, var(--accent)); border-radius:10px; padding:11px 13px; font-size:13px; line-height:1.7; }
+  .sit-label{ font-size:10.5px; font-weight:700; color:var(--ink-soft); letter-spacing:0.04em; margin-bottom:4px; text-transform:uppercase; }
+  .act-row{ display:flex; justify-content:flex-end; }
+  .act-bubble{ max-width:86%; background:var(--accent); color:var(--accent-contrast); border-radius:12px; border-bottom-right-radius:4px; padding:9px 13px; font-size:12.5px; line-height:1.65; }
+  .act-label{ font-size:10px; color:var(--ink-soft); text-align:right; margin:0 2px 3px; }
+
+  .choices-panel{ border-top:1px solid var(--border); padding:12px 16px 16px; flex-shrink:0; background:var(--surface); max-height:46vh; overflow-y:auto; }
+  .choices-hint{ font-size:11px; color:var(--ink-soft); margin-bottom:8px; }
+  .choice-btn{
+    display:block; width:100%; text-align:left; background:var(--surface-alt); border:1px solid var(--border);
+    border-radius:12px; padding:10px 13px; margin-bottom:8px; font-size:13px; line-height:1.6; color:var(--ink); cursor:pointer;
+  }
+  .choice-btn:hover{ border-color:var(--accent); }
+  .choice-btn:last-child{ margin-bottom:0; }
+
+  .feedback-panel{ padding:4px 2px 2px; }
+  .feedback-tag{ display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:700; padding:4px 11px; border-radius:20px; margin-bottom:8px; }
+  .feedback-tag.good{ background:var(--good-soft); color:var(--good); }
+  .feedback-tag.ok{ background:var(--warn-soft); color:var(--warn); }
+  .feedback-tag.bad{ background:var(--bad-soft); color:var(--bad); }
+  .feedback-text{ font-size:13px; line-height:1.7; color:var(--ink); margin-bottom:12px; }
+  .next-btn{ width:100%; padding:11px; border-radius:12px; border:none; background:var(--accent); color:var(--accent-contrast); font-weight:700; font-size:13.5px; cursor:pointer; }
+  .ghost-btn{ width:100%; padding:11px; border-radius:12px; border:1px solid var(--border); background:var(--surface-alt); color:var(--ink); font-weight:700; font-size:13.5px; cursor:pointer; }
+
+  /* ---- result ---- */
+  .result{ padding:22px 22px 26px; overflow-y:auto; flex:1; min-height:0; display:flex; flex-direction:column;}
+  .result-badge{
+    width:92px;height:92px;border-radius:50%; margin:6px auto 14px;
+    display:flex; align-items:center; justify-content:center; border:3px solid var(--accent); color:var(--accent);
+  }
+  .result-badge .grade{ font-size:28px; font-weight:900; font-family:"Zen Kaku Gothic New",sans-serif; }
+  .result-score{ text-align:center; font-size:13px; color:var(--ink-soft); }
+  .result-score .mono{ font-size:15px; color:var(--ink); font-weight:700; }
+  .result-title{ text-align:center; font-size:15.5px; font-weight:900; margin-top:14px; }
+  .result-msg{ text-align:center; font-size:12.5px; color:var(--ink-soft); margin-top:6px; line-height:1.75;}
+  .review-list{ margin-top:20px; display:flex; flex-direction:column; gap:8px; }
+  .review-item{ background:var(--surface-alt); border:1px solid var(--border); border-radius:12px; padding:10px 12px; }
+  .review-head{ display:flex; align-items:center; gap:8px; }
+  .review-icon{ width:20px;height:20px;border-radius:50%; flex-shrink:0; display:flex;align-items:center;justify-content:center; font-size:11px; font-weight:900; color:#fff; }
+  .review-icon.good{ background:var(--good); }
+  .review-icon.ok{ background:var(--warn); }
+  .review-icon.bad{ background:var(--bad); }
+  .review-situation{ font-size:12px; font-weight:700; }
+  .review-feedback{ font-size:11.5px; color:var(--ink-soft); margin-top:5px; line-height:1.6; padding-left:28px;}
+  .result-actions{ display:flex; flex-direction:column; gap:8px; margin-top:22px; }
+  .btn-primary{ padding:12px; border-radius:12px; border:none; background:var(--accent); color:var(--accent-contrast); font-weight:700; font-size:13.5px; cursor:pointer; }
+  .btn-secondary{ padding:12px; border-radius:12px; border:1px solid var(--border); background:var(--surface-alt); color:var(--ink); font-weight:700; font-size:13.5px; cursor:pointer; }
+</style>
+
+<div class="frame">
+  <div class="frame-label">
+    <svg viewBox="0 0 120 120" aria-hidden="true"><path d="M60,112 C55,97 52,87 55,72" stroke="#EDE9DA" stroke-width="7" fill="none" stroke-linecap="round" opacity="0.9"/><path d="M60,20 C42,26 33,48 38,66 C42,82 54,90 60,90 C60,90 60,55 60,20 Z" fill="#EDE9DA" opacity="0.9"/><path d="M60,14 C40,20 30,46 36,68 C41,86 55,96 60,96 C65,96 79,86 84,68 C90,46 80,20 60,14 Z" fill="#EDE9DA"/></svg>
+    <span>報連相ノート</span><span class="dot"></span><span>新人研修用</span>
+  </div>
+  <div class="page" id="app"></div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var SPINACH_SVG = '<svg viewBox="0 0 120 120" aria-hidden="true">'
+    + '<path d="M60,112 C54,97 51,86 54,70" stroke="#B4552F" stroke-width="7" fill="none" stroke-linecap="round" transform="rotate(-16 60 112)"/>'
+    + '<path d="M60,114 C60,96 60,84 60,68" stroke="#C96A3D" stroke-width="8" fill="none" stroke-linecap="round"/>'
+    + '<path d="M60,112 C66,97 69,86 66,70" stroke="#B4552F" stroke-width="7" fill="none" stroke-linecap="round" transform="rotate(16 60 112)"/>'
+    + '<g transform="rotate(-27 60 78)">'
+    + '<path d="M60,20 C42,26 33,48 38,66 C42,82 54,90 60,90 C60,90 60,55 60,20 Z" fill="#1F5C42"/>'
+    + '<path d="M60,30 C51,42 47,55 50,68" stroke="#164831" stroke-width="2" fill="none" stroke-linecap="round"/>'
+    + '</g>'
+    + '<g transform="rotate(27 60 78)">'
+    + '<path d="M60,20 C78,26 87,48 82,66 C78,82 66,90 60,90 C60,90 60,55 60,20 Z" fill="#276B4C"/>'
+    + '<path d="M60,30 C69,42 73,55 70,68" stroke="#1B5138" stroke-width="2" fill="none" stroke-linecap="round"/>'
+    + '</g>'
+    + '<g>'
+    + '<path d="M60,14 C40,20 30,46 36,68 C41,86 55,96 60,96 C65,96 79,86 84,68 C90,46 80,20 60,14 Z" fill="#33835B"/>'
+    + '<path d="M60,24 C60,45 60,70 60,92" stroke="#245C40" stroke-width="2.4" fill="none" stroke-linecap="round"/>'
+    + '</g>'
+    + '</svg>';
+
+  var CATEGORIES = [
+    {id:"report", name:"報告", desc:"起きたこと・進み具合をどう伝えるか", varc:"--catReport", vars:"--catReport-soft"},
+    {id:"contact", name:"連絡", desc:"予定や情報を関係者へどう届けるか", varc:"--catContact", vars:"--catContact-soft"},
+    {id:"consult", name:"相談", desc:"迷ったとき、抱え込まずに頼れるか", varc:"--catConsult", vars:"--catConsult-soft"},
+    {id:"timing", name:"タイミングと伝え方", desc:"いつ・どの手段で・何から伝えるか", varc:"--catTiming", vars:"--catTiming-soft"}
+  ];
+
+  function T(text){ return {text:text}; }
+  function C(text, tier, feedback){
+    var pts = tier === "good" ? 10 : (tier === "ok" ? 5 : 0);
+    return {text:text, tier:tier, feedback:feedback, points:pts};
+  }
+
+  var SCENARIOS = [
+    {
+      id:"H1", cat:"report", difficulty:1, icon:"⚠️",
+      title:"ミスに気づいた時の報告のタイミング", lead:"作業中、指示された手順を一部間違えていたことに気づいた。まだ大きな影響は出ていなさそうだが、報告すると気まずい。",
+      turns:[
+        { situation:T("間違いに気づいた直後、どうするか。"),
+          choices:[
+            C("すぐに「手順を一部間違えていました」と事実を上司に報告する", "good", "早い段階での事実報告が、被害を最小限にする基本です。"),
+            C("まず自分でどこまで修正できるか確認してから、あとで報告する", "ok", "自分で状況を把握する姿勢は良いですが、報告が遅れるほど対応の選択肢が狭まります。"),
+            C("大きな影響が出ていないので、このまま黙って作業を進める", "bad", "気づいた時点で共有しないと、後から発覚した際に「なぜすぐ言わなかったのか」が問題になります。")
+          ]},
+        { situation:T("報告したところ、上司から「なぜもっと早く相談しなかったのか」と聞かれた。"),
+          choices:[
+            C("手順に迷った時点で確認すべきだったと認め、次からは早めに相談すると伝える", "good", "素直に認めて次の行動を示すのは良い対応です。"),
+            C("特に理由はなく、何となく大丈夫だと思っていたと正直に伝える", "ok", "正直さはありますが、次にどう改善するかまで言えるとより良い受け答えになります。"),
+            C("指示が分かりにくかったせいだと、相手のせいにする", "bad", "原因を相手に押し付けると、今後の報告や相談がしづらい関係になってしまいます。")
+          ]},
+        { situation:T("この経験から学ぶべき、報告のタイミングの基本は?"),
+          choices:[
+            C("悪い知らせほど早く報告する。気づいた時点がベストなタイミングだと考える", "good", "その通りです。早さが被害を最小限にする一番の鍵です。"),
+            C("今度からはミスをしないよう、より一層注意して作業する", "ok", "注意力の向上は大切ですが、ミスが起きた後の報告の仕方も同じくらい重要です。"),
+            C("小さなミスなら、いちいち報告しなくても良いと考える", "bad", "「小さい」かどうかは自分では正しく判断できないことが多く、この考え方はリスクが高いです。")
+          ]}
+      ]
+    },
+    {
+      id:"H2", cat:"report", difficulty:1, icon:"🗣️",
+      title:"結論から話す報告の仕方", lead:"上司に商談の結果を報告する場面。忙しそうな上司に声をかけたが、経緯から順番に説明しようとしている自分に気づいた。",
+      turns:[
+        { situation:T("上司に声をかけ、報告を始める。最初に伝えるべきことは?"),
+          choices:[
+            C("まず「契約は成立しました」という結論を伝えてから、詳しい経緯を説明する", "good", "結論から伝えることで、忙しい相手にも要点がすぐ伝わります。"),
+            C("訪問の経緯から時系列で説明を始める", "ok", "丁寧な説明ですが、結論が最後になると、途中で相手の集中力が切れてしまうことがあります。"),
+            C("世間話から入り、本題になかなかたどり着かない", "bad", "相手の時間を無駄に奪ってしまい、要点も伝わりにくくなります。")
+          ]},
+        { situation:T("結論を伝えた後、上司から「なぜ値引きに応じたのか」と質問された。"),
+          choices:[
+            C("値引きに至った経緯と判断理由を簡潔に説明する", "good", "質問にまっすぐ答える簡潔さが評価されます。"),
+            C("訪問時の状況を細かく全部説明しようとする", "ok", "誠実な姿勢ですが、質問への回答としては情報が多すぎて要点がぼやけます。"),
+            C("うまく言葉にできず、あいまいな返答で誤魔化す", "bad", "判断の理由を説明できないと、報告への信頼が下がってしまいます。")
+          ]},
+        { situation:T("今後の報告の仕方として、意識すべきことは?"),
+          choices:[
+            C("結論→理由→詳細、の順で話す組み立てを常に意識する", "good", "シンプルで実践しやすい型です。"),
+            C("話す前に、頭の中で内容を整理してから話し始める", "ok", "良い心がけですが、具体的な型を持っていないと、整理してもうまく組み立てられないことがあります。"),
+            C("相手に合わせて、その場の流れで自由に話せば良いと考える", "bad", "場当たり的な報告は、忙しい相手にとって負担になりがちです。")
+          ]}
+      ]
+    },
+    {
+      id:"H3", cat:"report", difficulty:2, icon:"⏳",
+      title:"進捗が遅れている時の中間報告", lead:"来週締め切りの資料作成を任されている。進めてみると想定より時間がかかっており、このままでは間に合わない可能性が出てきた。",
+      turns:[
+        { situation:T("遅れに気づいた時点で、どうするか。"),
+          choices:[
+            C("早めに上司へ進捗状況と、間に合わない可能性があることを報告する", "good", "早期の中間報告により、上司も対応を検討する時間を持てます。"),
+            C("締め切り前日まで自分なりに挽回できないか頑張ってみる", "ok", "頑張る姿勢は評価できますが、報告が遅れるほど周囲が打てる手は少なくなります。"),
+            C("間に合わなかったら、その時に謝ればいいと考える", "bad", "事前に共有できていれば防げたはずの混乱を招いてしまいます。")
+          ]},
+        { situation:T("上司に報告したところ、「なぜここまで進んでからもっと早く言わなかったのか」と聞かれた。"),
+          choices:[
+            C("進捗の節目ごとに報告するべきだったと認め、次回からは中間報告を入れると伝える", "good", "振り返りと改善策をセットで伝えられています。"),
+            C("終わってから報告すれば十分だと思っていた、と正直に話す", "ok", "正直な姿勢は良いですが、今後の改善につなげる一言が加わるとより良いです。"),
+            C("思ったより難しい仕事だったから仕方ない、と説明する", "bad", "難易度のせいにするだけでは、報告のタイミングの問題は解決しません。")
+          ]},
+        { situation:T("今後、締め切りのある仕事を任された時に心がけるべきことは?"),
+          choices:[
+            C("終わってから報告するのではなく、区切りごとに「ここまで進んでいます」と自分から共有する", "good", "定期的な進捗共有が、遅れの早期発見につながります。"),
+            C("次はスケジュールにもっと余裕を持たせて計画する", "ok", "計画の見直しも大切ですが、進めながらの共有をセットで行うことが重要です。"),
+            C("聞かれたら答えれば良いので、自分から報告する必要はないと考える", "bad", "聞かれるのを待つ姿勢では、遅れの発見がどうしても遅くなります。")
+          ]}
+      ]
+    },
+    {
+      id:"H4", cat:"contact", difficulty:1, icon:"🕐",
+      title:"予定変更の連絡漏れ", lead:"明日の午前中、私用で1時間ほど遅れて出社することになった。まだ誰にも伝えていない。",
+      turns:[
+        { situation:T("このことをいつ・誰に伝えるべきか。"),
+          choices:[
+            C("分かった時点ですぐに、上司とその日一緒に動く同僚の両方に伝える", "good", "早めに、関係者全員へ伝えるのが基本です。"),
+            C("上司にだけ伝え、同僚には当日会った時に話せばいいと考える", "ok", "上司への連絡は良い判断ですが、一緒に動く同僚への影響も考える必要があります。"),
+            C("当日の朝、遅れそうになってから慌てて連絡する", "bad", "事前に分かっていたことを直前まで伝えないのは、周囲の予定にも影響します。")
+          ]},
+        { situation:T("連絡したところ、同僚から「明日の朝一で一緒に確認する予定だった件はどうする?」と聞かれた。"),
+          choices:[
+            C("その予定をどう調整するか、代替案(時間変更や先に済ませておくことなど)を一緒に相談する", "good", "影響が出る具体的な予定にまで気を配れています。"),
+            C("特に対応は考えず、当日相手に任せる", "ok", "連絡はできていますが、影響が出る予定への対応まで考えられるとより丁寧です。"),
+            C("自分には関係ないので、そのままにしておく", "bad", "自分の予定変更が他人の予定にも影響することへの配慮が欠けています。")
+          ]},
+        { situation:T("この経験から、予定変更の連絡について学ぶべきことは?"),
+          choices:[
+            C("予定が変わると分かった時点で、影響を受けそうな人全員に早めに伝える", "good", "シンプルですが、連絡漏れを防ぐ一番の基本です。"),
+            C("重要な予定の時だけ、早めに連絡するようにする", "ok", "「重要かどうか」の判断が難しい場面もあるため、基本的には早めの連絡を習慣にするのが安全です。"),
+            C("聞かれない限り、自分から予定の変更を伝える必要はないと考える", "bad", "この考え方では、気づかないうちに周囲に迷惑をかけてしまいます。")
+          ]}
+      ]
+    },
+    {
+      id:"H5", cat:"contact", difficulty:2, icon:"📨",
+      title:"情報共有すべき相手を見極める", lead:"取引先から「来月から担当者が変わります」という連絡を自分宛に受け取った。自分のプロジェクトには直接関係ないが、他部署も同じ取引先とやり取りしている。",
+      turns:[
+        { situation:T("この情報を受け取った直後、どうするか。"),
+          choices:[
+            C("自分の上司に加え、同じ取引先とやり取りしている他部署の担当者にも情報を共有する", "good", "自分だけでなく、関係する範囲全体を考えた共有ができています。"),
+            C("自分の上司にだけ報告し、他部署までは特に伝えない", "ok", "上司への報告は正しいですが、他部署への影響を考えられるとより良い判断になります。"),
+            C("自分には直接関係ないので、特に誰にも伝えない", "bad", "自分にとって重要でなくても、他の人にとって重要な情報である可能性を見落としています。")
+          ]},
+        { situation:T("後日、他部署が担当者交代を知らずに以前の担当者宛てに重要な連絡をしてしまい、行き違いが起きた。"),
+          choices:[
+            C("情報を早めに共有しなかったことを認め、今後は関係しそうな部署にも一言共有すると伝える", "good", "原因を認めて改善につなげる、誠実な振り返りです。"),
+            C("自分は上司に伝えていたので、自分の責任ではないと考える", "ok", "形式的には正しいですが、実際に行き違いが起きた原因の一端を振り返る視点も大切です。"),
+            C("他部署が自分で確認しなかったのが悪いと考える", "bad", "情報を知っていた側が共有を怠ったことも、行き違いの一因であることを見落としています。")
+          ]},
+        { situation:T("今後、自分に届いた情報を共有する範囲を判断するときの基準は?"),
+          choices:[
+            C("自分だけでなく「他に誰かに影響しそうか」を考えて共有範囲を決める", "good", "情報共有の基本となる考え方です。"),
+            C("明らかに関係がありそうな時だけ、他部署にも共有する", "ok", "「明らかに」の判断が難しい場合もあるため、迷ったら共有する方が安全です。"),
+            C("自分の上司にさえ伝えておけば、それ以上は自分の仕事ではないと考える", "bad", "情報は必要な人に届いて初めて意味を持ちます。")
+          ]}
+      ]
+    },
+    {
+      id:"H6", cat:"consult", difficulty:2, icon:"❓",
+      title:"やり方が分からないまま抱え込む場面", lead:"上司から資料作成を頼まれたが、指示がやや曖昧で、どの形式でまとめれば良いか分からないまま作業を始めてしまった。",
+      turns:[
+        { situation:T("作業を始めてすぐ、指示があいまいだと気づいた。どうするか。"),
+          choices:[
+            C("一度作業の手を止め、上司に「こういう理解で進めて良いか」を確認する", "good", "分からないまま進める前に確認するのが基本です。"),
+            C("自分なりの解釈で最後まで作り切ってから、上司に確認してもらう", "ok", "完成させる努力は良いですが、認識がずれていた場合、作り直しの手間が大きくなります。"),
+            C("聞くのは迷惑かもしれないので、分からないまま自己判断で進め続ける", "bad", "認識のズレに気づかないまま進めると、後で大きな手戻りにつながります。")
+          ]},
+        { situation:T("確認したところ、上司から「そんなことも分からないの」と少し呆れた反応をされた。"),
+          choices:[
+            C("反応は気にせず、認識を合わせられたことを前向きに捉え、作業を続ける", "good", "相談したこと自体は正しい判断だったと割り切れています。"),
+            C("次からは相談するのをためらうようになる", "ok", "気持ちは分かりますが、これでは今後また分からないまま抱え込む原因になりかねません。"),
+            C("二度と相談しないようにしようと決める", "bad", "一度の反応で相談自体をやめてしまうと、同じような手戻りを繰り返すことになります。")
+          ]},
+        { situation:T("このやり取りから学べる、相談することへの向き合い方は?"),
+          choices:[
+            C("多少気まずくても、分からないまま進めるより相談したほうが結果的に良い仕事につながる", "good", "相談の価値を正しく理解できています。"),
+            C("相手の機嫌が良さそうなタイミングを見計らって相談するようにする", "ok", "タイミングへの配慮は良いですが、機嫌を待ちすぎると相談自体が遅れてしまいます。"),
+            C("気まずい思いをするくらいなら、なるべく自己判断で済ませようと思う", "bad", "この考え方のままだと、分からないまま進めて手戻りを繰り返すリスクが高いままです。")
+          ]}
+      ]
+    },
+    {
+      id:"H7", cat:"consult", difficulty:2, icon:"💬",
+      title:"自分の権限を超える判断を求められた場面", lead:"お客様から電話で「特別に割引してもらえませんか」とその場で即答を求められた。自分には値引きを判断する権限がない。",
+      turns:[
+        { situation:T("この場でどう答えるか。"),
+          choices:[
+            C("その場では判断できないため、確認のうえ改めてご連絡する、と伝える", "good", "権限のないことをその場で判断しないのが基本です。"),
+            C("多分大丈夫だと思います、と答えてしまう", "ok", "相手を待たせたくない気持ちは分かりますが、確認前に期待を持たせるのはリスクがあります。"),
+            C("その場の空気に流されて、独断で割引を了承してしまう", "bad", "権限を超えた独断の約束は、後で会社としての対応に大きな支障をきたします。")
+          ]},
+        { situation:T("電話を切った後、上司に相談しようとしたが、上司は会議中で捕まらない。"),
+          choices:[
+            C("メモを残して会議後すぐに相談できるようにし、それまでお客様には返答を待ってもらう", "good", "相談できるタイミングを逃さない準備と、正直な待ち時間の伝え方ができています。"),
+            C("上司が捕まらないので、自分の判断で対応を決めてしまう", "ok", "相談しようとした姿勢は良いですが、結局一人で判断してしまっては意味がありません。"),
+            C("相談できないなら仕方ないと諦めて、お客様への返答を先延ばしにしたまま放置する", "bad", "相談相手が見つからない時こそ、別の手段(他の上司や先輩)を探す工夫が必要です。")
+          ]},
+        { situation:T("この経験から、自分の権限を超える判断を求められた時の基本姿勢は?"),
+          choices:[
+            C("即答できない内容は、その場で判断せず必ず持ち帰って確認してから返答する", "good", "契約や金額に関わる判断ほど、この基本を徹底することが重要です。"),
+            C("次はもっと自信を持って即答できるように勉強する", "ok", "知識を増やすことは良いことですが、権限を超える判断はそもそも即答すべきではありません。"),
+            C("お客様を待たせないことを最優先に考え、多少の判断は現場で決めてしまって良いと思う", "bad", "スピードよりも、正確な確認を優先すべき場面です。")
+          ]}
+      ]
+    },
+    {
+      id:"H8", cat:"timing", difficulty:2, icon:"📞",
+      title:"緊急度に応じた連絡手段の選び方", lead:"客先で使用しているシステムに不具合が見つかった。影響がどこまで広がるか分からない状況。",
+      turns:[
+        { situation:T("この不具合に気づいた直後、どう連絡するか。"),
+          choices:[
+            C("メールで詳細をまとめつつ、緊急性が高いので電話でも上司にすぐ一報を入れる", "good", "緊急度の高い情報は、記録に残るメールと、即座に伝わる電話を組み合わせるのが効果的です。"),
+            C("詳しい状況をまとめてから、メールだけで報告する", "ok", "記録に残す姿勢は良いですが、緊急度が高い内容をメールだけに頼ると、気づかれるまで時間がかかる可能性があります。"),
+            C("よく分からない状況のまま連絡すると迷惑かと思い、原因が分かるまで連絡を控える", "bad", "原因が分からない段階でも、まず一報を入れることが重要です。")
+          ]},
+        { situation:T("上司から「早く言ってほしかった」と言われた。"),
+          choices:[
+            C("今後は緊急度が高いと感じた時点で、詳細が分からなくてもまず連絡すると伝える", "good", "反省点を次の行動指針に変えられています。"),
+            C("状況を正確に把握してから連絡しようと思っていた、と説明する", "ok", "正確さを重視する姿勢は分かりますが、緊急時は速さのほうが優先されることを理解する必要があります。"),
+            C("自分なりに急いで対応していたので、特に問題はなかったと考える", "bad", "相手にとって「伝わるタイミング」で連絡できていなければ、意味がありません。")
+          ]},
+        { situation:T("今後、緊急度の高い連絡をする際に意識すべきことは?"),
+          choices:[
+            C("緊急度が高いほど、内容が整理しきれていなくても早く、複数の手段で伝える", "good", "緊急連絡の基本原則です。"),
+            C("緊急度の判断に迷ったら、周りの先輩に確認してから連絡する", "ok", "相談する姿勢は良いですが、確認している間に連絡が遅れることもあるので注意が必要です。"),
+            C("メールを送っておけば、緊急時でも義務は果たしたと考える", "bad", "手段が緊急度に見合っていなければ、連絡した意味が薄れてしまいます。")
+          ]}
+      ]
+    },
+    {
+      id:"H9", cat:"timing", difficulty:1, icon:"🙋",
+      title:"忙しそうな上司への声かけのタイミング", lead:"上司に確認したいことがあるが、上司はずっとパソコンに向かって忙しそうにしている。",
+      turns:[
+        { situation:T("このタイミングで、どう声をかけるか。"),
+          choices:[
+            C("「今、少しよろしいですか」と一声かけ、都合を確認してから本題に入る", "good", "相手の状況を確認してから話し始める、基本的な配慮です。"),
+            C("緊急ではないので、忙しさが落ち着くまで声をかけずに待つ", "ok", "相手への配慮は良いですが、待ちすぎると自分の作業や判断が滞ってしまうことがあります。"),
+            C("忙しそうでも気にせず、いきなり本題を話し始める", "bad", "相手の状況を確認せずに話しかけると、内容が正しく伝わらないことがあります。")
+          ]},
+        { situation:T("声をかけたところ、「後にして」と言われてしまった。"),
+          choices:[
+            C("分かりましたと伝え、いつ頃なら都合が良いか一言確認してから引き下がる", "good", "次の機会を明確にしてから引き下がる、丁寧な対応です。"),
+            C("特に確認せず、また後で様子を見て声をかけようと思う", "ok", "引き下がる判断は良いですが、次のタイミングを決めておくと、確認事項を忘れずに済みます。"),
+            C("相談自体を諦めて、自己判断で進めることにする", "bad", "断られたからといって相談自体をやめてしまうと、確認したかった内容が宙に浮いたままになります。")
+          ]},
+        { situation:T("忙しい相手への声かけについて、今後意識すべきことは?"),
+          choices:[
+            C("相手の都合を確認しつつ、緊急度に応じて「今すぐ」か「後で」かを自分でも判断する", "good", "相手への配慮と、必要な報連相を止めないことの両立ができています。"),
+            C("基本的には、相手が手を止めるタイミングを待つようにする", "ok", "待つこと自体は悪くありませんが、待ちすぎて重要な確認が遅れないよう注意が必要です。"),
+            C("忙しそうな上司には、できるだけ話しかけないようにする", "bad", "これでは必要な報連相そのものが滞ってしまいます。")
+          ]}
+      ]
+    },
+    {
+      id:"H10", cat:"timing", difficulty:2, icon:"⚖️",
+      title:"良い報告と悪い報告、どちらを先に伝えるか", lead:"上司に伝えるべきことが2つある。1つは新規契約が取れたという良い知らせ、もう1つは別の案件で小さなクレームが発生したという知らせ。",
+      turns:[
+        { situation:T("どちらから、どう伝えるか。"),
+          choices:[
+            C("まずクレームの件を先に報告し、そのあとで契約が取れたことを伝える", "good", "対応が必要な悪い知らせを優先して伝えるのが基本です。"),
+            C("良い知らせで雰囲気を良くしてから、クレームの件を伝える", "ok", "気遣いは感じられますが、対応の緊急性を考えると、悪い知らせを先に伝えるほうが望ましい場面です。"),
+            C("良い知らせだけ伝えて、クレームの件はタイミングを見て後日にする", "bad", "対応が必要な情報を先延ばしにすると、対応が遅れて問題が大きくなる可能性があります。")
+          ]},
+        { situation:T("クレームの件を伝えたところ、上司から「なぜもっと早く言わなかったのか」と聞かれた(実際には気づいてすぐ伝えていた)。"),
+          choices:[
+            C("気づいてすぐに伝えたことを、時系列を添えて落ち着いて説明する", "good", "事実を整理して伝えることで、誤解を解くことができています。"),
+            C("特に説明せず、謝っておく", "ok", "謝る姿勢自体は悪くありませんが、事実と異なる誤解はきちんと説明して解いたほうが良い場合もあります。"),
+            C("もっと早く伝えれば良かったと、事実と異なるまま反省だけする", "bad", "事実を正しく伝えないと、今後も同じような誤解が積み重なってしまいます。")
+          ]},
+        { situation:T("複数の報告事項がある時の基本的な考え方として適切なのは?"),
+          choices:[
+            C("重要度・緊急度が高いものから伝え、良い知らせは落ち着いたタイミングで伝える", "good", "優先順位を意識した報告の基本です。"),
+            C("気まずさを考えて、良い知らせと悪い知らせを混ぜながら伝える", "ok", "気遣い自体は分かりますが、内容が整理されず伝わりにくくなることがあります。"),
+            C("伝えやすい話から、順番を気にせず話す", "bad", "緊急度の高い情報が後回しになり、対応が遅れる原因になります。")
+          ]}
+      ]
+    }
+  ];
+
+  var TIPS = [
+    {desc:"悪い報告ほど早く、良い報告は落ち着いたタイミングで伝える。"},
+    {desc:"結論を最初に伝え、経緯や理由はそのあとで説明する。"},
+    {desc:"「言われてから」ではなく「気づいた時点」で報告・連絡する。"},
+    {desc:"分からないまま自己判断で進める前に、必ず相談する。"},
+    {desc:"進捗は聞かれる前に、区切りごとに自分から共有する。"},
+    {desc:"緊急度が高い連絡は、メールだけに頼らず電話や口頭も使う。"},
+    {desc:"自分にとって重要でなくても、他の誰かに関係しそうな情報は共有する。"},
+    {desc:"忙しそうな相手には「今、少しよろしいですか」と一声かけてから本題に入る。"},
+    {desc:"自分の権限を超える判断は、その場で即答せず持ち帰って確認する。"},
+    {desc:"報連相は上司のためではなく、仕事を円滑に進め自分自身を守るためのものと理解する。"}
+  ];
+
+  /* ---------------- storage ---------------- */
+  var STORE_KEY = "hourensou-sim-progress-v1";
+  function loadProgress(){ try{ var raw = localStorage.getItem(STORE_KEY); return raw ? JSON.parse(raw) : {}; }catch(e){ return {}; } }
+  function saveProgress(p){ try{ localStorage.setItem(STORE_KEY, JSON.stringify(p)); }catch(e){} }
+
+  /* ---------------- state ---------------- */
+  var state = {
+    screen:"home", scenarioId:null, phase:"intro", turnIndex:0,
+    currentChoices:null, record:[], review:[], score:0, maxScore:0
+  };
+  var progress = loadProgress();
+
+  function shuffle(arr){
+    var a = arr.slice();
+    for(var i=a.length-1;i>0;i--){ var j = Math.floor(Math.random()*(i+1)); var t=a[i]; a[i]=a[j]; a[j]=t; }
+    return a;
+  }
+  function catInfo(id){ for(var i=0;i<CATEGORIES.length;i++){ if(CATEGORIES[i].id===id) return CATEGORIES[i]; } return CATEGORIES[0]; }
+  function scenarioById(id){ for(var i=0;i<SCENARIOS.length;i++){ if(SCENARIOS[i].id===id) return SCENARIOS[i]; } return null; }
+  function escapeHtml(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+  function tierLabel(tier){ return tier==="good" ? "とても良い対応です" : (tier==="ok" ? "OKですが、改善の余地があります" : "見直しが必要です"); }
+  function tierIcon(tier){ return tier==="good" ? "◎" : (tier==="ok" ? "○" : "✕"); }
+  function truncate(s, n){ return s.length > n ? s.slice(0,n) + "…" : s; }
+
+  var app = document.getElementById("app");
+
+  function render(){
+    if(state.screen==="home") renderHome();
+    else if(state.screen==="manual") renderManual();
+    else if(state.screen==="scenario") renderScenario();
+    else if(state.screen==="result") renderResult();
+  }
+
+  /* ---------------- HOME ---------------- */
+  function renderHome(){
+    var completed = 0;
+    SCENARIOS.forEach(function(s){ if(progress[s.id]) completed++; });
+    var pct = Math.round(completed/SCENARIOS.length*100);
+
+    var html = '';
+    html += '<div class="home">';
+    html += '<div class="cover-art">'+SPINACH_SVG+'<div class="cover-caption">HOURENSOU · 報連相</div></div>';
+    html += '<div class="home-head">';
+    html += '<div class="eyebrow">新人研修プログラム</div>';
+    html += '<h1 class="home-title">報連相シミュレーター</h1>';
+    html += '<p class="home-sub">報告・連絡・相談、それぞれの「タイミングと伝え方」に迷う場面を選んで、選択肢に答えるだけで学べます。</p>';
+    html += '<div class="progress-row"><div class="progress-track"><div class="progress-fill" style="width:'+pct+'%"></div></div><div class="progress-label mono">'+completed+' / '+SCENARIOS.length+'</div></div>';
+    html += '<button class="manual-link" data-action="open-manual">📘 報連相の基本10か条を見る</button>';
+    html += '</div>';
+
+    CATEGORIES.forEach(function(cat){
+      var list = SCENARIOS.filter(function(s){ return s.cat===cat.id; });
+      if(list.length===0) return;
+      html += '<div class="cat-block">';
+      html += '<div class="cat-head"><span class="cat-dot" style="background:var('+cat.varc+')"></span><span class="cat-name">'+cat.name+'</span></div>';
+      html += '<div class="cat-desc">'+cat.desc+'</div>';
+      html += '<div class="card-list">';
+      list.forEach(function(s){
+        var stars = "★".repeat(s.difficulty) + "☆".repeat(3-s.difficulty);
+        var best = progress[s.id];
+        html += '<button class="scenario-card" data-action="open-scenario" data-id="'+s.id+'">';
+        html += '<span class="avatar" style="background:var('+cat.vars+')">'+s.icon+'</span>';
+        html += '<span class="card-body"><span class="card-title">'+escapeHtml(s.title)+'</span><br><span class="card-meta">'+escapeHtml(truncate(s.lead, 30))+'</span></span>';
+        html += '<span class="card-side"><span class="stars">'+stars+'</span>' + (best ? '<span class="best-badge">ベスト '+best.pct+'%</span>' : '') + '</span>';
+        html += '</button>';
+      });
+      html += '</div></div>';
+    });
+
+    html += '</div>';
+    app.innerHTML = html;
+  }
+
+  /* ---------------- MANUAL ---------------- */
+  function renderManual(){
+    var html = '<div class="manual">';
+    html += '<div class="back-row"><button class="icon-btn" data-action="go-home">←</button><span class="screen-title">報連相の基本10か条</span></div>';
+    TIPS.forEach(function(tip, i){
+      html += '<div class="tip-card"><div class="tip-num">POINT '+(i+1)+'</div><div class="tip-desc">'+escapeHtml(tip.desc)+'</div></div>';
+    });
+    html += '</div>';
+    app.innerHTML = html;
+  }
+
+  /* ---------------- SCENARIO ---------------- */
+  function openScenario(id){
+    var sc = scenarioById(id);
+    if(!sc) return;
+    state.screen = "scenario"; state.scenarioId = id; state.phase = "intro"; state.turnIndex = 0;
+    state.currentChoices = null; state.record = []; state.review = []; state.score = 0;
+    state.maxScore = sc.turns.length * 10;
+    render();
+  }
+
+  function renderScenario(){
+    var sc = scenarioById(state.scenarioId);
+    var cat = catInfo(sc.cat);
+
+    if(state.phase === "intro"){
+      var html = '<div class="intro">';
+      html += '<span class="avatar" style="background:var('+cat.vars+')">'+sc.icon+'</span>';
+      html += '<div class="intro-cat">'+escapeHtml(cat.name)+'</div>';
+      html += '<div class="intro-title">'+escapeHtml(sc.title)+'</div>';
+      html += '<div class="intro-lead">'+escapeHtml(sc.lead)+'</div>';
+      html += '<div class="intro-actions">';
+      html += '<button class="next-btn" data-action="start-scenario">この場面を始める</button>';
+      html += '<button class="ghost-btn" data-action="go-home">一覧に戻る</button>';
+      html += '</div></div>';
+      app.innerHTML = html;
+      return;
+    }
+
+    var html2 = '';
+    html2 += '<div class="rec-top">';
+    html2 += '<div><div class="rec-top-title">'+escapeHtml(sc.title)+'</div><div class="rec-top-cat">'+escapeHtml(cat.name)+'</div></div>';
+    html2 += '<div class="rec-step mono">STEP '+(state.turnIndex+1)+' / '+sc.turns.length+'</div>';
+    html2 += '</div>';
+
+    html2 += '<div class="record" id="record" style="--cat-color:var('+cat.varc+')">';
+    state.record.forEach(function(item){
+      if(item.speaker === "situation"){
+        html2 += '<div class="sit-card"><div class="sit-label">状況</div>'+escapeHtml(item.text)+'</div>';
+      } else {
+        html2 += '<div><div class="act-label">あなたの行動</div><div class="act-row"><div class="act-bubble">'+escapeHtml(item.text)+'</div></div></div>';
+      }
+    });
+    html2 += '</div>';
+
+    html2 += '<div class="choices-panel">';
+    if(state.phase === "active"){
+      html2 += '<div class="choices-hint">どう対応しますか?</div>';
+      state.currentChoices.forEach(function(choice, idx){
+        html2 += '<button class="choice-btn" data-action="pick-choice" data-idx="'+idx+'">'+escapeHtml(choice.text)+'</button>';
+      });
+    } else if(state.phase === "feedback"){
+      var last = state.review[state.review.length-1];
+      html2 += '<div class="feedback-panel">';
+      html2 += '<span class="feedback-tag '+last.tier+'">'+tierIcon(last.tier)+' '+tierLabel(last.tier)+'</span>';
+      html2 += '<div class="feedback-text">'+escapeHtml(last.feedback)+'</div>';
+      var isLast = state.turnIndex >= sc.turns.length - 1;
+      html2 += '<button class="next-btn" data-action="next-turn">'+(isLast ? "この場面を終える" : "次へ")+'</button>';
+      html2 += '</div>';
+    }
+    html2 += '</div>';
+
+    app.innerHTML = html2;
+    var rEl = document.getElementById("record");
+    if(rEl) rEl.scrollTop = rEl.scrollHeight;
+  }
+
+  function startScenario(){
+    var sc = scenarioById(state.scenarioId);
+    state.phase = "active"; state.turnIndex = 0;
+    pushSituation(sc, 0);
+    state.currentChoices = shuffle(sc.turns[0].choices);
+    render();
+  }
+
+  function pushSituation(sc, idx){ state.record.push({speaker:"situation", text: sc.turns[idx].situation.text}); }
+
+  function pickChoice(idx){
+    var sc = scenarioById(state.scenarioId);
+    var choice = state.currentChoices[idx];
+    state.record.push({speaker:"you", text: choice.text});
+    state.score += choice.points;
+    state.review.push({
+      situation: sc.turns[state.turnIndex].situation.text,
+      chosen: choice.text, tier: choice.tier, feedback: choice.feedback
+    });
+    state.phase = "feedback";
+    render();
+  }
+
+  function nextTurn(){
+    var sc = scenarioById(state.scenarioId);
+    if(state.turnIndex >= sc.turns.length - 1){ finishScenario(); return; }
+    state.turnIndex++;
+    pushSituation(sc, state.turnIndex);
+    state.currentChoices = shuffle(sc.turns[state.turnIndex].choices);
+    state.phase = "active";
+    render();
+  }
+
+  function finishScenario(){
+    var pct = Math.round(state.score / state.maxScore * 100);
+    progress[state.scenarioId] = progress[state.scenarioId] && progress[state.scenarioId].pct > pct
+      ? progress[state.scenarioId] : {pct: pct};
+    saveProgress(progress);
+    state.screen = "result";
+    render();
+  }
+
+  /* ---------------- RESULT ---------------- */
+  function renderResult(){
+    var sc = scenarioById(state.scenarioId);
+    var pct = Math.round(state.score / state.maxScore * 100);
+    var grade = pct >= 90 ? "S" : pct >= 75 ? "A" : pct >= 55 ? "B" : "C";
+    var msg = pct >= 90 ? "タイミングも伝え方も、とても的確です。この調子で他の場面にも挑戦しましょう。"
+      : pct >= 75 ? "良い対応ができています。○や✕がついた場面の理由を振り返ると、さらに精度が上がります。"
+      : pct >= 55 ? "基本はできています。迷った場面を見直して、報連相の型を整理してみましょう。"
+      : "焦らず大丈夫です。下の振り返りを読んで、もう一度この場面に挑戦してみましょう。";
+
+    var html = '<div class="result">';
+    html += '<div class="result-badge"><span class="grade">'+grade+'</span></div>';
+    html += '<div class="result-score">スコア <span class="mono">'+state.score+' / '+state.maxScore+'</span>(' + pct + '%)</div>';
+    html += '<div class="result-title">'+escapeHtml(sc.title)+'・振り返り</div>';
+    html += '<div class="result-msg">'+msg+'</div>';
+
+    html += '<div class="review-list">';
+    state.review.forEach(function(r, i){
+      html += '<div class="review-item">';
+      html += '<div class="review-head"><span class="review-icon '+r.tier+'">'+tierIcon(r.tier)+'</span><span class="review-situation">場面'+(i+1)+'. '+escapeHtml(truncate(r.situation, 32))+'</span></div>';
+      html += '<div class="review-feedback">'+escapeHtml(r.feedback)+'</div>';
+      html += '</div>';
+    });
+    html += '</div>';
+
+    html += '<div class="result-actions">';
+    html += '<button class="btn-primary" data-action="retry-scenario">もう一度この場面に挑戦する</button>';
+    html += '<button class="btn-secondary" data-action="open-manual">10か条を振り返る</button>';
+    html += '<button class="btn-secondary" data-action="go-home">シナリオ一覧に戻る</button>';
+    html += '</div>';
+    html += '</div>';
+    app.innerHTML = html;
+  }
+
+  /* ---------------- events ---------------- */
+  app.addEventListener("click", function(e){
+    var btn = e.target.closest("[data-action]");
+    if(!btn) return;
+    var action = btn.getAttribute("data-action");
+    if(action === "open-scenario"){ openScenario(btn.getAttribute("data-id")); }
+    else if(action === "open-manual"){ state.screen = "manual"; render(); }
+    else if(action === "go-home"){ state.screen = "home"; render(); }
+    else if(action === "start-scenario"){ startScenario(); }
+    else if(action === "pick-choice"){ pickChoice(parseInt(btn.getAttribute("data-idx"), 10)); }
+    else if(action === "next-turn"){ nextTurn(); }
+    else if(action === "retry-scenario"){ openScenario(state.scenarioId); }
+  });
+
+  render();
+})();
+</script>
