@@ -1,0 +1,772 @@
+<title>やる気スイッチシミュレーター</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700;900&family=Noto+Sans+JP:wght@400;500;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+  :root{
+    --bg:#EFEAE0;
+    --surface:#FBF8F2;
+    --surface-alt:#F1ECDF;
+    --ink:#26231D;
+    --ink-soft:#726C5C;
+    --border:#DCD5C4;
+    --accent:#C06B1E;
+    --accent-contrast:#FFFFFF;
+    --good:#3F7D4C;
+    --good-soft:#E4EEE2;
+    --warn:#A97A1E;
+    --warn-soft:#F3EAD4;
+    --bad:#B14A3D;
+    --bad-soft:#F5E2DE;
+    --catStart:#2B5C63;
+    --catStart-soft:#E1EBEA;
+    --catKeep:#8B5E0E;
+    --catKeep-soft:#F0E8D6;
+    --catReset:#7A3E52;
+    --catReset-soft:#F0E1E6;
+    --catEnv:#3C5A78;
+    --catEnv-soft:#E2E8EE;
+    --cover:#1E2430;
+    --cover-text:#EDE9DA;
+    --shadow: 0 20px 50px -20px rgba(20,20,15,0.35);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#141310;
+      --surface:#1D1C17;
+      --surface-alt:#26241D;
+      --ink:#ECE8DC;
+      --ink-soft:#A8A290;
+      --border:#37342A;
+      --accent:#E8A455;
+      --accent-contrast:#241505;
+      --good:#6FBF7C;
+      --good-soft:#233127;
+      --warn:#D9A94A;
+      --warn-soft:#332C1C;
+      --bad:#E1786A;
+      --bad-soft:#38221E;
+      --catStart:#5AA3AA;
+      --catStart-soft:#20302F;
+      --catKeep:#C99A4A;
+      --catKeep-soft:#332A18;
+      --catReset:#C98CA0;
+      --catReset-soft:#32222A;
+      --catEnv:#8FB0D6;
+      --catEnv-soft:#212B36;
+      --shadow: 0 20px 50px -20px rgba(0,0,0,0.6);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#141310;
+    --surface:#1D1C17;
+    --surface-alt:#26241D;
+    --ink:#ECE8DC;
+    --ink-soft:#A8A290;
+    --border:#37342A;
+    --accent:#E8A455;
+    --accent-contrast:#241505;
+    --good:#6FBF7C;
+    --good-soft:#233127;
+    --warn:#D9A94A;
+    --warn-soft:#332C1C;
+    --bad:#E1786A;
+    --bad-soft:#38221E;
+    --catStart:#5AA3AA;
+    --catStart-soft:#20302F;
+    --catKeep:#C99A4A;
+    --catKeep-soft:#332A18;
+    --catReset:#C98CA0;
+    --catReset-soft:#32222A;
+    --catEnv:#8FB0D6;
+    --catEnv-soft:#212B36;
+    --shadow: 0 20px 50px -20px rgba(0,0,0,0.6);
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;height:100%;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:"Noto Sans JP","Hiragino Kaku Gothic ProN","Hiragino Sans",Meiryo,sans-serif;
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    padding:20px 14px;
+  }
+  h1,h2,h3,.display{ font-family:"Zen Kaku Gothic New","Noto Sans JP",sans-serif; text-wrap:balance; margin:0; }
+  .mono{ font-family:"JetBrains Mono", ui-monospace, monospace; font-variant-numeric:tabular-nums; }
+  button{font-family:inherit;}
+  button:focus-visible, a:focus-visible, [tabindex]:focus-visible{ outline:3px solid var(--accent); outline-offset:2px; }
+  @media (prefers-reduced-motion: reduce){ *{animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0.001ms !important;} }
+
+  /* ---- outer frame (cover) ---- */
+  .frame{
+    width:100%; max-width:480px; height:min(720px, calc(100vh - 40px));
+    background:var(--cover); border-radius:22px; padding:14px; box-shadow:var(--shadow);
+    display:flex; flex-direction:column;
+  }
+  .frame-label{
+    flex-shrink:0; display:flex; align-items:center; justify-content:center; gap:7px;
+    padding:2px 0 12px; color:var(--cover-text); font-size:12.5px; font-weight:700; letter-spacing:0.03em;
+  }
+  .frame-label svg{ width:14px; height:14px; }
+  .frame-label .dot{ width:6px;height:6px;border-radius:50%; background:var(--cover-text); opacity:0.55; }
+  .page{
+    background:var(--surface); border-radius:16px; flex:1; min-height:0;
+    display:flex; flex-direction:column; overflow:hidden; position:relative;
+  }
+
+  /* ---- home ---- */
+  .home{ padding:20px 20px 20px; overflow-y:auto; flex:1; min-height:0; }
+  .cover-art{ display:flex; flex-direction:column; align-items:center; padding:6px 0 14px; }
+  .cover-art svg{ width:76px; height:76px; }
+  .cover-caption{ font-size:10.5px; color:var(--ink-soft); margin-top:6px; letter-spacing:0.03em; }
+  .home-head{ padding:0 2px 18px; border-bottom:1px solid var(--border); margin-bottom:16px; }
+  .eyebrow{ font-size:11px; letter-spacing:0.12em; color:var(--accent); font-weight:700; text-transform:uppercase; text-align:center; }
+  .home-title{ font-size:21px; font-weight:900; margin-top:6px; line-height:1.35; text-align:center; }
+  .home-sub{ font-size:12.5px; color:var(--ink-soft); margin-top:8px; line-height:1.65; text-align:center; }
+  .progress-row{ display:flex; align-items:center; gap:10px; margin-top:14px; }
+  .progress-track{ flex:1; height:6px; background:var(--surface-alt); border-radius:4px; overflow:hidden; border:1px solid var(--border); }
+  .progress-fill{ height:100%; background:var(--accent); border-radius:4px; transition:width .4s ease; }
+  .progress-label{ font-size:12px; color:var(--ink-soft); white-space:nowrap; }
+  .manual-link{
+    margin-top:14px; display:flex; align-items:center; justify-content:center; gap:6px; font-size:13px; font-weight:700;
+    color:var(--accent); background:var(--surface-alt); border:1px solid var(--border); padding:9px 14px; border-radius:10px; cursor:pointer; width:100%;
+  }
+  .cat-block{ margin-bottom:20px; }
+  .cat-head{ display:flex; align-items:center; gap:8px; margin-bottom:2px; }
+  .cat-dot{ width:9px;height:9px;border-radius:50%; flex-shrink:0; }
+  .cat-name{ font-size:14px; font-weight:700; }
+  .cat-desc{ font-size:11.5px; color:var(--ink-soft); margin:2px 0 8px 17px; }
+  .card-list{ display:flex; flex-direction:column; gap:8px; }
+  .scenario-card{
+    display:flex; align-items:center; gap:12px; background:var(--surface-alt); border:1px solid var(--border);
+    border-radius:14px; padding:11px 12px; cursor:pointer; text-align:left; width:100%;
+  }
+  .scenario-card:hover{ border-color:var(--accent); }
+  .avatar{ width:38px;height:38px;border-radius:12px; display:flex;align-items:center;justify-content:center; font-size:17px; flex-shrink:0; }
+  .card-body{ flex:1; min-width:0; }
+  .card-title{ font-size:13.5px; font-weight:700; }
+  .card-meta{ font-size:11.5px; color:var(--ink-soft); margin-top:2px; line-height:1.5; }
+  .card-side{ display:flex; flex-direction:column; align-items:flex-end; gap:4px; flex-shrink:0; }
+  .stars{ font-size:11px; color:var(--warn); letter-spacing:1px; white-space:nowrap; }
+  .best-badge{ font-size:10.5px; font-weight:700; color:var(--good); background:var(--good-soft); padding:2px 7px; border-radius:20px; white-space:nowrap; }
+
+  /* ---- manual ---- */
+  .manual{ padding:20px 20px 24px; overflow-y:auto; flex:1; min-height:0; }
+  .back-row{ display:flex; align-items:center; gap:10px; margin-bottom:14px; }
+  .icon-btn{
+    width:32px;height:32px;border-radius:50%; background:var(--surface-alt); border:1px solid var(--border);
+    display:flex;align-items:center;justify-content:center; cursor:pointer; color:var(--ink); font-size:16px; flex-shrink:0;
+  }
+  .screen-title{ font-size:16.5px; font-weight:900; }
+  .tip-card{ background:var(--surface-alt); border:1px solid var(--border); border-radius:14px; padding:13px 14px; margin-bottom:10px; }
+  .tip-num{ font-size:11px; font-weight:700; color:var(--accent); }
+  .tip-desc{ font-size:12.5px; color:var(--ink); margin-top:4px; line-height:1.7; }
+
+  /* ---- scenario: intro ---- */
+  .intro{ flex:1; min-height:0; overflow-y:auto; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:34px 28px; text-align:center; gap:6px; }
+  .intro .avatar{ width:76px; height:76px; border-radius:22px; font-size:32px; margin-bottom:14px; }
+  .intro-cat{ font-size:11.5px; font-weight:700; letter-spacing:0.04em; color:var(--ink-soft); text-transform:uppercase; }
+  .intro-title{ font-size:19px; font-weight:900; margin-top:8px; line-height:1.4; }
+  .intro-lead{ font-size:12.5px; color:var(--ink-soft); margin-top:12px; line-height:1.75; max-width:320px; }
+  .intro-actions{ display:flex; flex-direction:column; gap:9px; width:100%; max-width:260px; margin-top:26px; }
+
+  /* ---- scenario: active ---- */
+  .rec-top{ display:flex; align-items:center; justify-content:space-between; gap:10px; padding:14px 18px 12px; border-bottom:1px solid var(--border); flex-shrink:0; }
+  .rec-top-title{ font-size:13.5px; font-weight:700; line-height:1.4; }
+  .rec-top-cat{ font-size:11px; color:var(--ink-soft); margin-top:2px; }
+  .rec-step{ font-size:11.5px; color:var(--accent); font-weight:700; white-space:nowrap; flex-shrink:0; }
+
+  .record{ flex:1; min-height:0; overflow-y:auto; padding:16px 16px 8px; display:flex; flex-direction:column; gap:12px; }
+  .sit-card{ background:var(--surface-alt); border:1px solid var(--border); border-left:4px solid var(--cat-color, var(--accent)); border-radius:10px; padding:11px 13px; font-size:13px; line-height:1.7; }
+  .sit-label{ font-size:10.5px; font-weight:700; color:var(--ink-soft); letter-spacing:0.04em; margin-bottom:4px; text-transform:uppercase; }
+  .act-row{ display:flex; justify-content:flex-end; }
+  .act-bubble{ max-width:86%; background:var(--accent); color:var(--accent-contrast); border-radius:12px; border-bottom-right-radius:4px; padding:9px 13px; font-size:12.5px; line-height:1.65; }
+  .act-label{ font-size:10px; color:var(--ink-soft); text-align:right; margin:0 2px 3px; }
+
+  .choices-panel{ border-top:1px solid var(--border); padding:12px 16px 16px; flex-shrink:0; background:var(--surface); max-height:46vh; overflow-y:auto; }
+  .choices-hint{ font-size:11px; color:var(--ink-soft); margin-bottom:8px; }
+  .choice-btn{
+    display:block; width:100%; text-align:left; background:var(--surface-alt); border:1px solid var(--border);
+    border-radius:12px; padding:10px 13px; margin-bottom:8px; font-size:13px; line-height:1.6; color:var(--ink); cursor:pointer;
+  }
+  .choice-btn:hover{ border-color:var(--accent); }
+  .choice-btn:last-child{ margin-bottom:0; }
+
+  .feedback-panel{ padding:4px 2px 2px; }
+  .feedback-tag{ display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:700; padding:4px 11px; border-radius:20px; margin-bottom:8px; }
+  .feedback-tag.good{ background:var(--good-soft); color:var(--good); }
+  .feedback-tag.ok{ background:var(--warn-soft); color:var(--warn); }
+  .feedback-tag.bad{ background:var(--bad-soft); color:var(--bad); }
+  .feedback-text{ font-size:13px; line-height:1.7; color:var(--ink); margin-bottom:12px; }
+  .next-btn{ width:100%; padding:11px; border-radius:12px; border:none; background:var(--accent); color:var(--accent-contrast); font-weight:700; font-size:13.5px; cursor:pointer; }
+  .ghost-btn{ width:100%; padding:11px; border-radius:12px; border:1px solid var(--border); background:var(--surface-alt); color:var(--ink); font-weight:700; font-size:13.5px; cursor:pointer; }
+
+  /* ---- result ---- */
+  .result{ padding:22px 22px 26px; overflow-y:auto; flex:1; min-height:0; display:flex; flex-direction:column;}
+  .result-badge{
+    width:92px;height:92px;border-radius:50%; margin:6px auto 14px;
+    display:flex; align-items:center; justify-content:center; border:3px solid var(--accent); color:var(--accent);
+  }
+  .result-badge .grade{ font-size:28px; font-weight:900; font-family:"Zen Kaku Gothic New",sans-serif; }
+  .result-score{ text-align:center; font-size:13px; color:var(--ink-soft); }
+  .result-score .mono{ font-size:15px; color:var(--ink); font-weight:700; }
+  .result-title{ text-align:center; font-size:15.5px; font-weight:900; margin-top:14px; }
+  .result-msg{ text-align:center; font-size:12.5px; color:var(--ink-soft); margin-top:6px; line-height:1.75;}
+  .review-list{ margin-top:20px; display:flex; flex-direction:column; gap:8px; }
+  .review-item{ background:var(--surface-alt); border:1px solid var(--border); border-radius:12px; padding:10px 12px; }
+  .review-head{ display:flex; align-items:center; gap:8px; }
+  .review-icon{ width:20px;height:20px;border-radius:50%; flex-shrink:0; display:flex;align-items:center;justify-content:center; font-size:11px; font-weight:900; color:#fff; }
+  .review-icon.good{ background:var(--good); }
+  .review-icon.ok{ background:var(--warn); }
+  .review-icon.bad{ background:var(--bad); }
+  .review-situation{ font-size:12px; font-weight:700; }
+  .review-feedback{ font-size:11.5px; color:var(--ink-soft); margin-top:5px; line-height:1.6; padding-left:28px;}
+  .result-actions{ display:flex; flex-direction:column; gap:8px; margin-top:22px; }
+  .btn-primary{ padding:12px; border-radius:12px; border:none; background:var(--accent); color:var(--accent-contrast); font-weight:700; font-size:13.5px; cursor:pointer; }
+  .btn-secondary{ padding:12px; border-radius:12px; border:1px solid var(--border); background:var(--surface-alt); color:var(--ink); font-weight:700; font-size:13.5px; cursor:pointer; }
+</style>
+
+<div class="frame">
+  <div class="frame-label">
+    <svg viewBox="0 0 120 120" aria-hidden="true"><rect x="32" y="8" width="56" height="104" rx="22" fill="#EDE9DA" opacity="0.92"/><circle cx="60" cy="34" r="15" fill="#1E2430"/></svg>
+    <span>やる気ノート</span><span class="dot"></span><span>新人研修用</span>
+  </div>
+  <div class="page" id="app"></div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var SWITCH_SVG = '<svg viewBox="0 0 120 120" aria-hidden="true">'
+    + '<rect x="32" y="8" width="56" height="104" rx="22" fill="#7D828C"/>'
+    + '<rect x="32" y="8" width="56" height="104" rx="22" fill="none" stroke="#5C616B" stroke-width="2"/>'
+    + '<line x1="60" y1="46" x2="60" y2="82" stroke="#5C616B" stroke-width="4" stroke-linecap="round" opacity="0.55"/>'
+    + '<circle cx="60" cy="86" r="8" fill="#5C616B" opacity="0.55"/>'
+    + '<circle cx="60" cy="34" r="30" fill="#F2A93C" opacity="0.12"/>'
+    + '<circle cx="60" cy="34" r="22" fill="#F2A93C" opacity="0.22"/>'
+    + '<circle cx="60" cy="34" r="15" fill="#F2A93C"/>'
+    + '<circle cx="60" cy="34" r="15" fill="none" stroke="#C97F1E" stroke-width="2"/>'
+    + '<g stroke="#F2A93C" stroke-width="3" stroke-linecap="round">'
+    + '<line x1="60" y1="19" x2="60" y2="9"/>'
+    + '<line x1="49" y1="23" x2="41" y2="14"/>'
+    + '<line x1="71" y1="23" x2="79" y2="14"/>'
+    + '<line x1="45" y1="34" x2="34" y2="34"/>'
+    + '<line x1="75" y1="34" x2="86" y2="34"/>'
+    + '</g>'
+    + '</svg>';
+
+  var CATEGORIES = [
+    {id:"start", name:"始め方のコツ", desc:"重い腰をどう上げるか", varc:"--catStart", vars:"--catStart-soft"},
+    {id:"keep", name:"続け方のコツ", desc:"飽きや単調さとどう付き合うか", varc:"--catKeep", vars:"--catKeep-soft"},
+    {id:"reset", name:"立て直し方", desc:"落ち込んだ気持ちの切り替え方", varc:"--catReset", vars:"--catReset-soft"},
+    {id:"env", name:"環境とリズム", desc:"仕組みで自分を助ける工夫", varc:"--catEnv", vars:"--catEnv-soft"}
+  ];
+
+  function T(text){ return {text:text}; }
+  function C(text, tier, feedback){
+    var pts = tier === "good" ? 10 : (tier === "ok" ? 5 : 0);
+    return {text:text, tier:tier, feedback:feedback, points:pts};
+  }
+
+  var SCENARIOS = [
+    {
+      id:"Y1", cat:"start", difficulty:1, icon:"📄",
+      title:"大きすぎるタスクへの着手", lead:"大きな企画書の作成を任された。何から手をつければいいか分からず、パソコンの前で固まってしまっている。",
+      turns:[
+        { situation:T("この状況で、まず何をするか。"),
+          choices:[
+            C("企画書全体ではなく、「まず見出しだけ書き出す」など、5分で終わる小さな作業に分解して始める", "good", "最初の一歩を小さくすることで、着手のハードルが下がります。"),
+            C("気合いを入れ直して、最初から集中して一気に書き上げようとする", "ok", "やる気自体は大切ですが、大きな塊のまま向き合うと、なかなか手が動き出しません。"),
+            C("やる気が出るまで、他の軽い作業を先に片付けて先延ばしにする", "bad", "「やる気が出たら始める」を待っていると、いつまでも着手できないことが多いです。")
+          ]},
+        { situation:T("見出しだけ書き出してみたところ、思ったより手が動き始めた。"),
+          choices:[
+            C("その勢いのまま、次の小さな区切り(1つの見出しの中身を埋める)に取り組む", "good", "小さな成功体験を積み重ねることで、勢いを維持できています。"),
+            C("もう大丈夫だろうと、一気に最後まで気合いで仕上げようとする", "ok", "勢いに乗ること自体は良いですが、無理に一気にやろうとすると、途中で息切れすることがあります。"),
+            C("少し進んだので満足して、続きは明日にしようと切り上げる", "bad", "動き出した勢いを止めてしまうと、翌日また同じように着手に苦労しがちです。")
+          ]},
+        { situation:T("この経験から学べる、大きな仕事への着手の仕方は?"),
+          choices:[
+            C("やる気が出るのを待つのではなく、まず小さく始めることで、やる気があとからついてくると理解する", "good", "行動が先、やる気が後、という順番を体感できています。"),
+            C("次はもっと早い段階で気合いを入れて取り組むようにする", "ok", "気合いに頼る発想のままだと、同じように着手に苦労する場面が繰り返される可能性があります。"),
+            C("やる気が出る日を待って、それまでは他の仕事を優先する", "bad", "「やる気が出る日」は自然には訪れにくいことが多いです。")
+          ]}
+      ]
+    },
+    {
+      id:"Y2", cat:"start", difficulty:1, icon:"☕",
+      title:"月曜の朝のやる気", lead:"週明けの月曜日、出社してもなかなかエンジンがかからず、メールを開いたまま手が止まっている。",
+      turns:[
+        { situation:T("この状態で、最初に何をするか。"),
+          choices:[
+            C("その日やることを3つだけ紙やメモに書き出し、一番簡単なものから手をつける", "good", "やることを可視化し、簡単なものから着手するのは、エンジンをかける定番の方法です。"),
+            C("頭の中で今日の予定を考えながら、なんとなくメールを眺め続ける", "ok", "考えること自体は無駄ではありませんが、手を動かさないままだとエンジンがかかりにくいです。"),
+            C("やる気が出るまで、コーヒーを飲みながらニュースやSNSを眺めて待つ", "bad", "手軽な気晴らしは、かえって本題への着手を遠ざけてしまうことがあります。")
+          ]},
+        { situation:T("簡単なタスクを1つ片付けたところ、少しずつ調子が出てきた。"),
+          choices:[
+            C("調子が出てきたタイミングで、その日一番重要な仕事に取りかかる", "good", "エンジンがかかった状態を、重要な仕事に活かすのが効果的です。"),
+            C("せっかく調子が良いので、細かいタスクをもう少し片付けてから重要な仕事に移ろうとする", "ok", "悪くない判断ですが、調子の良さは長く続かないこともあるので、重要な仕事を後回しにしすぎない方が安全です。"),
+            C("調子が出てきたのでもう大丈夫だと安心し、休憩を長めに取る", "bad", "せっかく上がった調子を、長い休憩で失ってしまうことがあります。")
+          ]},
+        { situation:T("月曜の朝のような「エンジンがかかりにくい時間帯」との付き合い方として適切なのは?"),
+          choices:[
+            C("やる気が出ないのは普通のことだと受け止め、簡単な作業から始める仕組みを先に決めておく", "good", "気分に頼らず仕組みで乗り切る発想が身についています。"),
+            C("やる気が出ない自分を責めて、もっと頑張らなければと思う", "ok", "気持ちは分かりますが、自分を責めることは、かえってエンジンをかかりにくくすることがあります。"),
+            C("やる気が出ない日は仕方ないと諦めて、軽い作業だけで一日を終える", "bad", "諦めが習慣になると、重要な仕事がどんどん後回しになってしまいます。")
+          ]}
+      ]
+    },
+    {
+      id:"Y3", cat:"keep", difficulty:1, icon:"⌨️",
+      title:"単純作業を乗り切る", lead:"データ入力など、単調な作業を長時間続けなければならない。途中で集中力が切れて、手が止まりがちになっている。",
+      turns:[
+        { situation:T("集中力が切れてきたと感じた時、どうするか。"),
+          choices:[
+            C("25分作業したら5分休む、というように時間を区切って取り組む", "good", "区切りを設けることで、集中力を維持しやすくなります。"),
+            C("集中が切れても、休憩を取らずに気合いでそのまま続ける", "ok", "頑張る姿勢は良いですが、休憩を挟まないと効率がかえって落ちることがあります。"),
+            C("集中力が切れたので、区切りをつけずにだらだらとスマホを見て過ごす", "bad", "区切りのない休憩は、そのまま作業に戻れなくなる原因になりがちです。")
+          ]},
+        { situation:T("時間を区切って作業してみたところ、思ったよりも捗った。"),
+          choices:[
+            C("終わった作業量を記録しておき、進み具合を目に見える形にする", "good", "進捗を可視化することで、達成感がやる気につながります。"),
+            C("捗ったのでこのペースを維持しようと、休憩を減らして作業時間を増やす", "ok", "ペースを保ちたい気持ちは分かりますが、休憩を削ると長期的には続けにくくなります。"),
+            C("捗ったことに満足して、その日はそこで作業をやめてしまう", "bad", "良い流れができているときこそ、区切りの仕組みを続けたほうが翌日以降も楽になります。")
+          ]},
+        { situation:T("単純作業への向き合い方として、今後意識すべきことは?"),
+          choices:[
+            C("時間を区切る、進捗を記録するなど、集中力に頼らず仕組みで乗り切る工夫を続ける", "good", "仕組み化の発想が、単調な作業と長く付き合うコツです。"),
+            C("単純作業でも飽きないよう、気持ちを強く持つように心がける", "ok", "気持ちの持ちようだけに頼ると、疲れている日にはうまくいかないことがあります。"),
+            C("単純作業は苦手だから仕方ないと、集中力が切れるたびに諦めてしまう", "bad", "この考え方のままだと、単調な作業のたびに同じ苦労を繰り返してしまいます。")
+          ]}
+      ]
+    },
+    {
+      id:"Y4", cat:"reset", difficulty:2, icon:"💧",
+      title:"失敗した後にやる気が下がった時", lead:"担当していた業務で小さなミスをしてしまい、落ち込んで、その後の作業になかなか手がつかない。",
+      turns:[
+        { situation:T("落ち込んでいる時、まずどうするか。"),
+          choices:[
+            C("ミスの内容と、次に同じミスを防ぐための対策を簡単にメモしてから、次の作業に移る", "good", "落ち込みに向き合いつつも、次への行動に変える良い切り替え方です。"),
+            C("気持ちが落ち着くまで、しばらく何も手につかないまま過ごす", "ok", "気持ちの整理をする時間自体は必要ですが、長引きすぎると次の作業への着手がさらに遅れます。"),
+            C("自分はやっぱりダメだと、繰り返し自分を責め続ける", "bad", "自分を責め続けることは、ミスの改善にはつながらず、やる気をさらに下げてしまいます。")
+          ]},
+        { situation:T("気持ちを切り替えて次の作業に取りかかろうとしたが、また同じようなミスをしないか不安になる。"),
+          choices:[
+            C("不安な部分は、事前にチェックリストを作るなど、仕組みでカバーできないか考える", "good", "不安を精神論ではなく仕組みで解消しようとする、建設的な対応です。"),
+            C("不安なまま、いつもより慎重に、時間をかけて作業を進める", "ok", "慎重さ自体は良いですが、不安を抱えたままだと効率が落ちたり、疲れが溜まりやすくなります。"),
+            C("不安なので、その作業自体をできるだけ避けようとする", "bad", "避け続けると、いつまでも苦手意識が残ってしまいます。")
+          ]},
+        { situation:T("失敗した後の気持ちの立て直し方として、大切な考え方は?"),
+          choices:[
+            C("ミスをした事実と、自分の価値を切り離して考え、次に活かせることだけを取り出す", "good", "建設的な振り返りができる、良い切り替え方です。"),
+            C("次は絶対に失敗しないよう、より一層気を引き締める", "ok", "意識を高く持つこと自体は良いですが、それだけに頼ると、次のミスの時にまた大きく落ち込みやすくなります。"),
+            C("一度失敗した仕事は、もう自分には向いていないと考える", "bad", "一度のミスだけで向き不向きを判断するのは、少し早すぎる結論です。")
+          ]}
+      ]
+    },
+    {
+      id:"Y5", cat:"start", difficulty:2, icon:"⏰",
+      title:"先延ばし癖の対処", lead:"提出期限のある報告書があるが、なんとなく気が乗らず、今日も別の作業を優先して後回しにしてしまった。",
+      turns:[
+        { situation:T("この状況に気づいた時、どうするか。"),
+          choices:[
+            C("「今日は最初の1段落だけ書く」など、ハードルを極端に下げて、期限が来る前に手をつける", "good", "ハードルを下げることで、先延ばしのループを断ち切りやすくなります。"),
+            C("明日こそは本気で取り組もうと決意して、今日は諦める", "ok", "決意すること自体は悪くありませんが、「明日の自分」に期待しすぎると同じことが繰り返されがちです。"),
+            C("期限はまだ先だから大丈夫だと、特に対策を考えずに先延ばしを続ける", "bad", "「まだ大丈夫」という感覚は、期限が近づくほど苦しくなる原因になります。")
+          ]},
+        { situation:T("1段落だけ書こうとパソコンに向かったところ、想像していたより気が重くなかった。"),
+          choices:[
+            C("そのまま少しずつで良いので、毎日決まった時間に取り組む習慣にする", "good", "小さな成功体験を、習慣化につなげられています。"),
+            C("今日は勢いに乗って一気に最後まで終わらせようとする", "ok", "悪いことではありませんが、無理をして疲れてしまうと、次の作業への腰が重くなることがあります。"),
+            C("気が重くなかったので、この調子ならいつでもできると安心し、また後回しにする", "bad", "「いつでもできる」という安心感が、結局また先延ばしを招くことがあります。")
+          ]},
+        { situation:T("先延ばし癖と付き合っていくうえで、心がけると良いことは?"),
+          choices:[
+            C("「気が乗ったらやる」ではなく、「決まった時間に、少しだけでも手をつける」を仕組みにする", "good", "気分に依存しない仕組み作りが、先延ばし対策の基本です。"),
+            C("先延ばししてしまう自分の意志の弱さを反省し、次はもっと強い意志で頑張ろうとする", "ok", "意志の力だけに頼ろうとすると、同じような場面でまた苦しくなりがちです。"),
+            C("誰にでもある癖だから仕方ないと、特に対策をせずそのままにしておく", "bad", "対策をしないままだと、期限のたびに同じ苦しさを繰り返すことになります。")
+          ]}
+      ]
+    },
+    {
+      id:"Y6", cat:"reset", difficulty:2, icon:"🗯️",
+      title:"厳しいフィードバックを受けた後の切り替え方", lead:"上司から、提出した資料についてかなり厳しい口調で指摘を受けた。内容は納得できる部分もあるが、少し落ち込んでいる。",
+      turns:[
+        { situation:T("指摘を受けた直後、どうするか。"),
+          choices:[
+            C("感情的な部分は一旦置いておき、具体的にどこをどう直せばいいかを整理してメモする", "good", "感情と改善点を分けて捉える、冷静な対応です。"),
+            C("厳しい言い方をされたことについて、しばらくもやもやした気持ちを引きずる", "ok", "気持ちが動くのは自然なことですが、引きずる時間が長くなると次の行動が遅れてしまいます。"),
+            C("厳しく言われたことに納得できず、指摘の内容自体を聞き流してしまう", "bad", "感情的な反発から指摘の中身まで無視してしまうと、同じ指摘を繰り返し受けることになりかねません。")
+          ]},
+        { situation:T("指摘内容を整理してみると、実際に直せる点がいくつか見つかった。"),
+          choices:[
+            C("直せる点から早めに手をつけ、修正した資料を再度確認してもらう", "good", "指摘を次の行動にすぐつなげられています。"),
+            C("直すべき点は分かったが、なんとなく気が重く、着手が遅れてしまう", "ok", "気持ちは分かりますが、分かってからの着手が遅れると、改善の機会も遅れてしまいます。"),
+            C("直せる点が見つかったが、次はもっと違うやり方で目立たないようにしようと考える", "bad", "改善よりも「目立たないようにする」ことを優先すると、根本的な成長にはつながりません。")
+          ]},
+        { situation:T("厳しいフィードバックを受けた後の切り替え方として、大切なことは?"),
+          choices:[
+            C("フィードバックは自分の人格ではなく、行動や成果物への指摘だと捉えるようにする", "good", "人格と行動を切り分ける考え方は、多くの場面で気持ちの立て直しに役立ちます。"),
+            C("厳しく言われないよう、次はより一層完璧を目指して取り組む", "ok", "意識は良いですが、完璧を目指しすぎると、かえって着手が重くなることがあります。"),
+            C("厳しいことを言う上司とは、なるべく関わらないようにしようと考える", "bad", "必要なやり取りを避けるようになると、成長の機会も失われてしまいます。")
+          ]}
+      ]
+    },
+    {
+      id:"Y7", cat:"reset", difficulty:2, icon:"👀",
+      title:"同僚と比べて落ち込んだ時", lead:"同期の同僚が、自分より早く大きな仕事を任されているのを見て、なんとなく落ち込み、やる気が出なくなっている。",
+      turns:[
+        { situation:T("この気持ちに気づいた時、どうするか。"),
+          choices:[
+            C("同僚と比べるのではなく、自分自身の数か月前と比べて、何ができるようになったかを振り返る", "good", "比較の軸を他人から自分に変えることで、落ち込みを和らげられます。"),
+            C("気にしないようにしようと思いながらも、つい同僚の状況を確認し続けてしまう", "ok", "気にしないようにする意志はありますが、意識してしまう対象を追い続けると、かえって落ち込みが長引きます。"),
+            C("自分には向いていないのかもしれないと、必要以上に落ち込み続ける", "bad", "一つの比較だけで自分の価値を決めつけてしまうのは、事実に基づかない考え方です。")
+          ]},
+        { situation:T("少し気持ちが落ち着いたところで、上司との面談の機会があった。"),
+          choices:[
+            C("率直に、自分ももっと難しい仕事に挑戦したいという意欲を伝えてみる", "good", "落ち込みを行動(意欲を伝える)に変えられています。"),
+            C("特に何も言わず、いつも通りの業務の話だけをして終える", "ok", "悪いことではありませんが、意欲を伝える機会を活かせるとより前向きな変化につながります。"),
+            C("同僚と比べられて悔しい、という気持ちだけを伝える", "bad", "感情だけを伝えると、今後どうしたいかが相手に伝わりにくくなります。")
+          ]},
+        { situation:T("同僚と自分を比べてしまう気持ちとの付き合い方として、大切な考え方は?"),
+          choices:[
+            C("比べること自体は自然なことだと受け止めつつ、比較の軸を「他人」から「過去の自分」に移す練習をする", "good", "比較をなくそうとするより、軸を変える方が現実的で続けやすい考え方です。"),
+            C("同僚のことは気にしないと決めて、意識的に情報を遮断する", "ok", "一つの対処法ではありますが、完全に気にしないようにするのは難しく、無理をしてしまうことがあります。"),
+            C("自分はいつも他人より劣っていると思い込むようにする", "bad", "根拠のない思い込みを重ねることは、やる気を長期的に下げてしまいます。")
+          ]}
+      ]
+    },
+    {
+      id:"Y8", cat:"keep", difficulty:2, icon:"🔁",
+      title:"ルーティンワークに飽きてやる気が続かない時", lead:"入社して数か月、任されている定型業務にはもう慣れたが、最近は同じことの繰り返しに感じて、やる気が上がらない。",
+      turns:[
+        { situation:T("この状態に気づいた時、どうするか。"),
+          choices:[
+            C("同じ作業でも「前回より早く・正確にできないか」など、自分なりの小さな目標を設定してみる", "good", "定型業務に小さな変化や目標を加えることで、飽きを和らげられます。"),
+            C("新しい仕事を任せてもらえないか、上司にすぐ相談する", "ok", "前向きな行動ですが、今の業務の中で工夫する視点も持っておくと、次の環境でも応用が利きます。"),
+            C("飽きてしまったので、なんとなく手を抜きながら作業をこなす", "bad", "手を抜く癖がつくと、ミスが増えたり、周囲からの信頼を落としたりする原因になります。")
+          ]},
+        { situation:T("自分なりの目標を設定してみたところ、少し作業が楽しく感じられるようになった。"),
+          choices:[
+            C("この工夫や気づきを、上司や同僚にも共有してみる", "good", "自分の工夫を共有することは、周囲の業務改善にもつながる良い行動です。"),
+            C("楽しくなったので、自分の中だけで満足してそのまま続ける", "ok", "悪いことではありませんが、共有することでさらに評価や新しい機会につながる可能性を逃しています。"),
+            C("所詮ルーティンワークだと思い直し、すぐに気持ちが冷めてしまう", "bad", "小さな工夫を続けられないと、また同じ飽きを繰り返してしまいます。")
+          ]},
+        { situation:T("慣れた仕事にやる気を保ち続けるために大切な考え方は?"),
+          choices:[
+            C("同じ作業の中にも自分なりの目標や工夫を見つけ、小さな成長を感じられるようにする", "good", "定型業務でも成長を感じる工夫が、モチベーション維持の鍵です。"),
+            C("飽きるのは仕方ないので、我慢して淡々とこなすようにする", "ok", "我慢だけに頼ると、長期的にはつらくなってしまうことがあります。"),
+            C("刺激がないと感じたら、その都度やる気が下がるのは仕方ないと受け入れる", "bad", "この考え方のままだと、同じような場面でやる気の波に振り回され続けてしまいます。")
+          ]}
+      ]
+    },
+    {
+      id:"Y9", cat:"env", difficulty:1, icon:"🏠",
+      title:"在宅勤務で集中力が続かない時", lead:"在宅勤務の日、家にいると気が緩んでしまい、作業に集中できずについスマホを触ってしまう。",
+      turns:[
+        { situation:T("集中できないと感じた時、どうするか。"),
+          choices:[
+            C("作業する場所からスマホを物理的に離す、通知をオフにするなど、環境を変える", "good", "意志の力に頼らず、環境を変えることは効果的な対処法です。"),
+            C("気合いを入れ直して、意志の力でスマホを見ないようにしようとする", "ok", "意志の力だけに頼ると、疲れている時にはうまくいかないことがあります。"),
+            C("集中できないのは仕方ないと諦めて、スマホを見ながらだらだらと作業する", "bad", "だらだらとした状態が続くと、作業時間ばかりが長くなり、成果につながりにくくなります。")
+          ]},
+        { situation:T("スマホを別の部屋に置いてみたところ、思ったより集中できた。"),
+          choices:[
+            C("この環境の工夫を、今後の在宅勤務の基本ルールとして習慣にする", "good", "うまくいった工夫を仕組み化することで、再現性が高まります。"),
+            C("集中できたのはたまたま今日の気分が良かったからだと考える", "ok", "環境の効果を過小評価してしまうと、次回また同じ工夫を活かせない可能性があります。"),
+            C("集中できたので、もうスマホを離さなくても大丈夫だろうと油断する", "bad", "うまくいった要因(環境の工夫)を手放すと、また同じ問題が起こりやすくなります。")
+          ]},
+        { situation:T("在宅勤務で集中力を保つために、大切な考え方は?"),
+          choices:[
+            C("集中できるかどうかは、意志の強さより環境の作り方に左右されると理解し、環境を先に整える", "good", "環境を整えるという発想が、在宅勤務との付き合い方の基本になります。"),
+            C("集中できない自分の意志の弱さを反省し、次はもっと気を引き締める", "ok", "意志の力に頼る発想のままだと、同じ壁に何度もぶつかりやすくなります。"),
+            C("在宅勤務は集中できなくて当然だと割り切り、特に工夫をしないままにする", "bad", "工夫をしないままでは、集中できない状態がずっと続いてしまいます。")
+          ]}
+      ]
+    },
+    {
+      id:"Y10", cat:"env", difficulty:2, icon:"🎯",
+      title:"目標が曖昧で何をすればいいか分からない時", lead:"「もっと積極的に動いてほしい」と上司から言われたが、具体的に何をどうすればいいのか分からず、やる気の出しどころが見つからない。",
+      turns:[
+        { situation:T("この状況で、まずどうするか。"),
+          choices:[
+            C("上司に、具体的にどんな行動を期待されているのか、例を挙げて確認する", "good", "曖昧な目標を具体化することで、やる気を向ける先がはっきりします。"),
+            C("自分なりに「積極的」を解釈して、思いつくままにいろいろな行動をしてみる", "ok", "行動しようとする姿勢は良いですが、認識がずれていると努力の方向がかみ合わないことがあります。"),
+            C("具体的に分からないので、特に何も変えずにこれまで通り過ごす", "bad", "曖昧なまま放置すると、期待とのズレがそのまま続いてしまいます。")
+          ]},
+        { situation:T("確認したところ、「会議でもっと自分の意見を発言してほしい」という具体的な期待だと分かった。"),
+          choices:[
+            C("次の会議で、まず一つだけでも自分の意見を発言してみることを目標にする", "good", "具体的な期待を、小さな行動目標に落とし込めています。"),
+            C("分かったので、次からは完璧に発言できるよう入念に準備しようとする", "ok", "準備すること自体は良いですが、完璧を目指しすぎると、かえって発言のハードルが上がってしまうことがあります。"),
+            C("期待は分かったが、自分には荷が重いと感じて発言を避け続ける", "bad", "期待が分かっても行動に移さなければ、状況は変わりません。")
+          ]},
+        { situation:T("目標が曖昧でやる気が出しにくい時に、大切な考え方は?"),
+          choices:[
+            C("曖昧なまま我慢するのではなく、具体的に何をすればいいかを自分から確認しに行く", "good", "曖昧さを解消する行動自体が、やる気を取り戻す一番の近道です。"),
+            C("はっきりしないことも仕事のうちだと割り切り、自分なりに手探りで進める", "ok", "割り切る姿勢も一つの方法ですが、確認できる場面では確認したほうが遠回りを避けられます。"),
+            C("具体的な指示がもらえるまで、自分から動くのは控えておく", "bad", "指示を待つだけの姿勢では、期待されている「積極性」からは離れてしまいます。")
+          ]}
+      ]
+    }
+  ];
+
+  var TIPS = [
+    {desc:"やる気は「待つもの」ではなく「動いた後についてくるもの」と理解する。"},
+    {desc:"大きすぎるタスクは、5分で終わる小さな一歩に分解してから始める。"},
+    {desc:"「気合い」ではなく「仕組み」(時間を区切る、環境を変える)で乗り切る。"},
+    {desc:"集中できないときは、意志の力より先に環境(スマホの位置、通知)を変える。"},
+    {desc:"進んだ分を記録し、進捗を目に見える形にする。"},
+    {desc:"ミスをしたら、自分を責める代わりに「次に活かせること」だけを取り出す。"},
+    {desc:"厳しいフィードバックは、自分の人格ではなく行動への指摘だと捉える。"},
+    {desc:"他人と比べそうになったら、比較の軸を「過去の自分」に置き換える。"},
+    {desc:"目標が曖昧なときは、我慢せず具体的に確認しに行く。"},
+    {desc:"やる気が出ない日があるのは当たり前だと受け止め、それでも動ける小さな仕組みを持っておく。"}
+  ];
+
+  /* ---------------- storage ---------------- */
+  var STORE_KEY = "yarukiswitch-sim-progress-v1";
+  function loadProgress(){ try{ var raw = localStorage.getItem(STORE_KEY); return raw ? JSON.parse(raw) : {}; }catch(e){ return {}; } }
+  function saveProgress(p){ try{ localStorage.setItem(STORE_KEY, JSON.stringify(p)); }catch(e){} }
+
+  /* ---------------- state ---------------- */
+  var state = {
+    screen:"home", scenarioId:null, phase:"intro", turnIndex:0,
+    currentChoices:null, record:[], review:[], score:0, maxScore:0
+  };
+  var progress = loadProgress();
+
+  function shuffle(arr){
+    var a = arr.slice();
+    for(var i=a.length-1;i>0;i--){ var j = Math.floor(Math.random()*(i+1)); var t=a[i]; a[i]=a[j]; a[j]=t; }
+    return a;
+  }
+  function catInfo(id){ for(var i=0;i<CATEGORIES.length;i++){ if(CATEGORIES[i].id===id) return CATEGORIES[i]; } return CATEGORIES[0]; }
+  function scenarioById(id){ for(var i=0;i<SCENARIOS.length;i++){ if(SCENARIOS[i].id===id) return SCENARIOS[i]; } return null; }
+  function escapeHtml(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+  function tierLabel(tier){ return tier==="good" ? "とても良い対応です" : (tier==="ok" ? "OKですが、改善の余地があります" : "見直しが必要です"); }
+  function tierIcon(tier){ return tier==="good" ? "◎" : (tier==="ok" ? "○" : "✕"); }
+  function truncate(s, n){ return s.length > n ? s.slice(0,n) + "…" : s; }
+
+  var app = document.getElementById("app");
+
+  function render(){
+    if(state.screen==="home") renderHome();
+    else if(state.screen==="manual") renderManual();
+    else if(state.screen==="scenario") renderScenario();
+    else if(state.screen==="result") renderResult();
+  }
+
+  /* ---------------- HOME ---------------- */
+  function renderHome(){
+    var completed = 0;
+    SCENARIOS.forEach(function(s){ if(progress[s.id]) completed++; });
+    var pct = Math.round(completed/SCENARIOS.length*100);
+
+    var html = '';
+    html += '<div class="home">';
+    html += '<div class="cover-art">'+SWITCH_SVG+'<div class="cover-caption">SWITCH ON · やる気スイッチ</div></div>';
+    html += '<div class="home-head">';
+    html += '<div class="eyebrow">新人研修プログラム</div>';
+    html += '<h1 class="home-title">やる気スイッチシミュレーター</h1>';
+    html += '<p class="home-sub">気合いではなく、仕組みでやる気を生み出すコツを学びます。よくある「動けない場面」を選んで、選択肢に答えるだけです。</p>';
+    html += '<div class="progress-row"><div class="progress-track"><div class="progress-fill" style="width:'+pct+'%"></div></div><div class="progress-label mono">'+completed+' / '+SCENARIOS.length+'</div></div>';
+    html += '<button class="manual-link" data-action="open-manual">📘 やる気スイッチの基本10か条を見る</button>';
+    html += '</div>';
+
+    CATEGORIES.forEach(function(cat){
+      var list = SCENARIOS.filter(function(s){ return s.cat===cat.id; });
+      if(list.length===0) return;
+      html += '<div class="cat-block">';
+      html += '<div class="cat-head"><span class="cat-dot" style="background:var('+cat.varc+')"></span><span class="cat-name">'+cat.name+'</span></div>';
+      html += '<div class="cat-desc">'+cat.desc+'</div>';
+      html += '<div class="card-list">';
+      list.forEach(function(s){
+        var stars = "★".repeat(s.difficulty) + "☆".repeat(3-s.difficulty);
+        var best = progress[s.id];
+        html += '<button class="scenario-card" data-action="open-scenario" data-id="'+s.id+'">';
+        html += '<span class="avatar" style="background:var('+cat.vars+')">'+s.icon+'</span>';
+        html += '<span class="card-body"><span class="card-title">'+escapeHtml(s.title)+'</span><br><span class="card-meta">'+escapeHtml(truncate(s.lead, 30))+'</span></span>';
+        html += '<span class="card-side"><span class="stars">'+stars+'</span>' + (best ? '<span class="best-badge">ベスト '+best.pct+'%</span>' : '') + '</span>';
+        html += '</button>';
+      });
+      html += '</div></div>';
+    });
+
+    html += '</div>';
+    app.innerHTML = html;
+  }
+
+  /* ---------------- MANUAL ---------------- */
+  function renderManual(){
+    var html = '<div class="manual">';
+    html += '<div class="back-row"><button class="icon-btn" data-action="go-home">←</button><span class="screen-title">やる気スイッチの基本10か条</span></div>';
+    TIPS.forEach(function(tip, i){
+      html += '<div class="tip-card"><div class="tip-num">POINT '+(i+1)+'</div><div class="tip-desc">'+escapeHtml(tip.desc)+'</div></div>';
+    });
+    html += '</div>';
+    app.innerHTML = html;
+  }
+
+  /* ---------------- SCENARIO ---------------- */
+  function openScenario(id){
+    var sc = scenarioById(id);
+    if(!sc) return;
+    state.screen = "scenario"; state.scenarioId = id; state.phase = "intro"; state.turnIndex = 0;
+    state.currentChoices = null; state.record = []; state.review = []; state.score = 0;
+    state.maxScore = sc.turns.length * 10;
+    render();
+  }
+
+  function renderScenario(){
+    var sc = scenarioById(state.scenarioId);
+    var cat = catInfo(sc.cat);
+
+    if(state.phase === "intro"){
+      var html = '<div class="intro">';
+      html += '<span class="avatar" style="background:var('+cat.vars+')">'+sc.icon+'</span>';
+      html += '<div class="intro-cat">'+escapeHtml(cat.name)+'</div>';
+      html += '<div class="intro-title">'+escapeHtml(sc.title)+'</div>';
+      html += '<div class="intro-lead">'+escapeHtml(sc.lead)+'</div>';
+      html += '<div class="intro-actions">';
+      html += '<button class="next-btn" data-action="start-scenario">この場面を始める</button>';
+      html += '<button class="ghost-btn" data-action="go-home">一覧に戻る</button>';
+      html += '</div></div>';
+      app.innerHTML = html;
+      return;
+    }
+
+    var html2 = '';
+    html2 += '<div class="rec-top">';
+    html2 += '<div><div class="rec-top-title">'+escapeHtml(sc.title)+'</div><div class="rec-top-cat">'+escapeHtml(cat.name)+'</div></div>';
+    html2 += '<div class="rec-step mono">STEP '+(state.turnIndex+1)+' / '+sc.turns.length+'</div>';
+    html2 += '</div>';
+
+    html2 += '<div class="record" id="record" style="--cat-color:var('+cat.varc+')">';
+    state.record.forEach(function(item){
+      if(item.speaker === "situation"){
+        html2 += '<div class="sit-card"><div class="sit-label">状況</div>'+escapeHtml(item.text)+'</div>';
+      } else {
+        html2 += '<div><div class="act-label">あなたの行動</div><div class="act-row"><div class="act-bubble">'+escapeHtml(item.text)+'</div></div></div>';
+      }
+    });
+    html2 += '</div>';
+
+    html2 += '<div class="choices-panel">';
+    if(state.phase === "active"){
+      html2 += '<div class="choices-hint">どう対応しますか?</div>';
+      state.currentChoices.forEach(function(choice, idx){
+        html2 += '<button class="choice-btn" data-action="pick-choice" data-idx="'+idx+'">'+escapeHtml(choice.text)+'</button>';
+      });
+    } else if(state.phase === "feedback"){
+      var last = state.review[state.review.length-1];
+      html2 += '<div class="feedback-panel">';
+      html2 += '<span class="feedback-tag '+last.tier+'">'+tierIcon(last.tier)+' '+tierLabel(last.tier)+'</span>';
+      html2 += '<div class="feedback-text">'+escapeHtml(last.feedback)+'</div>';
+      var isLast = state.turnIndex >= sc.turns.length - 1;
+      html2 += '<button class="next-btn" data-action="next-turn">'+(isLast ? "この場面を終える" : "次へ")+'</button>';
+      html2 += '</div>';
+    }
+    html2 += '</div>';
+
+    app.innerHTML = html2;
+    var rEl = document.getElementById("record");
+    if(rEl) rEl.scrollTop = rEl.scrollHeight;
+  }
+
+  function startScenario(){
+    var sc = scenarioById(state.scenarioId);
+    state.phase = "active"; state.turnIndex = 0;
+    pushSituation(sc, 0);
+    state.currentChoices = shuffle(sc.turns[0].choices);
+    render();
+  }
+
+  function pushSituation(sc, idx){ state.record.push({speaker:"situation", text: sc.turns[idx].situation.text}); }
+
+  function pickChoice(idx){
+    var sc = scenarioById(state.scenarioId);
+    var choice = state.currentChoices[idx];
+    state.record.push({speaker:"you", text: choice.text});
+    state.score += choice.points;
+    state.review.push({
+      situation: sc.turns[state.turnIndex].situation.text,
+      chosen: choice.text, tier: choice.tier, feedback: choice.feedback
+    });
+    state.phase = "feedback";
+    render();
+  }
+
+  function nextTurn(){
+    var sc = scenarioById(state.scenarioId);
+    if(state.turnIndex >= sc.turns.length - 1){ finishScenario(); return; }
+    state.turnIndex++;
+    pushSituation(sc, state.turnIndex);
+    state.currentChoices = shuffle(sc.turns[state.turnIndex].choices);
+    state.phase = "active";
+    render();
+  }
+
+  function finishScenario(){
+    var pct = Math.round(state.score / state.maxScore * 100);
+    progress[state.scenarioId] = progress[state.scenarioId] && progress[state.scenarioId].pct > pct
+      ? progress[state.scenarioId] : {pct: pct};
+    saveProgress(progress);
+    state.screen = "result";
+    render();
+  }
+
+  /* ---------------- RESULT ---------------- */
+  function renderResult(){
+    var sc = scenarioById(state.scenarioId);
+    var pct = Math.round(state.score / state.maxScore * 100);
+    var grade = pct >= 90 ? "S" : pct >= 75 ? "A" : pct >= 55 ? "B" : "C";
+    var msg = pct >= 90 ? "気合いに頼らず、仕組みで動く工夫がとても身についています。この調子で他の場面にも挑戦しましょう。"
+      : pct >= 75 ? "良い対応ができています。○や✕がついた場面の理由を振り返ると、さらにコツがつかめます。"
+      : pct >= 55 ? "基本はできています。迷った場面を見直して、自分なりのスイッチの入れ方を整理してみましょう。"
+      : "焦らず大丈夫です。下の振り返りを読んで、もう一度この場面に挑戦してみましょう。";
+
+    var html = '<div class="result">';
+    html += '<div class="result-badge"><span class="grade">'+grade+'</span></div>';
+    html += '<div class="result-score">スコア <span class="mono">'+state.score+' / '+state.maxScore+'</span>(' + pct + '%)</div>';
+    html += '<div class="result-title">'+escapeHtml(sc.title)+'・振り返り</div>';
+    html += '<div class="result-msg">'+msg+'</div>';
+
+    html += '<div class="review-list">';
+    state.review.forEach(function(r, i){
+      html += '<div class="review-item">';
+      html += '<div class="review-head"><span class="review-icon '+r.tier+'">'+tierIcon(r.tier)+'</span><span class="review-situation">場面'+(i+1)+'. '+escapeHtml(truncate(r.situation, 32))+'</span></div>';
+      html += '<div class="review-feedback">'+escapeHtml(r.feedback)+'</div>';
+      html += '</div>';
+    });
+    html += '</div>';
+
+    html += '<div class="result-actions">';
+    html += '<button class="btn-primary" data-action="retry-scenario">もう一度この場面に挑戦する</button>';
+    html += '<button class="btn-secondary" data-action="open-manual">10か条を振り返る</button>';
+    html += '<button class="btn-secondary" data-action="go-home">シナリオ一覧に戻る</button>';
+    html += '</div>';
+    html += '</div>';
+    app.innerHTML = html;
+  }
+
+  /* ---------------- events ---------------- */
+  app.addEventListener("click", function(e){
+    var btn = e.target.closest("[data-action]");
+    if(!btn) return;
+    var action = btn.getAttribute("data-action");
+    if(action === "open-scenario"){ openScenario(btn.getAttribute("data-id")); }
+    else if(action === "open-manual"){ state.screen = "manual"; render(); }
+    else if(action === "go-home"){ state.screen = "home"; render(); }
+    else if(action === "start-scenario"){ startScenario(); }
+    else if(action === "pick-choice"){ pickChoice(parseInt(btn.getAttribute("data-idx"), 10)); }
+    else if(action === "next-turn"){ nextTurn(); }
+    else if(action === "retry-scenario"){ openScenario(state.scenarioId); }
+  });
+
+  render();
+})();
+</script>
