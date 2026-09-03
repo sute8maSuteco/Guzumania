@@ -1,0 +1,781 @@
+<title>防災対応シミュレーター</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700;900&family=Noto+Sans+JP:wght@400;500;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+  :root{
+    --bg:#EFEAE0;
+    --surface:#FBF8F2;
+    --surface-alt:#F1ECDF;
+    --ink:#26231D;
+    --ink-soft:#726C5C;
+    --border:#DCD5C4;
+    --accent:#C4501A;
+    --accent-contrast:#FFFFFF;
+    --good:#3F7D4C;
+    --good-soft:#E4EEE2;
+    --warn:#A97A1E;
+    --warn-soft:#F3EAD4;
+    --bad:#B14A3D;
+    --bad-soft:#F5E2DE;
+    --catQuake:#2B5C63;
+    --catQuake-soft:#E1EBEA;
+    --catEvac:#8B5E0E;
+    --catEvac-soft:#F0E8D6;
+    --catInfo:#7A3E52;
+    --catInfo-soft:#F0E1E6;
+    --catReady:#3C5A78;
+    --catReady-soft:#E2E8EE;
+    --cover:#20261E;
+    --cover-text:#ECE7D8;
+    --shadow: 0 20px 50px -20px rgba(20,20,15,0.35);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#141310;
+      --surface:#1D1C17;
+      --surface-alt:#26241D;
+      --ink:#ECE8DC;
+      --ink-soft:#A8A290;
+      --border:#37342A;
+      --accent:#F0864A;
+      --accent-contrast:#2A1508;
+      --good:#6FBF7C;
+      --good-soft:#233127;
+      --warn:#D9A94A;
+      --warn-soft:#332C1C;
+      --bad:#E1786A;
+      --bad-soft:#38221E;
+      --catQuake:#5AA3AA;
+      --catQuake-soft:#20302F;
+      --catEvac:#C99A4A;
+      --catEvac-soft:#332A18;
+      --catInfo:#C98CA0;
+      --catInfo-soft:#32222A;
+      --catReady:#8FB0D6;
+      --catReady-soft:#212B36;
+      --shadow: 0 20px 50px -20px rgba(0,0,0,0.6);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#141310;
+    --surface:#1D1C17;
+    --surface-alt:#26241D;
+    --ink:#ECE8DC;
+    --ink-soft:#A8A290;
+    --border:#37342A;
+    --accent:#F0864A;
+    --accent-contrast:#2A1508;
+    --good:#6FBF7C;
+    --good-soft:#233127;
+    --warn:#D9A94A;
+    --warn-soft:#332C1C;
+    --bad:#E1786A;
+    --bad-soft:#38221E;
+    --catQuake:#5AA3AA;
+    --catQuake-soft:#20302F;
+    --catEvac:#C99A4A;
+    --catEvac-soft:#332A18;
+    --catInfo:#C98CA0;
+    --catInfo-soft:#32222A;
+    --catReady:#8FB0D6;
+    --catReady-soft:#212B36;
+    --shadow: 0 20px 50px -20px rgba(0,0,0,0.6);
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;height:100%;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:"Noto Sans JP","Hiragino Kaku Gothic ProN","Hiragino Sans",Meiryo,sans-serif;
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    padding:20px 14px;
+  }
+  h1,h2,h3,.display{ font-family:"Zen Kaku Gothic New","Noto Sans JP",sans-serif; text-wrap:balance; margin:0; }
+  .mono{ font-family:"JetBrains Mono", ui-monospace, monospace; font-variant-numeric:tabular-nums; }
+  button{font-family:inherit;}
+  button:focus-visible, a:focus-visible, [tabindex]:focus-visible{ outline:3px solid var(--accent); outline-offset:2px; }
+  @media (prefers-reduced-motion: reduce){ *{animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0.001ms !important;} }
+
+  /* ---- outer frame (cover) ---- */
+  .frame{
+    width:100%; max-width:480px; height:min(720px, calc(100vh - 40px));
+    background:var(--cover); border-radius:22px; padding:14px; box-shadow:var(--shadow);
+    display:flex; flex-direction:column;
+  }
+  .frame-label{
+    flex-shrink:0; display:flex; align-items:center; justify-content:center; gap:7px;
+    padding:2px 0 12px; color:var(--cover-text); font-size:12.5px; font-weight:700; letter-spacing:0.03em;
+  }
+  .frame-label svg{ width:14px; height:14px; }
+  .frame-label .dot{ width:6px;height:6px;border-radius:50%; background:var(--cover-text); opacity:0.55; }
+  .page{
+    background:var(--surface); border-radius:16px; flex:1; min-height:0;
+    display:flex; flex-direction:column; overflow:hidden; position:relative;
+  }
+
+  /* ---- home ---- */
+  .home{ padding:20px 20px 20px; overflow-y:auto; flex:1; min-height:0; }
+  .cover-art{ display:flex; flex-direction:column; align-items:center; padding:6px 0 14px; }
+  .cover-art svg{ width:76px; height:76px; }
+  .cover-caption{ font-size:10.5px; color:var(--ink-soft); margin-top:6px; letter-spacing:0.03em; }
+  .home-head{ padding:0 2px 18px; border-bottom:1px solid var(--border); margin-bottom:16px; }
+  .eyebrow{ font-size:11px; letter-spacing:0.12em; color:var(--accent); font-weight:700; text-transform:uppercase; text-align:center; }
+  .home-title{ font-size:21px; font-weight:900; margin-top:6px; line-height:1.35; text-align:center; }
+  .home-sub{ font-size:12.5px; color:var(--ink-soft); margin-top:8px; line-height:1.65; text-align:center; }
+  .progress-row{ display:flex; align-items:center; gap:10px; margin-top:14px; }
+  .progress-track{ flex:1; height:6px; background:var(--surface-alt); border-radius:4px; overflow:hidden; border:1px solid var(--border); }
+  .progress-fill{ height:100%; background:var(--accent); border-radius:4px; transition:width .4s ease; }
+  .progress-label{ font-size:12px; color:var(--ink-soft); white-space:nowrap; }
+  .manual-link{
+    margin-top:14px; display:flex; align-items:center; justify-content:center; gap:6px; font-size:13px; font-weight:700;
+    color:var(--accent); background:var(--surface-alt); border:1px solid var(--border); padding:9px 14px; border-radius:10px; cursor:pointer; width:100%;
+  }
+  .cat-block{ margin-bottom:20px; }
+  .cat-head{ display:flex; align-items:center; gap:8px; margin-bottom:2px; }
+  .cat-dot{ width:9px;height:9px;border-radius:50%; flex-shrink:0; }
+  .cat-name{ font-size:14px; font-weight:700; }
+  .cat-desc{ font-size:11.5px; color:var(--ink-soft); margin:2px 0 8px 17px; }
+  .card-list{ display:flex; flex-direction:column; gap:8px; }
+  .scenario-card{
+    display:flex; align-items:center; gap:12px; background:var(--surface-alt); border:1px solid var(--border);
+    border-radius:14px; padding:11px 12px; cursor:pointer; text-align:left; width:100%;
+  }
+  .scenario-card:hover{ border-color:var(--accent); }
+  .avatar{ width:38px;height:38px;border-radius:12px; display:flex;align-items:center;justify-content:center; font-size:17px; flex-shrink:0; }
+  .card-body{ flex:1; min-width:0; }
+  .card-title{ font-size:13.5px; font-weight:700; }
+  .card-meta{ font-size:11.5px; color:var(--ink-soft); margin-top:2px; line-height:1.5; }
+  .card-side{ display:flex; flex-direction:column; align-items:flex-end; gap:4px; flex-shrink:0; }
+  .stars{ font-size:11px; color:var(--warn); letter-spacing:1px; white-space:nowrap; }
+  .best-badge{ font-size:10.5px; font-weight:700; color:var(--good); background:var(--good-soft); padding:2px 7px; border-radius:20px; white-space:nowrap; }
+
+  /* ---- manual ---- */
+  .manual{ padding:20px 20px 24px; overflow-y:auto; flex:1; min-height:0; }
+  .back-row{ display:flex; align-items:center; gap:10px; margin-bottom:14px; }
+  .icon-btn{
+    width:32px;height:32px;border-radius:50%; background:var(--surface-alt); border:1px solid var(--border);
+    display:flex;align-items:center;justify-content:center; cursor:pointer; color:var(--ink); font-size:16px; flex-shrink:0;
+  }
+  .screen-title{ font-size:16.5px; font-weight:900; }
+  .tip-card{ background:var(--surface-alt); border:1px solid var(--border); border-radius:14px; padding:13px 14px; margin-bottom:10px; }
+  .tip-num{ font-size:11px; font-weight:700; color:var(--accent); }
+  .tip-desc{ font-size:12.5px; color:var(--ink); margin-top:4px; line-height:1.7; }
+
+  /* ---- scenario: intro ---- */
+  .intro{ flex:1; min-height:0; overflow-y:auto; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:34px 28px; text-align:center; gap:6px; }
+  .intro .avatar{ width:76px; height:76px; border-radius:22px; font-size:32px; margin-bottom:14px; }
+  .intro-cat{ font-size:11.5px; font-weight:700; letter-spacing:0.04em; color:var(--ink-soft); text-transform:uppercase; }
+  .intro-title{ font-size:19px; font-weight:900; margin-top:8px; line-height:1.4; }
+  .intro-lead{ font-size:12.5px; color:var(--ink-soft); margin-top:12px; line-height:1.75; max-width:320px; }
+  .intro-actions{ display:flex; flex-direction:column; gap:9px; width:100%; max-width:260px; margin-top:26px; }
+
+  /* ---- scenario: active ---- */
+  .rec-top{ display:flex; align-items:center; justify-content:space-between; gap:10px; padding:14px 18px 12px; border-bottom:1px solid var(--border); flex-shrink:0; }
+  .rec-top-title{ font-size:13.5px; font-weight:700; line-height:1.4; }
+  .rec-top-cat{ font-size:11px; color:var(--ink-soft); margin-top:2px; }
+  .rec-step{ font-size:11.5px; color:var(--accent); font-weight:700; white-space:nowrap; flex-shrink:0; }
+
+  .record{ flex:1; min-height:0; overflow-y:auto; padding:16px 16px 8px; display:flex; flex-direction:column; gap:12px; }
+  .sit-card{ background:var(--surface-alt); border:1px solid var(--border); border-left:4px solid var(--cat-color, var(--accent)); border-radius:10px; padding:11px 13px; font-size:13px; line-height:1.7; }
+  .sit-label{ font-size:10.5px; font-weight:700; color:var(--ink-soft); letter-spacing:0.04em; margin-bottom:4px; text-transform:uppercase; }
+  .act-row{ display:flex; justify-content:flex-end; }
+  .act-bubble{ max-width:86%; background:var(--accent); color:var(--accent-contrast); border-radius:12px; border-bottom-right-radius:4px; padding:9px 13px; font-size:12.5px; line-height:1.65; }
+  .act-label{ font-size:10px; color:var(--ink-soft); text-align:right; margin:0 2px 3px; }
+
+  .choices-panel{ border-top:1px solid var(--border); padding:12px 16px 16px; flex-shrink:0; background:var(--surface); max-height:46vh; overflow-y:auto; }
+  .choices-hint{ font-size:11px; color:var(--ink-soft); margin-bottom:8px; }
+  .choice-btn{
+    display:block; width:100%; text-align:left; background:var(--surface-alt); border:1px solid var(--border);
+    border-radius:12px; padding:10px 13px; margin-bottom:8px; font-size:13px; line-height:1.6; color:var(--ink); cursor:pointer;
+  }
+  .choice-btn:hover{ border-color:var(--accent); }
+  .choice-btn:last-child{ margin-bottom:0; }
+
+  .feedback-panel{ padding:4px 2px 2px; }
+  .feedback-tag{ display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:700; padding:4px 11px; border-radius:20px; margin-bottom:8px; }
+  .feedback-tag.good{ background:var(--good-soft); color:var(--good); }
+  .feedback-tag.ok{ background:var(--warn-soft); color:var(--warn); }
+  .feedback-tag.bad{ background:var(--bad-soft); color:var(--bad); }
+  .feedback-text{ font-size:13px; line-height:1.7; color:var(--ink); margin-bottom:12px; }
+  .next-btn{ width:100%; padding:11px; border-radius:12px; border:none; background:var(--accent); color:var(--accent-contrast); font-weight:700; font-size:13.5px; cursor:pointer; }
+  .ghost-btn{ width:100%; padding:11px; border-radius:12px; border:1px solid var(--border); background:var(--surface-alt); color:var(--ink); font-weight:700; font-size:13.5px; cursor:pointer; }
+
+  /* ---- result ---- */
+  .result{ padding:22px 22px 26px; overflow-y:auto; flex:1; min-height:0; display:flex; flex-direction:column;}
+  .result-badge{
+    width:92px;height:92px;border-radius:50%; margin:6px auto 14px;
+    display:flex; align-items:center; justify-content:center; border:3px solid var(--accent); color:var(--accent);
+  }
+  .result-badge .grade{ font-size:28px; font-weight:900; font-family:"Zen Kaku Gothic New",sans-serif; }
+  .result-score{ text-align:center; font-size:13px; color:var(--ink-soft); }
+  .result-score .mono{ font-size:15px; color:var(--ink); font-weight:700; }
+  .result-title{ text-align:center; font-size:15.5px; font-weight:900; margin-top:14px; }
+  .result-msg{ text-align:center; font-size:12.5px; color:var(--ink-soft); margin-top:6px; line-height:1.75;}
+  .review-list{ margin-top:20px; display:flex; flex-direction:column; gap:8px; }
+  .review-item{ background:var(--surface-alt); border:1px solid var(--border); border-radius:12px; padding:10px 12px; }
+  .review-head{ display:flex; align-items:center; gap:8px; }
+  .review-icon{ width:20px;height:20px;border-radius:50%; flex-shrink:0; display:flex;align-items:center;justify-content:center; font-size:11px; font-weight:900; color:#fff; }
+  .review-icon.good{ background:var(--good); }
+  .review-icon.ok{ background:var(--warn); }
+  .review-icon.bad{ background:var(--bad); }
+  .review-situation{ font-size:12px; font-weight:700; }
+  .review-feedback{ font-size:11.5px; color:var(--ink-soft); margin-top:5px; line-height:1.6; padding-left:28px;}
+  .result-actions{ display:flex; flex-direction:column; gap:8px; margin-top:22px; }
+  .btn-primary{ padding:12px; border-radius:12px; border:none; background:var(--accent); color:var(--accent-contrast); font-weight:700; font-size:13.5px; cursor:pointer; }
+  .btn-secondary{ padding:12px; border-radius:12px; border:1px solid var(--border); background:var(--surface-alt); color:var(--ink); font-weight:700; font-size:13.5px; cursor:pointer; }
+</style>
+
+<div class="frame">
+  <div class="frame-label">
+    <svg viewBox="0 0 120 120" aria-hidden="true"><rect x="28" y="40" width="64" height="64" rx="16" fill="#ECE7D8" opacity="0.92"/><circle cx="60" cy="28" r="13" fill="#20261E"/></svg>
+    <span>防災ノート</span><span class="dot"></span><span>新人研修用</span>
+  </div>
+  <div class="page" id="app"></div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var BACKPACK_SVG = '<svg viewBox="0 0 120 120" aria-hidden="true">'
+    + '<rect x="36" y="14" width="10" height="46" rx="5" fill="#4E5440"/>'
+    + '<rect x="74" y="14" width="10" height="46" rx="5" fill="#4E5440"/>'
+    + '<rect x="24" y="40" width="72" height="62" rx="18" fill="#7C8560"/>'
+    + '<rect x="24" y="40" width="72" height="62" rx="18" fill="none" stroke="#5B6148" stroke-width="2"/>'
+    + '<rect x="30" y="48" width="60" height="22" rx="9" fill="#8B9569"/>'
+    + '<rect x="34" y="74" width="52" height="24" rx="10" fill="#93A06E"/>'
+    + '<line x1="36" y1="86" x2="84" y2="86" stroke="#5B6148" stroke-width="2" opacity="0.6"/>'
+    + '<rect x="50" y="55" width="20" height="8" rx="2" fill="#F2A93C"/>'
+    + '<circle cx="42" cy="90" r="7" fill="#D9531E"/>'
+    + '<line x1="42" y1="83" x2="42" y2="77" stroke="#5B6148" stroke-width="2"/>'
+    + '<circle cx="42" cy="74" r="3" fill="none" stroke="#5B6148" stroke-width="2"/>'
+    + '<rect x="84" y="18" width="12" height="32" rx="3" fill="#B0B4A8"/>'
+    + '<rect x="84" y="18" width="12" height="32" rx="3" fill="none" stroke="#8B8F82" stroke-width="1.5"/>'
+    + '<circle cx="90" cy="16" r="16" fill="#F2A93C" opacity="0.12"/>'
+    + '<circle cx="90" cy="16" r="10" fill="#F2A93C" opacity="0.22"/>'
+    + '<circle cx="90" cy="16" r="7" fill="#F2A93C"/>'
+    + '<circle cx="90" cy="16" r="7" fill="none" stroke="#C97F1E" stroke-width="2"/>'
+    + '<g stroke="#F2A93C" stroke-width="3" stroke-linecap="round">'
+    + '<line x1="90" y1="9" x2="90" y2="1"/>'
+    + '<line x1="85" y1="11" x2="77" y2="5"/>'
+    + '<line x1="95" y1="11" x2="103" y2="5"/>'
+    + '<line x1="83" y1="16" x2="73" y2="16"/>'
+    + '<line x1="97" y1="16" x2="107" y2="16"/>'
+    + '</g>'
+    + '</svg>';
+
+  var CATEGORIES = [
+    {id:"quake", name:"発生直後の初動", desc:"地震や火災が起きた瞬間の行動", varc:"--catQuake", vars:"--catQuake-soft"},
+    {id:"evac", name:"避難行動", desc:"安全に、正しい判断で避難する", varc:"--catEvac", vars:"--catEvac-soft"},
+    {id:"info", name:"安否確認・情報伝達", desc:"自分と周囲の安全をどう伝えるか", varc:"--catInfo", vars:"--catInfo-soft"},
+    {id:"ready", name:"備えと心構え", desc:"日頃の備えと、その先の判断", varc:"--catReady", vars:"--catReady-soft"}
+  ];
+
+  function T(text){ return {text:text}; }
+  function C(text, tier, feedback){
+    var pts = tier === "good" ? 10 : (tier === "ok" ? 5 : 0);
+    return {text:text, tier:tier, feedback:feedback, points:pts};
+  }
+
+  var SCENARIOS = [
+    {
+      id:"P1", cat:"quake", difficulty:1, icon:"💻",
+      title:"デスクでの地震発生時の初動", lead:"執務中に大きな地震が発生し、デスクの上のパソコンやペン立てが激しく揺れ始めた。",
+      turns:[
+        { situation:T("強い揺れを感じた瞬間、まず何をするか。"),
+          choices:[
+            C("机の下に入るか、頭を守りながら、倒れやすい書棚やロッカーから離れる", "good", "身を守る行動を最優先にするのが、地震発生直後の基本です。"),
+            C("揺れが収まるのを待ちながら、とりあえずパソコンの作業データを保存しようとする", "ok", "データの心配は分かりますが、揺れている間はまず自分の身の安全を優先すべきです。"),
+            C("驚いてすぐに立ち上がり、揺れているオフィス内を出口に向かって走り出す", "bad", "強い揺れの最中に慌てて動き回ると、物が倒れてきたり転倒したりする危険があります。")
+          ]},
+        { situation:T("しばらくして揺れが収まった。次にどうするか。"),
+          choices:[
+            C("周囲の安全を確認しながら、非常口や避難経路がふさがれていないかを確かめる", "good", "揺れが収まった直後の安全確認は、避難の判断材料として重要です。"),
+            C("特に確認せず、すぐに荷物をまとめて帰る準備を始める", "ok", "気持ちは分かりますが、周囲の状況を確認する前に動き出すのは早計です。"),
+            C("大きな地震だったのできっと大丈夫だろうと思い、そのまま何もせず作業を再開する", "bad", "揺れの後には余震や二次災害の可能性があるため、安全確認を省略するのは危険です。")
+          ]},
+        { situation:T("この経験から学べる、デスクでの地震発生時の初動として大切なことは?"),
+          choices:[
+            C("揺れている間は「まず身を守る」、収まったら「周囲の安全確認」という順番を徹底する", "good", "行動の順番を体で覚えておくことが、いざという時に役立ちます。"),
+            C("地震が起きたらすぐに机の下に入ることだけを徹底する", "ok", "身を守る行動自体は正しいですが、その後の安全確認まで含めて一連の流れとして覚えておく方が実践的です。"),
+            C("地震はどうせ滅多に起きないので、特に意識しなくても大丈夫だと考える", "bad", "頻度が低いからこそ、いざという時にとっさに動けるよう備えておくことが重要です。")
+          ]}
+      ]
+    },
+    {
+      id:"P2", cat:"quake", difficulty:1, icon:"📋",
+      title:"会議中に地震が発生した時", lead:"会議室で打ち合わせ中に地震が発生した。窓際の席で、外の様子も少し気になる状況。",
+      turns:[
+        { situation:T("揺れを感じた瞬間、まずどうするか。"),
+          choices:[
+            C("窓際から離れ、会議室のテーブルの下に入るか、頭を守れる姿勢を取る", "good", "窓ガラスの破損や落下物のリスクを考えると、窓際からまず離れるのは適切な判断です。"),
+            C("揺れの大きさを確認しようと、少しの間窓の外の様子を眺める", "ok", "状況把握も大切ですが、揺れている間に窓の近くにとどまるのはリスクがあります。"),
+            C("会議中なので、進行を止めないようにそのまま座って様子を見る", "bad", "大きな揺れの最中に安全確保を後回しにするのは危険です。")
+          ]},
+        { situation:T("揺れが収まった後、会議の参加者たちはどうすべきか。"),
+          choices:[
+            C("会議の続きより先に、参加者全員の無事を確認し、避難の必要があるか周囲の状況を確認する", "good", "人の安全確認を最優先にする姿勢が適切です。"),
+            C("特に確認せず、なんとなく会議を中断したまま各自の判断で様子を見る", "ok", "誰かが指示を出さないと、確認や避難のタイミングがばらついてしまうことがあります。"),
+            C("特に問題なさそうなので、そのまま会議を続行する", "bad", "大きな地震の直後は、被害状況が分かるまで会議を続けるべきではありません。")
+          ]},
+        { situation:T("会議中に地震が起きた場合に大切な考え方は?"),
+          choices:[
+            C("会議室という環境特有の危険(窓・重い設備)を意識し、進行より安全確保を優先する判断ができるようにしておく", "good", "場所ごとのリスクを事前に意識しておくことが、とっさの判断を助けます。"),
+            C("会議中は仕方ないので、揺れが収まるまでとにかく静かに待つ", "ok", "待つこと自体は間違いではありませんが、窓際などの危険な位置からは動いた方が安全です。"),
+            C("会議中に地震が来ることはあまり想定していなかったので、特に対策は考えていない", "bad", "場所を問わず地震は起こり得るため、会議室での対応もあらかじめ考えておく必要があります。")
+          ]}
+      ]
+    },
+    {
+      id:"P3", cat:"quake", difficulty:2, icon:"🛗",
+      title:"エレベーターに乗っている時に地震が起きた場合", lead:"エレベーターで移動中に大きな地震が発生し、エレベーターが緊急停止してしまった。",
+      turns:[
+        { situation:T("エレベーターが緊急停止した直後、まずどうするか。"),
+          choices:[
+            C("非常用のボタンやインターホンで、外部に状況を知らせる", "good", "早めに外部と連絡を取ることで、救助や状況把握が早まります。"),
+            C("しばらく様子を見て、自然に動き出すかどうかを待つ", "ok", "少し待つ判断も分かりますが、早めに連絡を入れておいた方が安全です。"),
+            C("焦って何度も扉を開けようとこじ開けようとする", "bad", "無理に扉を開けようとすると、思わぬ事故につながる危険があります。")
+          ]},
+        { situation:T("インターホンで連絡が取れ、救助が向かっていると分かった。待っている間どうするか。"),
+          choices:[
+            C("落ち着いてその場に座るなどして、体力や気持ちを保ちながら救助を待つ", "good", "落ち着いて待つことが、閉じ込められた状況での基本的な対応です。"),
+            C("早く出たい気持ちから、天井の点検口を自分で開けられないか試そうとする", "ok", "自分で無理に脱出を試みるのは、かえって危険な行動です。"),
+            C("誰も助けに来ないかもしれないと不安になり、大声を出し続けて体力を消耗する", "bad", "連絡が取れている状況であれば、体力を消耗する行動は避けた方が安全です。")
+          ]},
+        { situation:T("エレベーターでの地震対応として、大切な考え方は?"),
+          choices:[
+            C("全ての階のボタンを押して最寄り階で停止させる、閉じ込められたら非常ボタンで連絡する、という基本の流れを知っておく", "good", "エレベーターでの地震対応の基本を知っておくことで、パニックを防げます。"),
+            C("エレベーターには極力乗らないようにする", "ok", "現実には移動のためエレベーターを使う場面は避けられないため、乗った際の対応を知っておく方が実用的です。"),
+            C("エレベーターの地震対応は、その時になれば自然に分かるだろうと考える", "bad", "とっさの場面では知識がないと正しく行動できないことが多いです。")
+          ]}
+      ]
+    },
+    {
+      id:"P4", cat:"evac", difficulty:1, icon:"🚨",
+      title:"火災報知器が鳴った時の避難判断", lead:"オフィスで作業中に火災報知器が鳴り始めた。何が起きているのか、周囲もざわついている。",
+      turns:[
+        { situation:T("報知器が鳴った直後、まずどうするか。"),
+          choices:[
+            C("訓練だと決めつけず、まず落ち着いて館内アナウンスや周囲の状況を確認する", "good", "誤報の可能性も考えつつ、まず状況を確認する姿勢が適切です。"),
+            C("きっと誤作動だろうと考え、特に確認せず作業を続ける", "ok", "誤作動の可能性はありますが、確認せずに決めつけるのは危険です。"),
+            C("パニックになり、確認もせず一人で真っ先に非常口へ走り出す", "bad", "状況を確認せずに慌てて動くと、必要な情報を得られず適切な避難ができないことがあります。")
+          ]},
+        { situation:T("館内アナウンスで「火災発生、避難してください」と流れた。"),
+          choices:[
+            C("落ち着いて、エレベーターを使わず、指定された避難経路と階段を使って避難する", "good", "火災時にエレベーターを使わないという基本を守れています。"),
+            C("近くのエレベーターがちょうど開いたので、早く逃げたい気持ちからエレベーターに乗ろうとする", "ok", "焦る気持ちは分かりますが、火災時のエレベーター利用は非常に危険です。"),
+            C("貴重品やパソコンを取りに一度自分の席に戻ろうとする", "bad", "荷物を取りに戻ることは、避難を遅らせ命の危険につながります。")
+          ]},
+        { situation:T("火災報知器が鳴った時の対応として、大切な考え方は?"),
+          choices:[
+            C("誤報の可能性があっても「本物かもしれない」という前提で、まず安全な行動を取ることを優先する", "good", "「どうせ誤報だろう」という思い込みが、避難の遅れにつながることを理解できています。"),
+            C("周りの人がどう動くかを見てから、自分の行動を決める", "ok", "周囲を見ることも一つの情報ですが、全員が同じ思い込みで動いていない確証はありません。"),
+            C("普段から火災報知器がよく誤作動するので、鳴っても特に気にしないようにしている", "bad", "過去の誤作動の経験だけで判断すると、本当に火災が起きた時に対応が遅れてしまいます。")
+          ]}
+      ]
+    },
+    {
+      id:"P5", cat:"evac", difficulty:2, icon:"🎒",
+      title:"避難時に持ち出すものの判断", lead:"避難の指示が出て、オフィスから避難することになった。手元には仕事用のパソコンや荷物がある。",
+      turns:[
+        { situation:T("避難する際、まず何を優先するか。"),
+          choices:[
+            C("荷物のことは考えず、まず身一つで安全に避難することを最優先にする", "good", "命に関わる状況では、荷物より安全確保が最優先です。"),
+            C("パソコンだけは会社の資産だからと思い、手に持って避難しようとする", "ok", "パソコンを気にする気持ちは分かりますが、両手がふさがることで避難が遅れる危険があります。"),
+            C("デスクにある私物や仕事の資料をできるだけたくさん持って避難しようとする", "bad", "荷物を優先すると避難が遅れ、自分自身が危険にさらされてしまいます。")
+          ]},
+        { situation:T("避難する途中、同僚が忘れ物を取りに戻ろうとしているのを見かけた。"),
+          choices:[
+            C("戻らないように声をかけ、一緒に避難経路を進むよう促す", "good", "自分だけでなく周囲の安全にも気を配れています。"),
+            C("自分は先に避難するが、特に声をかけずそのまま進む", "ok", "自分の避難自体は正しいですが、危険な行動をしている同僚への声かけができるとより良い対応になります。"),
+            C("忘れ物を取りに戻るのを手伝おうとして、一緒に引き返す", "bad", "戻ることは二人とも危険にさらす行動になってしまいます。")
+          ]},
+        { situation:T("避難時の持ち物についての基本的な考え方は?"),
+          choices:[
+            C("命より優先すべき荷物はないと理解し、日頃から貴重品を最小限にまとめておく発想を持つ", "good", "荷物より命を優先する考え方が身についています。"),
+            C("できるだけ身軽にしておくが、状況によっては大事なものを取りに戻ることも検討する", "ok", "身軽にする発想は良いですが、「戻る」という選択肢自体を持たないようにする方が安全です。"),
+            C("普段から荷物が多いのは仕方ないので、避難の時もその都度考えるようにしている", "bad", "事前に考えていないと、緊急時にとっさに正しい判断をするのは難しくなります。")
+          ]}
+      ]
+    },
+    {
+      id:"P6", cat:"evac", difficulty:2, icon:"🌫️",
+      title:"煙が充満した通路での避難行動", lead:"避難経路の途中で、通路に煙が漂ってきているのに気づいた。",
+      turns:[
+        { situation:T("煙に気づいた瞬間、どうするか。"),
+          choices:[
+            C("姿勢を低くし、ハンカチや衣類で口や鼻を覆いながら進む", "good", "煙は上に溜まりやすいため、姿勢を低くすることで有害な煙の吸入を減らせます。"),
+            C("立ったまま急いで通路を走り抜けようとする", "ok", "急ぐ気持ちは分かりますが、立った姿勢のままだと煙を多く吸い込んでしまう危険があります。"),
+            C("煙を吸わないよう、その場で立ち止まって様子を見ることにする", "bad", "その場に留まることは、煙がさらに充満してより危険な状況を招きます。")
+          ]},
+        { situation:T("進んだ先で、煙がさらに濃くなっている別の通路に出た。"),
+          choices:[
+            C("その通路には進まず、別の避難経路や誘導標識を確認して迂回する", "good", "危険が増す方向に進まず、別の経路を探す判断は適切です。"),
+            C("多少不安だが、他に選択肢がなさそうなので、そのまま濃い煙の通路を進む", "ok", "他の経路を確認する前に進んでしまうのは危険です。"),
+            C("煙が濃くて怖いので、その場に座り込んで動けなくなる", "bad", "動けなくなることは、救助が来るまでの時間、より危険な状態にとどまることになります。")
+          ]},
+        { situation:T("煙が充満した中での避難行動として、大切な知識は?"),
+          choices:[
+            C("煙は上に溜まりやすいため姿勢を低く保ち、視界が悪い時は壁を頼りに進むことを知っておく", "good", "煙の性質を理解した行動が、とっさの判断を助けます。"),
+            C("煙が出たら、とにかく走って早くその場を離れることだけを意識する", "ok", "早く離れようとする気持ちは正しいですが、姿勢や呼吸への配慮も合わせて知っておく必要があります。"),
+            C("煙が出るような場面には、まだ遭遇したことがないので特に考えたことがない", "bad", "経験がないからこそ、事前に知識として知っておくことが重要です。")
+          ]}
+      ]
+    },
+    {
+      id:"P7", cat:"info", difficulty:1, icon:"📱",
+      title:"安否確認システムへの入力タイミング", lead:"大きな地震の後、会社の安否確認システムから一斉に安否確認の連絡が届いた。",
+      turns:[
+        { situation:T("連絡を受け取った直後、どうするか。"),
+          choices:[
+            C("自分の安全が確保できた時点で、できるだけ早く安否確認システムに回答する", "good", "早めの回答が、会社側の被害状況の把握や対応判断を助けます。"),
+            C("落ち着いてから、後でまとめて回答しようと先延ばしにする", "ok", "落ち着くこと自体は大切ですが、回答が遅れると安否確認全体の集計が遅れてしまいます。"),
+            C("特に困っていないので、回答しなくても大丈夫だろうと考え、そのままにしておく", "bad", "無事であることも重要な情報のため、回答しないままにしておくのは避けるべきです。")
+          ]},
+        { situation:T("回答しようとしたところ、通信が不安定でシステムにアクセスしづらい状況だった。"),
+          choices:[
+            C("システムが使えない場合に備えた別の連絡手段(電話やメールなど)も試してみる", "good", "一つの手段に頼らず、別の連絡方法も試す発想が実践的です。"),
+            C("システムが復旧するまで、特に他の方法は試さずそのまま待つ", "ok", "待つこと自体は間違いではありませんが、緊急時は複数の手段を試すことも検討すべきです。"),
+            C("アクセスしづらいのでそのうち誰かが確認してくれるだろうと考え、連絡を諦める", "bad", "自分から連絡を試みないと、安否不明のまま扱われてしまう可能性があります。")
+          ]},
+        { situation:T("安否確認への対応として、大切な心構えは?"),
+          choices:[
+            C("自分の安全を確保した後は、できるだけ早く正確に状況を伝えることを心がける", "good", "早さと正確さのバランスを意識できています。"),
+            C("詳しい状況が分かってから、まとめて詳細に報告しようとする", "ok", "詳しさよりも、まず無事かどうかの一報を早く伝える方が優先されます。"),
+            C("安否確認は面倒に感じるので、できるだけ後回しにしがちである", "bad", "後回しにする習慣がついていると、本当に緊急の場面でも対応が遅れてしまいます。")
+          ]}
+      ]
+    },
+    {
+      id:"P8", cat:"info", difficulty:2, icon:"💬",
+      title:"SNS上の未確認情報への対応", lead:"災害発生直後、SNS上で「近くの地域で大規模な被害が出ている」という情報が拡散されているのを見かけた。出どころははっきりしない。",
+      turns:[
+        { situation:T("この情報を見た時、どうするか。"),
+          choices:[
+            C("情報の発信元や、自治体・報道機関などの公式情報と照らし合わせて確認する", "good", "情報の出どころを確認する姿勢は、誤情報の拡散を防ぐ基本です。"),
+            C("気になったので、一応周囲の同僚にも「こんな情報があるらしい」と伝えておく", "ok", "共有すること自体は悪くありませんが、未確認であることを明示せずに伝えると誤解を広げる可能性があります。"),
+            C("驚いてすぐに、そのままの内容を自分のSNSでも拡散する", "bad", "未確認の情報を拡散すると、不必要な混乱を広げてしまう可能性があります。")
+          ]},
+        { situation:T("確認してみると、公式な発表ではその情報は確認されていなかった。"),
+          choices:[
+            C("その情報は未確認だったと理解し、それ以上拡散しないようにする", "good", "誤情報の拡散を止める判断ができています。"),
+            C("念のため、周囲にも「あの情報は違ったらしい」と伝え直す", "ok", "訂正しようとする姿勢自体は良いですが、最初から拡散していなければ訂正の必要もなかった点は意識しておきたいところです。"),
+            C("公式発表がまだ出ていないだけで、本当かもしれないと考え、気になったまま様子を見る", "bad", "確認できない情報を疑い続けるより、公式情報を基準にする方が安全です。")
+          ]},
+        { situation:T("災害時の情報との向き合い方として、大切な考え方は?"),
+          choices:[
+            C("SNS上の情報は速報性がある一方で不確かなことも多いと理解し、拡散する前に確認する習慣を持つ", "good", "情報の特性を理解した上での行動ができています。"),
+            C("SNSの情報はできるだけ見ないようにする", "ok", "情報を遮断するのも一つの方法ですが、正しく活用すれば有用な情報源にもなります。"),
+            C("災害時は情報が早いほど良いので、確認より速さを優先するべきだと考える", "bad", "速さを優先しすぎると、誤情報の拡散という別の被害を生んでしまう可能性があります。")
+          ]}
+      ]
+    },
+    {
+      id:"P9", cat:"ready", difficulty:2, icon:"🏢",
+      title:"帰宅困難時、会社に留まるか帰るかの判断", lead:"大きな地震の後、電車が全て止まってしまった。徒歩なら数時間かかる距離だが、自宅のことも気になる。",
+      turns:[
+        { situation:T("この状況で、まずどうするか。"),
+          choices:[
+            C("会社や自治体からの情報を確認し、無理に移動せず、安全が確認できるまで会社に留まることを検討する", "good", "無理な移動によるリスクを避け、情報を確認してから判断する姿勢が適切です。"),
+            C("特に情報を確認せず、とにかく早く自宅に帰りたい一心で歩いて帰ろうとする", "ok", "自宅を思う気持ちは自然ですが、状況を確認せずに移動を始めると、道中の危険にさらされる可能性があります。"),
+            C("みんな会社にいるから自分もとりあえずそのままにしておけばいいと、特に情報収集をしないままでいる", "bad", "情報を確認しないままでは、状況が変わった時に適切な判断ができません。")
+          ]},
+        { situation:T("会社に留まることになった。過ごし方についてどうするか。"),
+          choices:[
+            C("備蓄されている水や食料の場所、トイレなど、会社の防災体制を確認しておく", "good", "留まる場合に備えて、必要な情報を事前に把握しておくのは実践的です。"),
+            C("特に何も確認せず、スマホの充電を気にしながら過ごす", "ok", "充電を気にすることも大切ですが、備蓄品などの確認も合わせてしておくとより安心です。"),
+            C("会社に留まるのが嫌で、状況が変わらないまま無理に帰宅しようと外に出る", "bad", "安全が確認できていない状態での無理な帰宅は、危険を増やすことになります。")
+          ]},
+        { situation:T("帰宅困難な状況になった時の判断で、大切な考え方は?"),
+          choices:[
+            C("「早く帰りたい」という気持ちより、道中の安全が確保されているかどうかを基準に判断する", "good", "気持ちよりも安全性を基準にする判断軸が身についています。"),
+            C("会社の指示に従うのが一番だと考え、自分では特に状況を確認しない", "ok", "指示に従うこと自体は良いですが、自分でも状況を把握しておくと、より適切な判断ができます。"),
+            C("帰宅困難になったら、その時の気分で帰るか留まるかを決めればいいと考えている", "bad", "事前に判断基準を持っていないと、緊急時に誤った判断をしてしまう可能性があります。")
+          ]}
+      ]
+    },
+    {
+      id:"P10", cat:"ready", difficulty:1, icon:"🧰",
+      title:"防災用品の日常的な備え", lead:"会社で防災訓練の案内があり、自分のデスク周りの備えについて考える機会があった。",
+      turns:[
+        { situation:T("この機会に、まずどうするか。"),
+          choices:[
+            C("デスク周りに、簡易な水や携帯用のライト、歩きやすい靴など、最低限のものを備えておく", "good", "日頃からの小さな備えが、いざという時の行動の余裕につながります。"),
+            C("備えは大切だと思うが、特に何も準備せず、必要になったらその時に考えようとする", "ok", "必要性は理解できていますが、実際の備えがないと緊急時に困ることになります。"),
+            C("防災訓練や備えは面倒に感じ、特に参加せず自分の作業を優先する", "bad", "訓練や備えを軽視すると、実際の災害時に適切に行動できない可能性が高まります。")
+          ]},
+        { situation:T("備えを整えてみたところ、思ったより準備に時間がかからなかった。"),
+          choices:[
+            C("この機会に、家族とも避難場所や連絡方法について話しておく", "good", "職場だけでなく家庭での備えにも意識を広げられています。"),
+            C("職場の備えができたので満足し、それ以上は特に考えないでおく", "ok", "職場の備えも大切ですが、家庭での備えや連絡方法の確認も合わせて考えておくとより安心です。"),
+            C("備えをしたことで安心してしまい、防災訓練への参加は今後もあまり気に留めないようにする", "bad", "備え自体は良い行動ですが、訓練で実際の動きを確認することも同じくらい大切です。")
+          ]},
+        { situation:T("日頃の防災の備えとして、大切な考え方は?"),
+          choices:[
+            C("災害は「いつか起きるかもしれない」ものとして、日常の中で少しずつ備えを続けておく", "good", "日常の延長として備えを続ける発想が、実際の災害時に大きな差を生みます。"),
+            C("一度しっかり備えておけば、その後は特に見直さなくても大丈夫だと考える", "ok", "備えは一度きりではなく、期限切れの水や食料がないかなど、定期的な見直しも必要です。"),
+            C("防災の備えは、会社や誰かがやってくれるものだと考えている", "bad", "備えを他人任せにしていると、自分自身が本当に必要な時に困ってしまいます。")
+          ]}
+      ]
+    }
+  ];
+
+  var TIPS = [
+    {desc:"揺れている間はまず身を守る。頭を保護し、倒れやすい家具や窓から離れる。"},
+    {desc:"揺れが収まったら、慌てず周囲の安全と避難経路を確認する。"},
+    {desc:"避難時はエレベーターを使わず、階段を使う。"},
+    {desc:"荷物より命を優先する。忘れ物を取りに戻らない。"},
+    {desc:"煙の中では姿勢を低くし、口や鼻を覆って進む。"},
+    {desc:"安否確認には、自分の安全を確保した後できるだけ早く回答する。"},
+    {desc:"SNS上の情報は拡散する前に、公式情報と照らし合わせて確認する。"},
+    {desc:"帰宅困難時は、気持ちより道中の安全性を基準に判断する。"},
+    {desc:"防災用品は日頃から少しずつ備え、定期的に見直す。"},
+    {desc:"訓練や備えを「いつか役立つかもしれないもの」として、日常の延長で続ける。"}
+  ];
+
+  /* ---------------- storage ---------------- */
+  var STORE_KEY = "disaster-sim-progress-v1";
+  function loadProgress(){ try{ var raw = localStorage.getItem(STORE_KEY); return raw ? JSON.parse(raw) : {}; }catch(e){ return {}; } }
+  function saveProgress(p){ try{ localStorage.setItem(STORE_KEY, JSON.stringify(p)); }catch(e){} }
+
+  /* ---------------- state ---------------- */
+  var state = {
+    screen:"home", scenarioId:null, phase:"intro", turnIndex:0,
+    currentChoices:null, record:[], review:[], score:0, maxScore:0
+  };
+  var progress = loadProgress();
+
+  function shuffle(arr){
+    var a = arr.slice();
+    for(var i=a.length-1;i>0;i--){ var j = Math.floor(Math.random()*(i+1)); var t=a[i]; a[i]=a[j]; a[j]=t; }
+    return a;
+  }
+  function catInfo(id){ for(var i=0;i<CATEGORIES.length;i++){ if(CATEGORIES[i].id===id) return CATEGORIES[i]; } return CATEGORIES[0]; }
+  function scenarioById(id){ for(var i=0;i<SCENARIOS.length;i++){ if(SCENARIOS[i].id===id) return SCENARIOS[i]; } return null; }
+  function escapeHtml(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+  function tierLabel(tier){ return tier==="good" ? "とても良い対応です" : (tier==="ok" ? "OKですが、改善の余地があります" : "見直しが必要です"); }
+  function tierIcon(tier){ return tier==="good" ? "◎" : (tier==="ok" ? "○" : "✕"); }
+  function truncate(s, n){ return s.length > n ? s.slice(0,n) + "…" : s; }
+
+  var app = document.getElementById("app");
+
+  function render(){
+    if(state.screen==="home") renderHome();
+    else if(state.screen==="manual") renderManual();
+    else if(state.screen==="scenario") renderScenario();
+    else if(state.screen==="result") renderResult();
+  }
+
+  /* ---------------- HOME ---------------- */
+  function renderHome(){
+    var completed = 0;
+    SCENARIOS.forEach(function(s){ if(progress[s.id]) completed++; });
+    var pct = Math.round(completed/SCENARIOS.length*100);
+
+    var html = '';
+    html += '<div class="home">';
+    html += '<div class="cover-art">'+BACKPACK_SVG+'<div class="cover-caption">BE PREPARED · 防災</div></div>';
+    html += '<div class="home-head">';
+    html += '<div class="eyebrow">新人研修プログラム</div>';
+    html += '<h1 class="home-title">防災対応シミュレーター</h1>';
+    html += '<p class="home-sub">地震や火災など、いざという時に「知っている」を「できる」に変えるための訓練です。よくある場面を選んで、選択肢に答えるだけです。</p>';
+    html += '<div class="progress-row"><div class="progress-track"><div class="progress-fill" style="width:'+pct+'%"></div></div><div class="progress-label mono">'+completed+' / '+SCENARIOS.length+'</div></div>';
+    html += '<button class="manual-link" data-action="open-manual">📘 防災の基本10か条を見る</button>';
+    html += '</div>';
+
+    CATEGORIES.forEach(function(cat){
+      var list = SCENARIOS.filter(function(s){ return s.cat===cat.id; });
+      if(list.length===0) return;
+      html += '<div class="cat-block">';
+      html += '<div class="cat-head"><span class="cat-dot" style="background:var('+cat.varc+')"></span><span class="cat-name">'+cat.name+'</span></div>';
+      html += '<div class="cat-desc">'+cat.desc+'</div>';
+      html += '<div class="card-list">';
+      list.forEach(function(s){
+        var stars = "★".repeat(s.difficulty) + "☆".repeat(3-s.difficulty);
+        var best = progress[s.id];
+        html += '<button class="scenario-card" data-action="open-scenario" data-id="'+s.id+'">';
+        html += '<span class="avatar" style="background:var('+cat.vars+')">'+s.icon+'</span>';
+        html += '<span class="card-body"><span class="card-title">'+escapeHtml(s.title)+'</span><br><span class="card-meta">'+escapeHtml(truncate(s.lead, 30))+'</span></span>';
+        html += '<span class="card-side"><span class="stars">'+stars+'</span>' + (best ? '<span class="best-badge">ベスト '+best.pct+'%</span>' : '') + '</span>';
+        html += '</button>';
+      });
+      html += '</div></div>';
+    });
+
+    html += '</div>';
+    app.innerHTML = html;
+  }
+
+  /* ---------------- MANUAL ---------------- */
+  function renderManual(){
+    var html = '<div class="manual">';
+    html += '<div class="back-row"><button class="icon-btn" data-action="go-home">←</button><span class="screen-title">防災の基本10か条</span></div>';
+    TIPS.forEach(function(tip, i){
+      html += '<div class="tip-card"><div class="tip-num">POINT '+(i+1)+'</div><div class="tip-desc">'+escapeHtml(tip.desc)+'</div></div>';
+    });
+    html += '</div>';
+    app.innerHTML = html;
+  }
+
+  /* ---------------- SCENARIO ---------------- */
+  function openScenario(id){
+    var sc = scenarioById(id);
+    if(!sc) return;
+    state.screen = "scenario"; state.scenarioId = id; state.phase = "intro"; state.turnIndex = 0;
+    state.currentChoices = null; state.record = []; state.review = []; state.score = 0;
+    state.maxScore = sc.turns.length * 10;
+    render();
+  }
+
+  function renderScenario(){
+    var sc = scenarioById(state.scenarioId);
+    var cat = catInfo(sc.cat);
+
+    if(state.phase === "intro"){
+      var html = '<div class="intro">';
+      html += '<span class="avatar" style="background:var('+cat.vars+')">'+sc.icon+'</span>';
+      html += '<div class="intro-cat">'+escapeHtml(cat.name)+'</div>';
+      html += '<div class="intro-title">'+escapeHtml(sc.title)+'</div>';
+      html += '<div class="intro-lead">'+escapeHtml(sc.lead)+'</div>';
+      html += '<div class="intro-actions">';
+      html += '<button class="next-btn" data-action="start-scenario">この場面を始める</button>';
+      html += '<button class="ghost-btn" data-action="go-home">一覧に戻る</button>';
+      html += '</div></div>';
+      app.innerHTML = html;
+      return;
+    }
+
+    var html2 = '';
+    html2 += '<div class="rec-top">';
+    html2 += '<div><div class="rec-top-title">'+escapeHtml(sc.title)+'</div><div class="rec-top-cat">'+escapeHtml(cat.name)+'</div></div>';
+    html2 += '<div class="rec-step mono">STEP '+(state.turnIndex+1)+' / '+sc.turns.length+'</div>';
+    html2 += '</div>';
+
+    html2 += '<div class="record" id="record" style="--cat-color:var('+cat.varc+')">';
+    state.record.forEach(function(item){
+      if(item.speaker === "situation"){
+        html2 += '<div class="sit-card"><div class="sit-label">状況</div>'+escapeHtml(item.text)+'</div>';
+      } else {
+        html2 += '<div><div class="act-label">あなたの行動</div><div class="act-row"><div class="act-bubble">'+escapeHtml(item.text)+'</div></div></div>';
+      }
+    });
+    html2 += '</div>';
+
+    html2 += '<div class="choices-panel">';
+    if(state.phase === "active"){
+      html2 += '<div class="choices-hint">どう対応しますか?</div>';
+      state.currentChoices.forEach(function(choice, idx){
+        html2 += '<button class="choice-btn" data-action="pick-choice" data-idx="'+idx+'">'+escapeHtml(choice.text)+'</button>';
+      });
+    } else if(state.phase === "feedback"){
+      var last = state.review[state.review.length-1];
+      html2 += '<div class="feedback-panel">';
+      html2 += '<span class="feedback-tag '+last.tier+'">'+tierIcon(last.tier)+' '+tierLabel(last.tier)+'</span>';
+      html2 += '<div class="feedback-text">'+escapeHtml(last.feedback)+'</div>';
+      var isLast = state.turnIndex >= sc.turns.length - 1;
+      html2 += '<button class="next-btn" data-action="next-turn">'+(isLast ? "この場面を終える" : "次へ")+'</button>';
+      html2 += '</div>';
+    }
+    html2 += '</div>';
+
+    app.innerHTML = html2;
+    var rEl = document.getElementById("record");
+    if(rEl) rEl.scrollTop = rEl.scrollHeight;
+  }
+
+  function startScenario(){
+    var sc = scenarioById(state.scenarioId);
+    state.phase = "active"; state.turnIndex = 0;
+    pushSituation(sc, 0);
+    state.currentChoices = shuffle(sc.turns[0].choices);
+    render();
+  }
+
+  function pushSituation(sc, idx){ state.record.push({speaker:"situation", text: sc.turns[idx].situation.text}); }
+
+  function pickChoice(idx){
+    var sc = scenarioById(state.scenarioId);
+    var choice = state.currentChoices[idx];
+    state.record.push({speaker:"you", text: choice.text});
+    state.score += choice.points;
+    state.review.push({
+      situation: sc.turns[state.turnIndex].situation.text,
+      chosen: choice.text, tier: choice.tier, feedback: choice.feedback
+    });
+    state.phase = "feedback";
+    render();
+  }
+
+  function nextTurn(){
+    var sc = scenarioById(state.scenarioId);
+    if(state.turnIndex >= sc.turns.length - 1){ finishScenario(); return; }
+    state.turnIndex++;
+    pushSituation(sc, state.turnIndex);
+    state.currentChoices = shuffle(sc.turns[state.turnIndex].choices);
+    state.phase = "active";
+    render();
+  }
+
+  function finishScenario(){
+    var pct = Math.round(state.score / state.maxScore * 100);
+    progress[state.scenarioId] = progress[state.scenarioId] && progress[state.scenarioId].pct > pct
+      ? progress[state.scenarioId] : {pct: pct};
+    saveProgress(progress);
+    state.screen = "result";
+    render();
+  }
+
+  /* ---------------- RESULT ---------------- */
+  function renderResult(){
+    var sc = scenarioById(state.scenarioId);
+    var pct = Math.round(state.score / state.maxScore * 100);
+    var grade = pct >= 90 ? "S" : pct >= 75 ? "A" : pct >= 55 ? "B" : "C";
+    var msg = pct >= 90 ? "とても良い判断です。この調子なら、いざという時にも落ち着いて行動できるはずです。"
+      : pct >= 75 ? "良い対応ができています。○や✕がついた場面の理由を振り返ると、さらに理解が深まります。"
+      : pct >= 55 ? "基本はできています。迷った場面を見直して、判断の基準を整理してみましょう。"
+      : "焦らず大丈夫です。下の振り返りを読んで、もう一度この場面に挑戦してみましょう。";
+
+    var html = '<div class="result">';
+    html += '<div class="result-badge"><span class="grade">'+grade+'</span></div>';
+    html += '<div class="result-score">スコア <span class="mono">'+state.score+' / '+state.maxScore+'</span>(' + pct + '%)</div>';
+    html += '<div class="result-title">'+escapeHtml(sc.title)+'・振り返り</div>';
+    html += '<div class="result-msg">'+msg+'</div>';
+
+    html += '<div class="review-list">';
+    state.review.forEach(function(r, i){
+      html += '<div class="review-item">';
+      html += '<div class="review-head"><span class="review-icon '+r.tier+'">'+tierIcon(r.tier)+'</span><span class="review-situation">場面'+(i+1)+'. '+escapeHtml(truncate(r.situation, 32))+'</span></div>';
+      html += '<div class="review-feedback">'+escapeHtml(r.feedback)+'</div>';
+      html += '</div>';
+    });
+    html += '</div>';
+
+    html += '<div class="result-actions">';
+    html += '<button class="btn-primary" data-action="retry-scenario">もう一度この場面に挑戦する</button>';
+    html += '<button class="btn-secondary" data-action="open-manual">10か条を振り返る</button>';
+    html += '<button class="btn-secondary" data-action="go-home">シナリオ一覧に戻る</button>';
+    html += '</div>';
+    html += '</div>';
+    app.innerHTML = html;
+  }
+
+  /* ---------------- events ---------------- */
+  app.addEventListener("click", function(e){
+    var btn = e.target.closest("[data-action]");
+    if(!btn) return;
+    var action = btn.getAttribute("data-action");
+    if(action === "open-scenario"){ openScenario(btn.getAttribute("data-id")); }
+    else if(action === "open-manual"){ state.screen = "manual"; render(); }
+    else if(action === "go-home"){ state.screen = "home"; render(); }
+    else if(action === "start-scenario"){ startScenario(); }
+    else if(action === "pick-choice"){ pickChoice(parseInt(btn.getAttribute("data-idx"), 10)); }
+    else if(action === "next-turn"){ nextTurn(); }
+    else if(action === "retry-scenario"){ openScenario(state.scenarioId); }
+  });
+
+  render();
+})();
+</script>
