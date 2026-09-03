@@ -1,0 +1,821 @@
+<title>ビジネスマナーシミュレーター</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700;900&family=Noto+Sans+JP:wght@400;500;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+  :root{
+    --bg:#EFEAE0;
+    --surface:#FBF8F2;
+    --surface-alt:#F1ECDF;
+    --ink:#26231D;
+    --ink-soft:#726C5C;
+    --border:#DCD5C4;
+    --accent:#8E3B46;
+    --accent-contrast:#FFFFFF;
+    --good:#3F7D4C;
+    --good-soft:#E4EEE2;
+    --warn:#A97A1E;
+    --warn-soft:#F3EAD4;
+    --bad:#B14A3D;
+    --bad-soft:#F5E2DE;
+    --catCard:#2B5C63;
+    --catCard-soft:#E1EBEA;
+    --catKeigo:#8B5E0E;
+    --catKeigo-soft:#F0E8D6;
+    --catTime:#7A3E52;
+    --catTime-soft:#F0E1E6;
+    --catManner:#3C5A78;
+    --catManner-soft:#E2E8EE;
+    --cover:#241C1A;
+    --cover-text:#EDE6D8;
+    --shadow: 0 20px 50px -20px rgba(20,20,15,0.35);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#141310;
+      --surface:#1D1C17;
+      --surface-alt:#26241D;
+      --ink:#ECE8DC;
+      --ink-soft:#A8A290;
+      --border:#37342A;
+      --accent:#D98FA0;
+      --accent-contrast:#2A0F14;
+      --good:#6FBF7C;
+      --good-soft:#233127;
+      --warn:#D9A94A;
+      --warn-soft:#332C1C;
+      --bad:#E1786A;
+      --bad-soft:#38221E;
+      --catCard:#5AA3AA;
+      --catCard-soft:#20302F;
+      --catKeigo:#C99A4A;
+      --catKeigo-soft:#332A18;
+      --catTime:#C98CA0;
+      --catTime-soft:#32222A;
+      --catManner:#8FB0D6;
+      --catManner-soft:#212B36;
+      --shadow: 0 20px 50px -20px rgba(0,0,0,0.6);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#141310;
+    --surface:#1D1C17;
+    --surface-alt:#26241D;
+    --ink:#ECE8DC;
+    --ink-soft:#A8A290;
+    --border:#37342A;
+    --accent:#D98FA0;
+    --accent-contrast:#2A0F14;
+    --good:#6FBF7C;
+    --good-soft:#233127;
+    --warn:#D9A94A;
+    --warn-soft:#332C1C;
+    --bad:#E1786A;
+    --bad-soft:#38221E;
+    --catCard:#5AA3AA;
+    --catCard-soft:#20302F;
+    --catKeigo:#C99A4A;
+    --catKeigo-soft:#332A18;
+    --catTime:#C98CA0;
+    --catTime-soft:#32222A;
+    --catManner:#8FB0D6;
+    --catManner-soft:#212B36;
+    --shadow: 0 20px 50px -20px rgba(0,0,0,0.6);
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;height:100%;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:"Noto Sans JP","Hiragino Kaku Gothic ProN","Hiragino Sans",Meiryo,sans-serif;
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    padding:20px 14px;
+  }
+  h1,h2,h3,.display{ font-family:"Zen Kaku Gothic New","Noto Sans JP",sans-serif; text-wrap:balance; margin:0; }
+  .mono{ font-family:"JetBrains Mono", ui-monospace, monospace; font-variant-numeric:tabular-nums; }
+  button{font-family:inherit;}
+  button:focus-visible, a:focus-visible, [tabindex]:focus-visible{ outline:3px solid var(--accent); outline-offset:2px; }
+  @media (prefers-reduced-motion: reduce){ *{animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0.001ms !important;} }
+
+  /* ---- outer frame (cover) ---- */
+  .frame{
+    width:100%; max-width:480px; height:min(720px, calc(100vh - 40px));
+    background:var(--cover); border-radius:22px; padding:14px; box-shadow:var(--shadow);
+    display:flex; flex-direction:column;
+  }
+  .frame-label{
+    flex-shrink:0; display:flex; align-items:center; justify-content:center; gap:7px;
+    padding:2px 0 12px; color:var(--cover-text); font-size:12.5px; font-weight:700; letter-spacing:0.03em;
+  }
+  .frame-label svg{ width:14px; height:14px; }
+  .frame-label .dot{ width:6px;height:6px;border-radius:50%; background:var(--cover-text); opacity:0.55; }
+  .page{
+    background:var(--surface); border-radius:16px; flex:1; min-height:0;
+    display:flex; flex-direction:column; overflow:hidden; position:relative;
+  }
+
+  /* ---- home ---- */
+  .home{ padding:20px 20px 20px; overflow-y:auto; flex:1; min-height:0; }
+  .cover-art{ display:flex; flex-direction:column; align-items:center; padding:6px 0 14px; }
+  .cover-art svg{ width:76px; height:76px; }
+  .cover-caption{ font-size:10.5px; color:var(--ink-soft); margin-top:6px; letter-spacing:0.03em; }
+  .home-head{ padding:0 2px 18px; border-bottom:1px solid var(--border); margin-bottom:16px; }
+  .eyebrow{ font-size:11px; letter-spacing:0.12em; color:var(--accent); font-weight:700; text-transform:uppercase; text-align:center; }
+  .home-title{ font-size:21px; font-weight:900; margin-top:6px; line-height:1.35; text-align:center; }
+  .home-sub{ font-size:12.5px; color:var(--ink-soft); margin-top:8px; line-height:1.65; text-align:center; }
+  .progress-row{ display:flex; align-items:center; gap:10px; margin-top:14px; }
+  .progress-track{ flex:1; height:6px; background:var(--surface-alt); border-radius:4px; overflow:hidden; border:1px solid var(--border); }
+  .progress-fill{ height:100%; background:var(--accent); border-radius:4px; transition:width .4s ease; }
+  .progress-label{ font-size:12px; color:var(--ink-soft); white-space:nowrap; }
+  .manual-link{
+    margin-top:14px; display:flex; align-items:center; justify-content:center; gap:6px; font-size:13px; font-weight:700;
+    color:var(--accent); background:var(--surface-alt); border:1px solid var(--border); padding:9px 14px; border-radius:10px; cursor:pointer; width:100%;
+  }
+  .cat-block{ margin-bottom:20px; }
+  .cat-head{ display:flex; align-items:center; gap:8px; margin-bottom:2px; }
+  .cat-dot{ width:9px;height:9px;border-radius:50%; flex-shrink:0; }
+  .cat-name{ font-size:14px; font-weight:700; }
+  .cat-desc{ font-size:11.5px; color:var(--ink-soft); margin:2px 0 8px 17px; }
+  .card-list{ display:flex; flex-direction:column; gap:8px; }
+  .scenario-card{
+    display:flex; align-items:center; gap:12px; background:var(--surface-alt); border:1px solid var(--border);
+    border-radius:14px; padding:11px 12px; cursor:pointer; text-align:left; width:100%;
+  }
+  .scenario-card:hover{ border-color:var(--accent); }
+  .avatar{ width:38px;height:38px;border-radius:12px; display:flex;align-items:center;justify-content:center; font-size:17px; flex-shrink:0; }
+  .card-body{ flex:1; min-width:0; }
+  .card-title{ font-size:13.5px; font-weight:700; }
+  .card-meta{ font-size:11.5px; color:var(--ink-soft); margin-top:2px; line-height:1.5; }
+  .card-side{ display:flex; flex-direction:column; align-items:flex-end; gap:4px; flex-shrink:0; }
+  .stars{ font-size:11px; color:var(--warn); letter-spacing:1px; white-space:nowrap; }
+  .best-badge{ font-size:10.5px; font-weight:700; color:var(--good); background:var(--good-soft); padding:2px 7px; border-radius:20px; white-space:nowrap; }
+
+  /* ---- manual ---- */
+  .manual{ padding:20px 20px 24px; overflow-y:auto; flex:1; min-height:0; }
+  .back-row{ display:flex; align-items:center; gap:10px; margin-bottom:14px; }
+  .icon-btn{
+    width:32px;height:32px;border-radius:50%; background:var(--surface-alt); border:1px solid var(--border);
+    display:flex;align-items:center;justify-content:center; cursor:pointer; color:var(--ink); font-size:16px; flex-shrink:0;
+  }
+  .screen-title{ font-size:16.5px; font-weight:900; }
+  .tip-card{ background:var(--surface-alt); border:1px solid var(--border); border-radius:14px; padding:13px 14px; margin-bottom:10px; }
+  .tip-num{ font-size:11px; font-weight:700; color:var(--accent); }
+  .tip-desc{ font-size:12.5px; color:var(--ink); margin-top:4px; line-height:1.7; }
+
+  /* ---- scenario: intro ---- */
+  .intro{ flex:1; min-height:0; overflow-y:auto; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:34px 28px; text-align:center; gap:6px; }
+  .intro .avatar{ width:76px; height:76px; border-radius:22px; font-size:32px; margin-bottom:14px; }
+  .intro-cat{ font-size:11.5px; font-weight:700; letter-spacing:0.04em; color:var(--ink-soft); text-transform:uppercase; }
+  .intro-title{ font-size:19px; font-weight:900; margin-top:8px; line-height:1.4; }
+  .intro-lead{ font-size:12.5px; color:var(--ink-soft); margin-top:12px; line-height:1.75; max-width:320px; }
+  .intro-actions{ display:flex; flex-direction:column; gap:9px; width:100%; max-width:260px; margin-top:26px; }
+
+  /* ---- scenario: active ---- */
+  .rec-top{ display:flex; align-items:center; justify-content:space-between; gap:10px; padding:14px 18px 12px; border-bottom:1px solid var(--border); flex-shrink:0; }
+  .rec-top-title{ font-size:13.5px; font-weight:700; line-height:1.4; }
+  .rec-top-cat{ font-size:11px; color:var(--ink-soft); margin-top:2px; }
+  .rec-step{ font-size:11.5px; color:var(--accent); font-weight:700; white-space:nowrap; flex-shrink:0; }
+
+  .record{ flex:1; min-height:0; overflow-y:auto; padding:16px 16px 8px; display:flex; flex-direction:column; gap:12px; }
+  .sit-card{ background:var(--surface-alt); border:1px solid var(--border); border-left:4px solid var(--cat-color, var(--accent)); border-radius:10px; padding:11px 13px; font-size:13px; line-height:1.7; }
+  .sit-label{ font-size:10.5px; font-weight:700; color:var(--ink-soft); letter-spacing:0.04em; margin-bottom:4px; text-transform:uppercase; }
+  .act-row{ display:flex; justify-content:flex-end; }
+  .act-bubble{ max-width:86%; background:var(--accent); color:var(--accent-contrast); border-radius:12px; border-bottom-right-radius:4px; padding:9px 13px; font-size:12.5px; line-height:1.65; }
+  .act-label{ font-size:10px; color:var(--ink-soft); text-align:right; margin:0 2px 3px; }
+
+  .choices-panel{ border-top:1px solid var(--border); padding:12px 16px 16px; flex-shrink:0; background:var(--surface); max-height:46vh; overflow-y:auto; }
+  .choices-hint{ font-size:11px; color:var(--ink-soft); margin-bottom:8px; }
+  .choice-btn{
+    display:block; width:100%; text-align:left; background:var(--surface-alt); border:1px solid var(--border);
+    border-radius:12px; padding:10px 13px; margin-bottom:8px; font-size:13px; line-height:1.6; color:var(--ink); cursor:pointer;
+  }
+  .choice-btn:hover{ border-color:var(--accent); }
+  .choice-btn:last-child{ margin-bottom:0; }
+
+  .feedback-panel{ padding:4px 2px 2px; }
+  .feedback-tag{ display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:700; padding:4px 11px; border-radius:20px; margin-bottom:8px; }
+  .feedback-tag.good{ background:var(--good-soft); color:var(--good); }
+  .feedback-tag.ok{ background:var(--warn-soft); color:var(--warn); }
+  .feedback-tag.bad{ background:var(--bad-soft); color:var(--bad); }
+  .feedback-text{ font-size:13px; line-height:1.7; color:var(--ink); margin-bottom:12px; }
+  .next-btn{ width:100%; padding:11px; border-radius:12px; border:none; background:var(--accent); color:var(--accent-contrast); font-weight:700; font-size:13.5px; cursor:pointer; }
+  .ghost-btn{ width:100%; padding:11px; border-radius:12px; border:1px solid var(--border); background:var(--surface-alt); color:var(--ink); font-weight:700; font-size:13.5px; cursor:pointer; }
+
+  /* ---- result ---- */
+  .result{ padding:22px 22px 26px; overflow-y:auto; flex:1; min-height:0; display:flex; flex-direction:column;}
+  .result-badge{
+    width:92px;height:92px;border-radius:50%; margin:6px auto 14px;
+    display:flex; align-items:center; justify-content:center; border:3px solid var(--accent); color:var(--accent);
+  }
+  .result-badge .grade{ font-size:28px; font-weight:900; font-family:"Zen Kaku Gothic New",sans-serif; }
+  .result-score{ text-align:center; font-size:13px; color:var(--ink-soft); }
+  .result-score .mono{ font-size:15px; color:var(--ink); font-weight:700; }
+  .result-title{ text-align:center; font-size:15.5px; font-weight:900; margin-top:14px; }
+  .result-msg{ text-align:center; font-size:12.5px; color:var(--ink-soft); margin-top:6px; line-height:1.75;}
+  .review-list{ margin-top:20px; display:flex; flex-direction:column; gap:8px; }
+  .review-item{ background:var(--surface-alt); border:1px solid var(--border); border-radius:12px; padding:10px 12px; }
+  .review-head{ display:flex; align-items:center; gap:8px; }
+  .review-icon{ width:20px;height:20px;border-radius:50%; flex-shrink:0; display:flex;align-items:center;justify-content:center; font-size:11px; font-weight:900; color:#fff; }
+  .review-icon.good{ background:var(--good); }
+  .review-icon.ok{ background:var(--warn); }
+  .review-icon.bad{ background:var(--bad); }
+  .review-situation{ font-size:12px; font-weight:700; }
+  .review-feedback{ font-size:11.5px; color:var(--ink-soft); margin-top:5px; line-height:1.6; padding-left:28px;}
+  .result-actions{ display:flex; flex-direction:column; gap:8px; margin-top:22px; }
+  .btn-primary{ padding:12px; border-radius:12px; border:none; background:var(--accent); color:var(--accent-contrast); font-weight:700; font-size:13.5px; cursor:pointer; }
+  .btn-secondary{ padding:12px; border-radius:12px; border:1px solid var(--border); background:var(--surface-alt); color:var(--ink); font-weight:700; font-size:13.5px; cursor:pointer; }
+</style>
+
+<div class="frame">
+  <div class="frame-label">
+    <svg viewBox="0 0 120 120" aria-hidden="true"><rect x="26" y="40" width="68" height="44" rx="8" fill="#EDE6D8" opacity="0.92"/><circle cx="86" cy="34" r="13" fill="#241C1A"/></svg>
+    <span>マナーノート</span><span class="dot"></span><span>新人研修用</span>
+  </div>
+  <div class="page" id="app"></div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var CARD_SVG = '<svg viewBox="0 0 120 120" aria-hidden="true">'
+    + '<g transform="rotate(-8 60 65)">'
+    + '<rect x="28" y="48" width="62" height="38" rx="6" fill="#D9D2BE"/>'
+    + '<rect x="28" y="48" width="62" height="38" rx="6" fill="none" stroke="#C7C2AF" stroke-width="1.5"/>'
+    + '</g>'
+    + '<g transform="rotate(7 60 62)">'
+    + '<rect x="24" y="43" width="64" height="40" rx="6" fill="#F7F3E8"/>'
+    + '<rect x="24" y="43" width="64" height="40" rx="6" fill="none" stroke="#C7C2AF" stroke-width="1.5"/>'
+    + '<rect x="32" y="52" width="26" height="6" rx="2" fill="#8E3B46"/>'
+    + '<line x1="32" y1="65" x2="76" y2="65" stroke="#A8A290" stroke-width="2" stroke-linecap="round"/>'
+    + '<line x1="32" y1="73" x2="60" y2="73" stroke="#A8A290" stroke-width="2" stroke-linecap="round"/>'
+    + '</g>'
+    + '<circle cx="90" cy="32" r="16" fill="#8E3B46"/>'
+    + '<circle cx="90" cy="32" r="16" fill="none" stroke="#6E2C35" stroke-width="1.5"/>'
+    + '<circle cx="90" cy="32" r="11" fill="#FFFFFF"/>'
+    + '<line x1="90" y1="32" x2="90" y2="25" stroke="#8E3B46" stroke-width="2.2" stroke-linecap="round"/>'
+    + '<line x1="90" y1="32" x2="96" y2="32" stroke="#8E3B46" stroke-width="2.2" stroke-linecap="round"/>'
+    + '</svg>';
+
+  var CATEGORIES = [
+    {id:"card", name:"名刺交換", desc:"名刺の受け渡しと、その後の扱い方", varc:"--catCard", vars:"--catCard-soft"},
+    {id:"keigo", name:"敬語の使い分け", desc:"「させていただきます」だけに頼らない話し方", varc:"--catKeigo", vars:"--catKeigo-soft"},
+    {id:"time", name:"時間の感覚", desc:"「間に合うか」ではなく「余裕があるか」で考える", varc:"--catTime", vars:"--catTime-soft"},
+    {id:"manner", name:"立ち振る舞い", desc:"上座下座、案内、ドアの開け閉め", varc:"--catManner", vars:"--catManner-soft"}
+  ];
+
+  function T(text){ return {text:text}; }
+  function C(text, tier, feedback){
+    var pts = tier === "good" ? 10 : (tier === "ok" ? 5 : 0);
+    return {text:text, tier:tier, feedback:feedback, points:pts};
+  }
+
+  var SCENARIOS = [
+    {
+      id:"B1", cat:"card", difficulty:1, icon:"🪪",
+      title:"初めての名刺交換", lead:"取引先との初めての顔合わせで、名刺交換をすることになった。",
+      turns:[
+        { situation:T("名刺交換を始めるタイミングとして適切なのは?"),
+          choices:[
+            C("立ち上がって、目下の立場から先に自分の名刺を差し出す", "good", "訪問した側、あるいは立場が下の方から先に名乗り名刺を差し出すのが基本の順番です。"),
+            C("相手が名刺を出すのを待ってから、自分も名刺を取り出す", "ok", "失礼にはなりませんが、基本的には自分から先に動く方が印象が良いとされています。"),
+            C("座ったまま、机越しに名刺を差し出す", "bad", "名刺交換は立った状態で行うのがマナーです。座ったままだと相手に失礼な印象を与えます。")
+          ]},
+        { situation:T("名刺を受け取る際、どうするか。"),
+          choices:[
+            C("両手で受け取り、名前や社名を軽く確認しながら「頂戴します」と一言添える", "good", "両手で丁寧に受け取り、一言添えることで、相手への敬意が伝わります。"),
+            C("片手で受け取り、すぐにポケットや名刺入れにしまう", "ok", "受け取ること自体は問題ありませんが、両手で受け取る、内容を確認する、といった配慮があるとより丁寧です。"),
+            C("名刺交換用の名刺入れを忘れていたため、素手のまま無造作に受け取る", "bad", "名刺入れを忘れると準備不足の印象を与えてしまいます。日頃から持ち歩く習慣が必要です。")
+          ]},
+        { situation:T("名刺交換で大切な心構えは?"),
+          choices:[
+            C("名刺はその人の顔でもあると考え、丁寧に扱う姿勢を意識する", "good", "名刺を通じて相手への敬意を示すという考え方が身についています。"),
+            C("形式的な儀式なので、手順さえ間違えなければ良いと考える", "ok", "手順も大切ですが、名刺を大切に扱う気持ちが所作に表れることを意識するとより良い印象になります。"),
+            C("名刺交換は昔からの形式であり、今の時代はあまり気にしなくてもよいと考える", "bad", "形式が簡略化される場面はあっても、まだ多くのビジネスシーンで重視されているマナーです。")
+          ]}
+      ]
+    },
+    {
+      id:"B2", cat:"card", difficulty:2, icon:"🧑‍🤝‍🧑",
+      title:"複数人での名刺交換の順番", lead:"取引先の複数人と、自社側も複数人で顔合わせをすることになった。",
+      turns:[
+        { situation:T("名刺交換の順番として適切なのは?"),
+          choices:[
+            C("双方の役職が上の人同士から順に交換し、その後役職順に交換していく", "good", "役職の高い人同士から始めるのが基本の順番です。"),
+            C("特に順番を決めず、近くにいる人から手当たり次第に交換する", "ok", "交換すること自体はできますが、役職を意識した順番の方が、より整った印象になります。"),
+            C("自分が交換しやすい相手からランダムに交換していく", "bad", "順番を意識しないと、目上の方に失礼な印象を与えてしまうことがあります。")
+          ]},
+        { situation:T("自分の番が回ってきたが、相手の役職がとっさに分からない。"),
+          choices:[
+            C("先に受け取った名刺の役職を確認しながら、丁寧に自己紹介と共に名刺を差し出す", "good", "焦らず確認しながら対応する姿勢が、落ち着いた印象につながります。"),
+            C("分からないまま、とりあえず先に名刺を差し出してしまう", "ok", "問題になることは少ないですが、役職を意識できるとより丁寧な対応になります。"),
+            C("分からないことが気まずく、名刺交換を後回しにしてしまう", "bad", "名刺交換を避けると、かえって不自然で失礼な印象を与えてしまいます。")
+          ]},
+        { situation:T("複数人での名刺交換の場で、大切な考え方は?"),
+          choices:[
+            C("受け取った名刺は、会話の中でどなたがどの役職か思い出せるよう、座席順に並べておく", "good", "名刺を並べておくことで、その後の会話でも失礼なく役職を意識できます。"),
+            C("交換が終わったら、すぐにまとめて名刺入れにしまう", "ok", "しまうこと自体は自然ですが、商談中は名刺を並べておくと、名前を思い出す助けになります。"),
+            C("名刺交換が終わったら、その後は特に名刺を意識せず会話を進める", "bad", "複数人の名前や役職を覚えないまま話を進めると、失礼な呼び方をしてしまう可能性があります。")
+          ]}
+      ]
+    },
+    {
+      id:"B3", cat:"card", difficulty:1, icon:"📇",
+      title:"受け取った名刺の扱い方", lead:"名刺交換を終え、商談が始まった。受け取った名刺をどう扱うか。",
+      turns:[
+        { situation:T("商談中、受け取った名刺をどうするか。"),
+          choices:[
+            C("テーブルの上に、役職順や座席順が分かるように並べておく", "good", "名刺を見えるところに置くことで、名前や役職を確認しながら会話できます。"),
+            C("すぐに名刺入れにしまい、必要な時だけ取り出して確認する", "ok", "丁寧にしまうこと自体は悪くありませんが、商談中はテーブルに出しておく方が、確認しやすく失礼もありません。"),
+            C("受け取った名刺の裏に、商談中に気になったことをメモしてしまう", "bad", "相手の名刺に直接書き込むのは、失礼にあたる行為とされています。")
+          ]},
+        { situation:T("商談が終わり、名刺をしまうタイミングになった。"),
+          choices:[
+            C("相手が帰った後、または区切りの良いタイミングで、丁寧に名刺入れにしまう", "good", "商談中はテーブルに置き、区切りがついてからしまうという流れが自然です。"),
+            C("商談の途中で、話が一段落したタイミングで急いでしまう", "ok", "しまうこと自体は問題ありませんが、話の途中でしまうと、やや落ち着きのない印象を与えることがあります。"),
+            C("名刺を折り曲げてポケットに直接入れる", "bad", "名刺を折り曲げて扱うのは、相手への敬意に欠ける行動と受け取られます。")
+          ]},
+        { situation:T("受け取った名刺の扱い方として、大切な考え方は?"),
+          choices:[
+            C("名刺はその人自身を表すものとして、商談中もその後も丁寧に扱う", "good", "名刺への配慮が、相手への敬意の表れになるという考え方が身についています。"),
+            C("商談中さえ丁寧に扱っていれば、その後の保管方法まで気にしなくてもよいと考える", "ok", "商談中の扱いも大切ですが、持ち帰った後の保管まで含めて丁寧に扱うとより良い印象が続きます。"),
+            C("名刺はもらった時点で役目を終えるものなので、その後の扱いは特に気にしない", "bad", "名刺はその後の関係の中でも大切に扱うべきものと考えられています。")
+          ]}
+      ]
+    },
+    {
+      id:"B4", cat:"keigo", difficulty:2, icon:"🗣️",
+      title:"「させていただきます」の使いすぎ", lead:"上司への報告で、「させていただきます」を多用した話し方をしていることに気づいた。",
+      turns:[
+        { situation:T("「明日、資料を確認させていただきます」という表現について、どう考えるか。"),
+          choices:[
+            C("「確認いたします」で十分な場面であり、「させていただく」は本来、相手の許可や恩恵を伴う場合に使う表現だと理解する", "good", "「させていただきます」の使いどころを正しく理解できています。"),
+            C("丁寧に聞こえるので、迷った時はとりあえず「させていただきます」を使うようにする", "ok", "丁寧に聞こえること自体は間違いではありませんが、使いすぎるとかえって不自然な印象になることがあります。"),
+            C("「させていただきます」を使えば、どんな場面でも失礼にならないと考える", "bad", "本来必要のない場面で多用すると、かえって回りくどく不自然な印象を与えてしまいます。")
+          ]},
+        { situation:T("自分の話し方を振り返る機会があった。改善のためにどうするか。"),
+          choices:[
+            C("「確認します」「対応します」など、シンプルな謙譲語や丁寧語で言い換えられないか意識してみる", "good", "言い換えを意識することで、自然な話し方に近づいていきます。"),
+            C("意識はするが、癖になっているのでなかなか変えられないまま様子を見る", "ok", "気づくこと自体は大切な一歩ですが、意識して言い換える練習をすると変化が早まります。"),
+            C("特に気にせず、これまで通りの話し方を続ける", "bad", "気づいたままにしておくと、同じ癖が周囲に与える印象も変わらないままになってしまいます。")
+          ]},
+        { situation:T("敬語を使ううえで、大切な考え方は?"),
+          choices:[
+            C("丁寧さの量よりも、場面に合った自然な言い回しになっているかを意識する", "good", "敬語の本質を理解した考え方ができています。"),
+            C("できるだけ丁寧な言葉を多く使うことを心がける", "ok", "丁寧さを意識すること自体は良いですが、使う量よりも使い方の正しさの方が重要です。"),
+            C("敬語は難しいので、深く考えずに聞き慣れた表現をそのまま使うようにする", "bad", "聞き慣れた表現の中には、実は誤った使い方も多く含まれていることがあります。")
+          ]}
+      ]
+    },
+    {
+      id:"B5", cat:"keigo", difficulty:2, icon:"🙇",
+      title:"尊敬語と謙譲語の混同", lead:"取引先に、上司が席を外していることを伝える場面になった。",
+      turns:[
+        { situation:T("この時、どう伝えるか。"),
+          choices:[
+            C("「あいにく、〇〇はただいま席を外しております」と、自社の人間には謙譲語を使って伝える", "good", "社外の人に対して、自社の人間には謙譲語を使うのが正しい使い分けです。"),
+            C("「〇〇さんは今、席を外されています」と、上司に敬語を使ったまま伝える", "ok", "社内では自然な表現ですが、社外の相手に対しては、自社の人間をへりくだって伝えるのが基本です。"),
+            C("「〇〇部長様は今、外出中でございます」と、役職に「様」をつけて伝える", "bad", "社外の人に自社の人間を紹介する際、役職に「様」をつけるのは誤った使い方です。")
+          ]},
+        { situation:T("伝え方を指摘され、正しい言い方を考え直すことになった。"),
+          choices:[
+            C("「なぜ謙譲語と尊敬語を使い分けるのか」という考え方から理解し直す", "good", "型を覚えるだけでなく、考え方から理解することで、応用が利くようになります。"),
+            C("指摘された言い回しだけを、その場で暗記するようにする", "ok", "暗記も一つの方法ですが、考え方を理解しておくと、別の場面でも正しく使い分けられるようになります。"),
+            C("細かい違いは気にしても仕方ないと考え、これまで通りの言い方を続ける", "bad", "誤った敬語のまま続けると、対外的な印象に影響が出ることがあります。")
+          ]},
+        { situation:T("尊敬語と謙譲語を使い分けるうえで、大切な考え方は?"),
+          choices:[
+            C("相手を立てる表現(尊敬語)と、自分や身内をへりくだる表現(謙譲語)の役割の違いを理解する", "good", "敬語の基本構造を理解できています。"),
+            C("とにかく丁寧に聞こえる言い方を選ぶようにする", "ok", "丁寧さの印象も大切ですが、尊敬語と謙譲語の役割を正しく理解する方が、根本的な間違いを防げます。"),
+            C("細かい使い分けよりも、とにかく敬語らしい言葉を使っていれば問題ないと考える", "bad", "誤った使い分けは、かえって相手に違和感を与えてしまうことがあります。")
+          ]}
+      ]
+    },
+    {
+      id:"B6", cat:"keigo", difficulty:2, icon:"✍️",
+      title:"二重敬語・過剰な敬語", lead:"メールの文面で、「ご覧になられますか」「おっしゃられていました」といった表現を使っていることに気づいた。",
+      turns:[
+        { situation:T("この表現について、どう考えるか。"),
+          choices:[
+            C("「ご覧になる」「おっしゃる」自体がすでに尊敬語であり、そこに「れる・られる」を重ねる二重敬語になっていると理解する", "good", "二重敬語に気づけているのは良い気づきです。"),
+            C("より丁寧に聞こえるので、そのままの表現を使い続ける", "ok", "丁寧に聞こえる面もありますが、実際には誤用とされる表現のため、正しい形に直す方が良いです。"),
+            C("二重敬語という概念自体を知らず、特に気にしたことがない", "bad", "知らずに使っていると、意図せず不自然な敬語を使い続けてしまうことになります。")
+          ]},
+        { situation:T("正しい表現に直すとしたら、どうするか。"),
+          choices:[
+            C("「ご覧になりますか」「おっしゃっていました」など、重ねずにシンプルな尊敬語の形に直す", "good", "正しい形に直せています。過剰にならない敬語が、かえって丁寧な印象につながります。"),
+            C("直した方がいいと分かっているが、周囲もよく使っているのでそのままにしておく", "ok", "周囲の慣習も分かりますが、正しい表現を意識して使うことで、自分自身の印象も良くなります。"),
+            C("直すのが面倒なので、指摘されるまでは気にしないでおく", "bad", "気づいた時点で直す習慣をつけておくと、後々の印象に差が出てきます。")
+          ]},
+        { situation:T("敬語表現を見直すうえで、大切な考え方は?"),
+          choices:[
+            C("「丁寧に聞こえるかどうか」ではなく、「正しい使い方かどうか」を基準に見直す", "good", "感覚ではなく、正しさを基準にする考え方が身についています。"),
+            C("自分なりに丁寧だと感じる表現を、これからも積極的に使っていく", "ok", "丁寧さへの意識は良いですが、感覚だけに頼ると誤った表現に気づきにくくなることがあります。"),
+            C("敬語は完璧でなくても、気持ちが伝われば問題ないと考える", "bad", "気持ちも大切ですが、誤った敬語が続くと、ビジネスの場では信頼に影響することもあります。")
+          ]}
+      ]
+    },
+    {
+      id:"B7", cat:"time", difficulty:1, icon:"⏰",
+      title:"会議へのギリギリ到着", lead:"10時からの会議に、9時58分に会議室へ到着した。資料の準備はまだ済んでいない。",
+      turns:[
+        { situation:T("この状況について、どう捉えるべきか。"),
+          choices:[
+            C("会議の開始時刻ではなく、資料を準備し着席を終えている状態を基準に、余裕を持った時間に到着すべきだったと反省する", "good", "「開始時刻に間に合う」ではなく「準備を終えて臨める」ことを基準にするのが、時間管理の基本です。"),
+            C("ギリギリでも遅刻はしていないので、特に問題はなかったと考える", "ok", "遅刻していない点は良いですが、準備の時間まで含めて逆算できると、より安心して会議に臨めます。"),
+            C("多少バタバタしても、始まってから準備すればなんとかなると考える", "bad", "会議が始まってから準備をすると、参加者を待たせたり、自分も落ち着いて臨めなかったりします。")
+          ]},
+        { situation:T("次回の会議に向けて、どう準備するか。"),
+          choices:[
+            C("会議の開始時刻から逆算し、資料の印刷や移動にかかる時間も含めて、余裕を持ったスケジュールを組む", "good", "逆算して見積もる習慣が、時間の感覚を養う基本です。"),
+            C("次はもう少し早めに行動しようと考えるが、具体的な時間までは決めない", "ok", "早めに行動しようとする意識は良いですが、具体的な時間を決めておくとより実行しやすくなります。"),
+            C("特に対策は考えず、次も同じように直前に動くつもりでいる", "bad", "同じ行動を続けると、また同じようにギリギリになってしまう可能性が高いです。")
+          ]},
+        { situation:T("時間の感覚を身につけるうえで、大切な考え方は?"),
+          choices:[
+            C("「間に合うかどうか」ではなく「余裕を持って臨めるかどうか」を基準に行動する", "good", "時間管理における本質的な基準が身についています。"),
+            C("遅刻さえしなければ、多少ギリギリでも問題ないと考える", "ok", "遅刻を避けること自体は大切ですが、余裕のなさが準備不足や焦りにつながることもあります。"),
+            C("時間にルーズなのは自分の性格なので、仕方ないと考える", "bad", "性格の問題として片付けず、逆算するという具体的な行動で改善できる部分です。")
+          ]}
+      ]
+    },
+    {
+      id:"B8", cat:"time", difficulty:2, icon:"🚉",
+      title:"訪問時間の見積もり", lead:"取引先への訪問予定が14時。移動時間を考えず、13時50分に慌てて会社を出ようとしている。",
+      turns:[
+        { situation:T("この状況で、まずどうするか。"),
+          choices:[
+            C("移動時間や交通状況を踏まえて出発時間を決め、訪問予定時刻の5〜10分前に到着できるよう逆算する", "good", "早すぎず遅すぎない、ちょうど良い到着時間を逆算する考え方が身についています。"),
+            C("とにかく急いで向かい、着いてから到着時間を調整しようとする", "ok", "急ぐ姿勢は分かりますが、事前に逆算しておく方が、落ち着いて行動できます。"),
+            C("多少遅れても、連絡すれば大丈夫だろうと考え、慌てず普段通りに出発する", "bad", "訪問先を待たせることになり、相手の時間を奪ってしまう行動です。")
+          ]},
+        { situation:T("移動中、思ったより早く着きそうだと分かった。"),
+          choices:[
+            C("早く着きすぎる場合は、近くで時間を調整し、予定時刻の5〜10分前に受付に向かう", "good", "早すぎる訪問も、相手の準備の都合を乱すことがあるため、時間調整は良い判断です。"),
+            C("早く着いたので、そのまま受付に向かい、対応してもらえるか聞いてみる", "ok", "早く着くこと自体は悪くありませんが、あまり早すぎると相手の準備中に訪問することになる場合があります。"),
+            C("早く着いたことに満足し、特に時間は気にせず好きなタイミングで受付に向かう", "bad", "訪問時間は自分の都合ではなく、相手の都合に合わせて調整するべきものです。")
+          ]},
+        { situation:T("訪問時間の見積もりで、大切な考え方は?"),
+          choices:[
+            C("早すぎても遅すぎても相手に迷惑がかかると理解し、予定時刻ちょうどを目安に調整する", "good", "相手の立場を考えた時間管理ができています。"),
+            C("遅れないことだけを最優先に考え、早めに行動するようにする", "ok", "遅れないようにする意識は大切ですが、早すぎることへの配慮も合わせて持てるとより良いです。"),
+            C("多少前後しても、訪問さえできれば問題ないと考える", "bad", "時間のずれが、相手のスケジュールに影響を与える可能性があることを意識する必要があります。")
+          ]}
+      ]
+    },
+    {
+      id:"B9", cat:"time", difficulty:2, icon:"🗓️",
+      title:"締め切り直前の見積もりの甘さ", lead:"3日後が締め切りの資料作成を任された。「まだ余裕がある」と感じて後回しにしている。",
+      turns:[
+        { situation:T("この時点で、どう考えるべきか。"),
+          choices:[
+            C("作業にかかりそうな時間を見積もり、想定外の確認や修正の時間も含めて、早めに着手する計画を立てる", "good", "作業時間だけでなく、確認や修正の時間まで見積もる習慣が、締め切りに余裕を持たせます。"),
+            C("まだ3日あるので大丈夫だろうと考え、明日から本格的に取り組もうとする", "ok", "気持ちは分かりますが、具体的な見積もりをせずに「大丈夫だろう」と考えるのはリスクがあります。"),
+            C("締め切りが近づくまでは特に意識せず、他の作業を優先する", "bad", "見積もりをしないまま先延ばしにすると、締め切り直前に慌てることになりがちです。")
+          ]},
+        { situation:T("着手してみると、想定より時間がかかりそうだと分かった。"),
+          choices:[
+            C("早めに気づいた時点で、上司に進捗と見込みを共有し、必要であれば相談する", "good", "早い段階での共有が、締め切りに間に合わせるための重要な行動です。"),
+            C("自分でなんとかできると考え、誰にも共有せず一人で作業を続ける", "ok", "自分で対応しようとする姿勢は良いですが、早めの共有があれば、周囲のサポートを受けられる可能性があります。"),
+            C("間に合わないかもしれないと感じつつも、締め切り直前まで報告せずに様子を見る", "bad", "報告が遅れるほど、対応できる選択肢が少なくなってしまいます。")
+          ]},
+        { situation:T("締め切りに対する時間の見積もりで、大切な考え方は?"),
+          choices:[
+            C("「余裕がある」という感覚ではなく、必要な作業時間を具体的に見積もって計画する", "good", "感覚に頼らない見積もりの習慣が身についています。"),
+            C("経験を積めば、自然と時間の感覚がつかめるようになると考える", "ok", "経験も大切ですが、都度具体的に見積もる習慣を持つ方が、確実にミスを防げます。"),
+            C("締め切りぎりぎりまで手をつけない方が、集中して取り組めると考える", "bad", "直前に集中して取り組む方法は、想定外の事態に対応する余裕がなくなるリスクがあります。")
+          ]}
+      ]
+    },
+    {
+      id:"B10", cat:"manner", difficulty:1, icon:"🪑",
+      title:"上座・下座の判断", lead:"取引先を自社の会議室に案内することになった。席次をどうするか。",
+      turns:[
+        { situation:T("お客様にどの席に座ってもらうか。"),
+          choices:[
+            C("入口から一番遠い、奥の席(上座)にお客様を案内する", "good", "入口から遠く、落ち着ける奥の席が上座とされ、お客様に座っていただくのが基本です。"),
+            C("特に決めず、お客様に好きな席を選んでもらう", "ok", "相手に委ねること自体は失礼ではありませんが、こちらから上座を案内する方が丁寧な対応になります。"),
+            C("空いている席に、自分たちが先に座ってしまう", "bad", "お客様より先に、また下座であるべき自分たちが上座に座るのは失礼にあたります。")
+          ]},
+        { situation:T("会議室に案内したところ、お客様が入口に近い席に座ろうとしている。"),
+          choices:[
+            C("「よろしければこちらの奥のお席へどうぞ」と、さりげなく上座を勧める", "good", "さりげなく案内することで、相手に恥をかかせず自然に上座へ促せます。"),
+            C("特に何も言わず、お客様の座った席のままにしておく", "ok", "無理に勧める必要はありませんが、一言添えることでより丁寧な対応になります。"),
+            C("「そこは下座なので、こちらに座ってください」と、席次の説明をしながら促す", "bad", "下座という言葉を直接使うと、かえって気まずい雰囲気になってしまうことがあります。")
+          ]},
+        { situation:T("上座・下座を判断するうえで、大切な考え方は?"),
+          choices:[
+            C("形式的なルールとしてだけでなく、お客様に居心地よく過ごしてもらうための配慮だと理解する", "good", "ルールの背景にある「相手への配慮」を理解できています。"),
+            C("会議室ごとにルールを覚えて、間違えないようにすることを意識する", "ok", "ルールを覚えることも大切ですが、根本にある考え方を理解しておくと、初めての場所でも応用が利きます。"),
+            C("上座・下座は形式的なものなので、あまり気にしなくてもよいと考える", "bad", "形式であっても、多くのビジネスシーンで今も大切にされているマナーです。")
+          ]}
+      ]
+    },
+    {
+      id:"B11", cat:"manner", difficulty:1, icon:"🚶",
+      title:"廊下の案内・歩き方", lead:"来訪したお客様を、受付から会議室まで案内することになった。",
+      turns:[
+        { situation:T("廊下を歩く際、どのように案内するか。"),
+          choices:[
+            C("お客様の少し斜め前を歩き、時々振り返りながら、進む方向を手で示して案内する", "good", "少し前を歩きながら方向を示すことで、お客様が安心して進めるよう配慮できています。"),
+            C("お客様の後ろについて歩き、「こちらです」と声だけで方向を伝える", "ok", "声で伝えること自体は問題ありませんが、先に立って案内する方が、道に迷わせる心配が少なくなります。"),
+            C("早足でどんどん先に進んでしまい、お客様との距離が離れてしまう", "bad", "お客様を置き去りにするような歩き方は、案内として不十分です。")
+          ]},
+        { situation:T("曲がり角に差し掛かった。"),
+          choices:[
+            C("曲がる前に「こちらです」と一言添えてから、方向を手で示しながら進む", "good", "一言添えることで、お客様が迷わず進めるようになります。"),
+            C("特に声はかけず、自分が曲がる動作を見せて気づいてもらおうとする", "ok", "動作で伝わることもありますが、声を添える方がより確実で丁寧です。"),
+            C("曲がることを伝えず、そのまま進んでしまい、お客様が別の方向に進みかける", "bad", "案内が不十分だと、お客様を迷わせてしまうことになります。")
+          ]},
+        { situation:T("お客様を案内する際に、大切な考え方は?"),
+          choices:[
+            C("お客様が安心して迷わずついてこられるよう、歩く速さや位置、声かけに配慮する", "good", "案内の目的を正しく理解した考え方ができています。"),
+            C("会議室まで案内できれば、多少歩き方が雑でも問題ないと考える", "ok", "目的地に着くこと自体は大切ですが、道中の配慮も相手の印象に影響します。"),
+            C("案内は形式的な業務なので、特に気を配らなくてもよいと考える", "bad", "案内中の振る舞いも、会社の印象を左右する大切な場面です。")
+          ]}
+      ]
+    },
+    {
+      id:"B12", cat:"manner", difficulty:2, icon:"🚪",
+      title:"ドアの開け閉め", lead:"お客様を会議室に案内し、ドアを開けて中に通す場面になった。",
+      turns:[
+        { situation:T("ドアの開け閉めについて、どうするか。"),
+          choices:[
+            C("ドアを開けて自分が押さえ、お客様に先に入ってもらう", "good", "ドアを押さえてお客様を先に通すのが、基本的なもてなしの形です。"),
+            C("ドアを開けるが、自分が先に入ってから、お客様を招き入れる", "ok", "案内の意図は伝わりますが、基本的にはお客様を先に通す形の方が丁寧とされています。"),
+            C("ドアを開けるだけで、特に押さえずにそのまま手を離してしまう", "bad", "ドアが閉まりかけてお客様に当たってしまうなど、配慮に欠ける対応になります。")
+          ]},
+        { situation:T("会議室に入った後、ドアを閉めるタイミングになった。"),
+          choices:[
+            C("お客様が完全に室内に入ったことを確認してから、静かにドアを閉める", "good", "相手の状況を確認してから行動する、丁寧な対応です。"),
+            C("お客様が入ったらすぐに、勢いよくドアを閉めてしまう", "ok", "閉めるタイミング自体は問題ありませんが、静かに閉める配慮があるとより良い印象になります。"),
+            C("自分が先に会議室の奥へ進んでしまい、ドアの開け閉めを特に気にしない", "bad", "ドアの対応を疎かにすると、案内全体が雑な印象になってしまいます。")
+          ]},
+        { situation:T("ドアの開け閉めや案内の所作で、大切な考え方は?"),
+          choices:[
+            C("一つひとつの所作が、お客様への気配りの表れになっていると意識する", "good", "細かい所作の意味を理解した考え方ができています。"),
+            C("決められた手順通りに行動することを意識する", "ok", "手順を守ること自体は良いですが、その背景にある気配りの意識を持てるとより自然な所作になります。"),
+            C("ドアの開け閉めのような細かい所作は、あまり評価に影響しないと考える", "bad", "細かい所作の積み重ねが、相手からの印象や信頼に影響することがあります。")
+          ]}
+      ]
+    }
+  ];
+
+  var TIPS = [
+    {desc:"名刺は両手で受け取り、その場では丁寧に扱う。"},
+    {desc:"複数人との名刺交換は、役職の高い人同士から順に行う。"},
+    {desc:"「させていただきます」は、多用せず必要な場面に絞って使う。"},
+    {desc:"社外の人には、自社の人間をへりくだる謙譲語で伝える。"},
+    {desc:"尊敬語を重ねる二重敬語(「ご覧になられる」など)に注意する。"},
+    {desc:"会議や訪問は、「間に合うか」ではなく「余裕を持って臨めるか」で時間を逆算する。"},
+    {desc:"締め切りのある作業は、確認や修正の時間も含めて早めに見積もる。"},
+    {desc:"お客様には、入口から遠い上座を案内する。"},
+    {desc:"廊下の案内は、少し前を歩きながら方向を示し、声を添える。"},
+    {desc:"ドアは相手のために開けて押さえ、静かに閉める。"}
+  ];
+
+  /* ---------------- storage ---------------- */
+  var STORE_KEY = "manner-sim-progress-v1";
+  function loadProgress(){ try{ var raw = localStorage.getItem(STORE_KEY); return raw ? JSON.parse(raw) : {}; }catch(e){ return {}; } }
+  function saveProgress(p){ try{ localStorage.setItem(STORE_KEY, JSON.stringify(p)); }catch(e){} }
+
+  /* ---------------- state ---------------- */
+  var state = {
+    screen:"home", scenarioId:null, phase:"intro", turnIndex:0,
+    currentChoices:null, record:[], review:[], score:0, maxScore:0
+  };
+  var progress = loadProgress();
+
+  function shuffle(arr){
+    var a = arr.slice();
+    for(var i=a.length-1;i>0;i--){ var j = Math.floor(Math.random()*(i+1)); var t=a[i]; a[i]=a[j]; a[j]=t; }
+    return a;
+  }
+  function catInfo(id){ for(var i=0;i<CATEGORIES.length;i++){ if(CATEGORIES[i].id===id) return CATEGORIES[i]; } return CATEGORIES[0]; }
+  function scenarioById(id){ for(var i=0;i<SCENARIOS.length;i++){ if(SCENARIOS[i].id===id) return SCENARIOS[i]; } return null; }
+  function escapeHtml(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+  function tierLabel(tier){ return tier==="good" ? "とても良い対応です" : (tier==="ok" ? "OKですが、改善の余地があります" : "見直しが必要です"); }
+  function tierIcon(tier){ return tier==="good" ? "◎" : (tier==="ok" ? "○" : "✕"); }
+  function truncate(s, n){ return s.length > n ? s.slice(0,n) + "…" : s; }
+
+  var app = document.getElementById("app");
+
+  function render(){
+    if(state.screen==="home") renderHome();
+    else if(state.screen==="manual") renderManual();
+    else if(state.screen==="scenario") renderScenario();
+    else if(state.screen==="result") renderResult();
+  }
+
+  /* ---------------- HOME ---------------- */
+  function renderHome(){
+    var completed = 0;
+    SCENARIOS.forEach(function(s){ if(progress[s.id]) completed++; });
+    var pct = Math.round(completed/SCENARIOS.length*100);
+
+    var html = '';
+    html += '<div class="home">';
+    html += '<div class="cover-art">'+CARD_SVG+'<div class="cover-caption">MANNERS & TIMING · 基本の型</div></div>';
+    html += '<div class="home-head">';
+    html += '<div class="eyebrow">新人研修プログラム</div>';
+    html += '<h1 class="home-title"><span style="white-space:nowrap">ビジネスマナー</span><span style="white-space:nowrap">シミュレーター</span></h1>';
+    html += '<p class="home-sub">名刺交換、敬語、時間の感覚、立ち振る舞い。新人が迷いがちな「型」を、選択式で身につけます。</p>';
+    html += '<div class="progress-row"><div class="progress-track"><div class="progress-fill" style="width:'+pct+'%"></div></div><div class="progress-label mono">'+completed+' / '+SCENARIOS.length+'</div></div>';
+    html += '<button class="manual-link" data-action="open-manual">📘 ビジネスマナーの基本10か条を見る</button>';
+    html += '</div>';
+
+    CATEGORIES.forEach(function(cat){
+      var list = SCENARIOS.filter(function(s){ return s.cat===cat.id; });
+      if(list.length===0) return;
+      html += '<div class="cat-block">';
+      html += '<div class="cat-head"><span class="cat-dot" style="background:var('+cat.varc+')"></span><span class="cat-name">'+cat.name+'</span></div>';
+      html += '<div class="cat-desc">'+cat.desc+'</div>';
+      html += '<div class="card-list">';
+      list.forEach(function(s){
+        var stars = "★".repeat(s.difficulty) + "☆".repeat(3-s.difficulty);
+        var best = progress[s.id];
+        html += '<button class="scenario-card" data-action="open-scenario" data-id="'+s.id+'">';
+        html += '<span class="avatar" style="background:var('+cat.vars+')">'+s.icon+'</span>';
+        html += '<span class="card-body"><span class="card-title">'+escapeHtml(s.title)+'</span><br><span class="card-meta">'+escapeHtml(truncate(s.lead, 30))+'</span></span>';
+        html += '<span class="card-side"><span class="stars">'+stars+'</span>' + (best ? '<span class="best-badge">ベスト '+best.pct+'%</span>' : '') + '</span>';
+        html += '</button>';
+      });
+      html += '</div></div>';
+    });
+
+    html += '</div>';
+    app.innerHTML = html;
+  }
+
+  /* ---------------- MANUAL ---------------- */
+  function renderManual(){
+    var html = '<div class="manual">';
+    html += '<div class="back-row"><button class="icon-btn" data-action="go-home">←</button><span class="screen-title">ビジネスマナーの基本10か条</span></div>';
+    TIPS.forEach(function(tip, i){
+      html += '<div class="tip-card"><div class="tip-num">POINT '+(i+1)+'</div><div class="tip-desc">'+escapeHtml(tip.desc)+'</div></div>';
+    });
+    html += '</div>';
+    app.innerHTML = html;
+  }
+
+  /* ---------------- SCENARIO ---------------- */
+  function openScenario(id){
+    var sc = scenarioById(id);
+    if(!sc) return;
+    state.screen = "scenario"; state.scenarioId = id; state.phase = "intro"; state.turnIndex = 0;
+    state.currentChoices = null; state.record = []; state.review = []; state.score = 0;
+    state.maxScore = sc.turns.length * 10;
+    render();
+  }
+
+  function renderScenario(){
+    var sc = scenarioById(state.scenarioId);
+    var cat = catInfo(sc.cat);
+
+    if(state.phase === "intro"){
+      var html = '<div class="intro">';
+      html += '<span class="avatar" style="background:var('+cat.vars+')">'+sc.icon+'</span>';
+      html += '<div class="intro-cat">'+escapeHtml(cat.name)+'</div>';
+      html += '<div class="intro-title">'+escapeHtml(sc.title)+'</div>';
+      html += '<div class="intro-lead">'+escapeHtml(sc.lead)+'</div>';
+      html += '<div class="intro-actions">';
+      html += '<button class="next-btn" data-action="start-scenario">この場面を始める</button>';
+      html += '<button class="ghost-btn" data-action="go-home">一覧に戻る</button>';
+      html += '</div></div>';
+      app.innerHTML = html;
+      return;
+    }
+
+    var html2 = '';
+    html2 += '<div class="rec-top">';
+    html2 += '<div><div class="rec-top-title">'+escapeHtml(sc.title)+'</div><div class="rec-top-cat">'+escapeHtml(cat.name)+'</div></div>';
+    html2 += '<div class="rec-step mono">STEP '+(state.turnIndex+1)+' / '+sc.turns.length+'</div>';
+    html2 += '</div>';
+
+    html2 += '<div class="record" id="record" style="--cat-color:var('+cat.varc+')">';
+    state.record.forEach(function(item){
+      if(item.speaker === "situation"){
+        html2 += '<div class="sit-card"><div class="sit-label">状況</div>'+escapeHtml(item.text)+'</div>';
+      } else {
+        html2 += '<div><div class="act-label">あなたの行動</div><div class="act-row"><div class="act-bubble">'+escapeHtml(item.text)+'</div></div></div>';
+      }
+    });
+    html2 += '</div>';
+
+    html2 += '<div class="choices-panel">';
+    if(state.phase === "active"){
+      html2 += '<div class="choices-hint">どう対応しますか?</div>';
+      state.currentChoices.forEach(function(choice, idx){
+        html2 += '<button class="choice-btn" data-action="pick-choice" data-idx="'+idx+'">'+escapeHtml(choice.text)+'</button>';
+      });
+    } else if(state.phase === "feedback"){
+      var last = state.review[state.review.length-1];
+      html2 += '<div class="feedback-panel">';
+      html2 += '<span class="feedback-tag '+last.tier+'">'+tierIcon(last.tier)+' '+tierLabel(last.tier)+'</span>';
+      html2 += '<div class="feedback-text">'+escapeHtml(last.feedback)+'</div>';
+      var isLast = state.turnIndex >= sc.turns.length - 1;
+      html2 += '<button class="next-btn" data-action="next-turn">'+(isLast ? "この場面を終える" : "次へ")+'</button>';
+      html2 += '</div>';
+    }
+    html2 += '</div>';
+
+    app.innerHTML = html2;
+    var rEl = document.getElementById("record");
+    if(rEl) rEl.scrollTop = rEl.scrollHeight;
+  }
+
+  function startScenario(){
+    var sc = scenarioById(state.scenarioId);
+    state.phase = "active"; state.turnIndex = 0;
+    pushSituation(sc, 0);
+    state.currentChoices = shuffle(sc.turns[0].choices);
+    render();
+  }
+
+  function pushSituation(sc, idx){ state.record.push({speaker:"situation", text: sc.turns[idx].situation.text}); }
+
+  function pickChoice(idx){
+    var sc = scenarioById(state.scenarioId);
+    var choice = state.currentChoices[idx];
+    state.record.push({speaker:"you", text: choice.text});
+    state.score += choice.points;
+    state.review.push({
+      situation: sc.turns[state.turnIndex].situation.text,
+      chosen: choice.text, tier: choice.tier, feedback: choice.feedback
+    });
+    state.phase = "feedback";
+    render();
+  }
+
+  function nextTurn(){
+    var sc = scenarioById(state.scenarioId);
+    if(state.turnIndex >= sc.turns.length - 1){ finishScenario(); return; }
+    state.turnIndex++;
+    pushSituation(sc, state.turnIndex);
+    state.currentChoices = shuffle(sc.turns[state.turnIndex].choices);
+    state.phase = "active";
+    render();
+  }
+
+  function finishScenario(){
+    var pct = Math.round(state.score / state.maxScore * 100);
+    progress[state.scenarioId] = progress[state.scenarioId] && progress[state.scenarioId].pct > pct
+      ? progress[state.scenarioId] : {pct: pct};
+    saveProgress(progress);
+    state.screen = "result";
+    render();
+  }
+
+  /* ---------------- RESULT ---------------- */
+  function renderResult(){
+    var sc = scenarioById(state.scenarioId);
+    var pct = Math.round(state.score / state.maxScore * 100);
+    var grade = pct >= 90 ? "S" : pct >= 75 ? "A" : pct >= 55 ? "B" : "C";
+    var msg = pct >= 90 ? "とても良い判断です。この調子で、他の場面にも挑戦してみましょう。"
+      : pct >= 75 ? "良い対応ができています。○や✕がついた場面の理由を振り返ると、さらにコツがつかめます。"
+      : pct >= 55 ? "基本はできています。迷った場面を見直して、判断の基準を整理してみましょう。"
+      : "焦らず大丈夫です。下の振り返りを読んで、もう一度この場面に挑戦してみましょう。";
+
+    var html = '<div class="result">';
+    html += '<div class="result-badge"><span class="grade">'+grade+'</span></div>';
+    html += '<div class="result-score">スコア <span class="mono">'+state.score+' / '+state.maxScore+'</span>(' + pct + '%)</div>';
+    html += '<div class="result-title">'+escapeHtml(sc.title)+'・振り返り</div>';
+    html += '<div class="result-msg">'+msg+'</div>';
+
+    html += '<div class="review-list">';
+    state.review.forEach(function(r, i){
+      html += '<div class="review-item">';
+      html += '<div class="review-head"><span class="review-icon '+r.tier+'">'+tierIcon(r.tier)+'</span><span class="review-situation">場面'+(i+1)+'. '+escapeHtml(truncate(r.situation, 32))+'</span></div>';
+      html += '<div class="review-feedback">'+escapeHtml(r.feedback)+'</div>';
+      html += '</div>';
+    });
+    html += '</div>';
+
+    html += '<div class="result-actions">';
+    html += '<button class="btn-primary" data-action="retry-scenario">もう一度この場面に挑戦する</button>';
+    html += '<button class="btn-secondary" data-action="open-manual">10か条を振り返る</button>';
+    html += '<button class="btn-secondary" data-action="go-home">シナリオ一覧に戻る</button>';
+    html += '</div>';
+    html += '</div>';
+    app.innerHTML = html;
+  }
+
+  /* ---------------- events ---------------- */
+  app.addEventListener("click", function(e){
+    var btn = e.target.closest("[data-action]");
+    if(!btn) return;
+    var action = btn.getAttribute("data-action");
+    if(action === "open-scenario"){ openScenario(btn.getAttribute("data-id")); }
+    else if(action === "open-manual"){ state.screen = "manual"; render(); }
+    else if(action === "go-home"){ state.screen = "home"; render(); }
+    else if(action === "start-scenario"){ startScenario(); }
+    else if(action === "pick-choice"){ pickChoice(parseInt(btn.getAttribute("data-idx"), 10)); }
+    else if(action === "next-turn"){ nextTurn(); }
+    else if(action === "retry-scenario"){ openScenario(state.scenarioId); }
+  });
+
+  render();
+})();
+</script>
