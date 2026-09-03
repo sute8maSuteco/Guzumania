@@ -1,0 +1,820 @@
+<title>メール・チャットシミュレーター</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700;900&family=Noto+Sans+JP:wght@400;500;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+  :root{
+    --bg:#EFEAE0;
+    --surface:#FBF8F2;
+    --surface-alt:#F1ECDF;
+    --ink:#26231D;
+    --ink-soft:#726C5C;
+    --border:#DCD5C4;
+    --accent:#2E6B93;
+    --accent-contrast:#FFFFFF;
+    --good:#3F7D4C;
+    --good-soft:#E4EEE2;
+    --warn:#A97A1E;
+    --warn-soft:#F3EAD4;
+    --bad:#B14A3D;
+    --bad-soft:#F5E2DE;
+    --catMail:#2B5C63;
+    --catMail-soft:#E1EBEA;
+    --catChat:#8B5E0E;
+    --catChat-soft:#F0E8D6;
+    --catTone:#7A3E52;
+    --catTone-soft:#F0E1E6;
+    --catTrouble:#3C5A78;
+    --catTrouble-soft:#E2E8EE;
+    --cover:#1B2430;
+    --cover-text:#E6EBF0;
+    --shadow: 0 20px 50px -20px rgba(20,20,15,0.35);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#141310;
+      --surface:#1D1C17;
+      --surface-alt:#26241D;
+      --ink:#ECE8DC;
+      --ink-soft:#A8A290;
+      --border:#37342A;
+      --accent:#6FB6DE;
+      --accent-contrast:#0F2430;
+      --good:#6FBF7C;
+      --good-soft:#233127;
+      --warn:#D9A94A;
+      --warn-soft:#332C1C;
+      --bad:#E1786A;
+      --bad-soft:#38221E;
+      --catMail:#5AA3AA;
+      --catMail-soft:#20302F;
+      --catChat:#C99A4A;
+      --catChat-soft:#332A18;
+      --catTone:#C98CA0;
+      --catTone-soft:#32222A;
+      --catTrouble:#8FB0D6;
+      --catTrouble-soft:#212B36;
+      --shadow: 0 20px 50px -20px rgba(0,0,0,0.6);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#141310;
+    --surface:#1D1C17;
+    --surface-alt:#26241D;
+    --ink:#ECE8DC;
+    --ink-soft:#A8A290;
+    --border:#37342A;
+    --accent:#6FB6DE;
+    --accent-contrast:#0F2430;
+    --good:#6FBF7C;
+    --good-soft:#233127;
+    --warn:#D9A94A;
+    --warn-soft:#332C1C;
+    --bad:#E1786A;
+    --bad-soft:#38221E;
+    --catMail:#5AA3AA;
+    --catMail-soft:#20302F;
+    --catChat:#C99A4A;
+    --catChat-soft:#332A18;
+    --catTone:#C98CA0;
+    --catTone-soft:#32222A;
+    --catTrouble:#8FB0D6;
+    --catTrouble-soft:#212B36;
+    --shadow: 0 20px 50px -20px rgba(0,0,0,0.6);
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;height:100%;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:"Noto Sans JP","Hiragino Kaku Gothic ProN","Hiragino Sans",Meiryo,sans-serif;
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    padding:20px 14px;
+  }
+  h1,h2,h3,.display{ font-family:"Zen Kaku Gothic New","Noto Sans JP",sans-serif; text-wrap:balance; margin:0; }
+  .mono{ font-family:"JetBrains Mono", ui-monospace, monospace; font-variant-numeric:tabular-nums; }
+  button{font-family:inherit;}
+  button:focus-visible, a:focus-visible, [tabindex]:focus-visible{ outline:3px solid var(--accent); outline-offset:2px; }
+  @media (prefers-reduced-motion: reduce){ *{animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0.001ms !important;} }
+
+  /* ---- outer frame (cover) ---- */
+  .frame{
+    width:100%; max-width:480px; height:min(720px, calc(100vh - 40px));
+    background:var(--cover); border-radius:22px; padding:14px; box-shadow:var(--shadow);
+    display:flex; flex-direction:column;
+  }
+  .frame-label{
+    flex-shrink:0; display:flex; align-items:center; justify-content:center; gap:7px;
+    padding:2px 0 12px; color:var(--cover-text); font-size:12.5px; font-weight:700; letter-spacing:0.03em;
+  }
+  .frame-label svg{ width:14px; height:14px; }
+  .frame-label .dot{ width:6px;height:6px;border-radius:50%; background:var(--cover-text); opacity:0.55; }
+  .page{
+    background:var(--surface); border-radius:16px; flex:1; min-height:0;
+    display:flex; flex-direction:column; overflow:hidden; position:relative;
+  }
+
+  /* ---- home ---- */
+  .home{ padding:20px 20px 20px; overflow-y:auto; flex:1; min-height:0; }
+  .cover-art{ display:flex; flex-direction:column; align-items:center; padding:6px 0 14px; }
+  .cover-art svg{ width:76px; height:76px; }
+  .cover-caption{ font-size:10.5px; color:var(--ink-soft); margin-top:6px; letter-spacing:0.03em; }
+  .home-head{ padding:0 2px 18px; border-bottom:1px solid var(--border); margin-bottom:16px; }
+  .eyebrow{ font-size:11px; letter-spacing:0.12em; color:var(--accent); font-weight:700; text-transform:uppercase; text-align:center; }
+  .home-title{ font-size:21px; font-weight:900; margin-top:6px; line-height:1.35; text-align:center; }
+  .home-sub{ font-size:12.5px; color:var(--ink-soft); margin-top:8px; line-height:1.65; text-align:center; }
+  .progress-row{ display:flex; align-items:center; gap:10px; margin-top:14px; }
+  .progress-track{ flex:1; height:6px; background:var(--surface-alt); border-radius:4px; overflow:hidden; border:1px solid var(--border); }
+  .progress-fill{ height:100%; background:var(--accent); border-radius:4px; transition:width .4s ease; }
+  .progress-label{ font-size:12px; color:var(--ink-soft); white-space:nowrap; }
+  .manual-link{
+    margin-top:14px; display:flex; align-items:center; justify-content:center; gap:6px; font-size:13px; font-weight:700;
+    color:var(--accent); background:var(--surface-alt); border:1px solid var(--border); padding:9px 14px; border-radius:10px; cursor:pointer; width:100%;
+  }
+  .cat-block{ margin-bottom:20px; }
+  .cat-head{ display:flex; align-items:center; gap:8px; margin-bottom:2px; }
+  .cat-dot{ width:9px;height:9px;border-radius:50%; flex-shrink:0; }
+  .cat-name{ font-size:14px; font-weight:700; }
+  .cat-desc{ font-size:11.5px; color:var(--ink-soft); margin:2px 0 8px 17px; }
+  .card-list{ display:flex; flex-direction:column; gap:8px; }
+  .scenario-card{
+    display:flex; align-items:center; gap:12px; background:var(--surface-alt); border:1px solid var(--border);
+    border-radius:14px; padding:11px 12px; cursor:pointer; text-align:left; width:100%;
+  }
+  .scenario-card:hover{ border-color:var(--accent); }
+  .avatar{ width:38px;height:38px;border-radius:12px; display:flex;align-items:center;justify-content:center; font-size:17px; flex-shrink:0; }
+  .card-body{ flex:1; min-width:0; }
+  .card-title{ font-size:13.5px; font-weight:700; }
+  .card-meta{ font-size:11.5px; color:var(--ink-soft); margin-top:2px; line-height:1.5; }
+  .card-side{ display:flex; flex-direction:column; align-items:flex-end; gap:4px; flex-shrink:0; }
+  .stars{ font-size:11px; color:var(--warn); letter-spacing:1px; white-space:nowrap; }
+  .best-badge{ font-size:10.5px; font-weight:700; color:var(--good); background:var(--good-soft); padding:2px 7px; border-radius:20px; white-space:nowrap; }
+
+  /* ---- manual ---- */
+  .manual{ padding:20px 20px 24px; overflow-y:auto; flex:1; min-height:0; }
+  .back-row{ display:flex; align-items:center; gap:10px; margin-bottom:14px; }
+  .icon-btn{
+    width:32px;height:32px;border-radius:50%; background:var(--surface-alt); border:1px solid var(--border);
+    display:flex;align-items:center;justify-content:center; cursor:pointer; color:var(--ink); font-size:16px; flex-shrink:0;
+  }
+  .screen-title{ font-size:16.5px; font-weight:900; }
+  .tip-card{ background:var(--surface-alt); border:1px solid var(--border); border-radius:14px; padding:13px 14px; margin-bottom:10px; }
+  .tip-num{ font-size:11px; font-weight:700; color:var(--accent); }
+  .tip-desc{ font-size:12.5px; color:var(--ink); margin-top:4px; line-height:1.7; }
+
+  /* ---- scenario: intro ---- */
+  .intro{ flex:1; min-height:0; overflow-y:auto; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:34px 28px; text-align:center; gap:6px; }
+  .intro .avatar{ width:76px; height:76px; border-radius:22px; font-size:32px; margin-bottom:14px; }
+  .intro-cat{ font-size:11.5px; font-weight:700; letter-spacing:0.04em; color:var(--ink-soft); text-transform:uppercase; }
+  .intro-title{ font-size:19px; font-weight:900; margin-top:8px; line-height:1.4; }
+  .intro-lead{ font-size:12.5px; color:var(--ink-soft); margin-top:12px; line-height:1.75; max-width:320px; }
+  .intro-actions{ display:flex; flex-direction:column; gap:9px; width:100%; max-width:260px; margin-top:26px; }
+
+  /* ---- scenario: active ---- */
+  .rec-top{ display:flex; align-items:center; justify-content:space-between; gap:10px; padding:14px 18px 12px; border-bottom:1px solid var(--border); flex-shrink:0; }
+  .rec-top-title{ font-size:13.5px; font-weight:700; line-height:1.4; }
+  .rec-top-cat{ font-size:11px; color:var(--ink-soft); margin-top:2px; }
+  .rec-step{ font-size:11.5px; color:var(--accent); font-weight:700; white-space:nowrap; flex-shrink:0; }
+
+  .record{ flex:1; min-height:0; overflow-y:auto; padding:16px 16px 8px; display:flex; flex-direction:column; gap:12px; }
+  .sit-card{ background:var(--surface-alt); border:1px solid var(--border); border-left:4px solid var(--cat-color, var(--accent)); border-radius:10px; padding:11px 13px; font-size:13px; line-height:1.7; }
+  .sit-label{ font-size:10.5px; font-weight:700; color:var(--ink-soft); letter-spacing:0.04em; margin-bottom:4px; text-transform:uppercase; }
+  .act-row{ display:flex; justify-content:flex-end; }
+  .act-bubble{ max-width:86%; background:var(--accent); color:var(--accent-contrast); border-radius:12px; border-bottom-right-radius:4px; padding:9px 13px; font-size:12.5px; line-height:1.65; }
+  .act-label{ font-size:10px; color:var(--ink-soft); text-align:right; margin:0 2px 3px; }
+
+  .choices-panel{ border-top:1px solid var(--border); padding:12px 16px 16px; flex-shrink:0; background:var(--surface); max-height:46vh; overflow-y:auto; }
+  .choices-hint{ font-size:11px; color:var(--ink-soft); margin-bottom:8px; }
+  .choice-btn{
+    display:block; width:100%; text-align:left; background:var(--surface-alt); border:1px solid var(--border);
+    border-radius:12px; padding:10px 13px; margin-bottom:8px; font-size:13px; line-height:1.6; color:var(--ink); cursor:pointer;
+  }
+  .choice-btn:hover{ border-color:var(--accent); }
+  .choice-btn:last-child{ margin-bottom:0; }
+
+  .feedback-panel{ padding:4px 2px 2px; }
+  .feedback-tag{ display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:700; padding:4px 11px; border-radius:20px; margin-bottom:8px; }
+  .feedback-tag.good{ background:var(--good-soft); color:var(--good); }
+  .feedback-tag.ok{ background:var(--warn-soft); color:var(--warn); }
+  .feedback-tag.bad{ background:var(--bad-soft); color:var(--bad); }
+  .feedback-text{ font-size:13px; line-height:1.7; color:var(--ink); margin-bottom:12px; }
+  .next-btn{ width:100%; padding:11px; border-radius:12px; border:none; background:var(--accent); color:var(--accent-contrast); font-weight:700; font-size:13.5px; cursor:pointer; }
+  .ghost-btn{ width:100%; padding:11px; border-radius:12px; border:1px solid var(--border); background:var(--surface-alt); color:var(--ink); font-weight:700; font-size:13.5px; cursor:pointer; }
+
+  /* ---- result ---- */
+  .result{ padding:22px 22px 26px; overflow-y:auto; flex:1; min-height:0; display:flex; flex-direction:column;}
+  .result-badge{
+    width:92px;height:92px;border-radius:50%; margin:6px auto 14px;
+    display:flex; align-items:center; justify-content:center; border:3px solid var(--accent); color:var(--accent);
+  }
+  .result-badge .grade{ font-size:28px; font-weight:900; font-family:"Zen Kaku Gothic New",sans-serif; }
+  .result-score{ text-align:center; font-size:13px; color:var(--ink-soft); }
+  .result-score .mono{ font-size:15px; color:var(--ink); font-weight:700; }
+  .result-title{ text-align:center; font-size:15.5px; font-weight:900; margin-top:14px; }
+  .result-msg{ text-align:center; font-size:12.5px; color:var(--ink-soft); margin-top:6px; line-height:1.75;}
+  .review-list{ margin-top:20px; display:flex; flex-direction:column; gap:8px; }
+  .review-item{ background:var(--surface-alt); border:1px solid var(--border); border-radius:12px; padding:10px 12px; }
+  .review-head{ display:flex; align-items:center; gap:8px; }
+  .review-icon{ width:20px;height:20px;border-radius:50%; flex-shrink:0; display:flex;align-items:center;justify-content:center; font-size:11px; font-weight:900; color:#fff; }
+  .review-icon.good{ background:var(--good); }
+  .review-icon.ok{ background:var(--warn); }
+  .review-icon.bad{ background:var(--bad); }
+  .review-situation{ font-size:12px; font-weight:700; }
+  .review-feedback{ font-size:11.5px; color:var(--ink-soft); margin-top:5px; line-height:1.6; padding-left:28px;}
+  .result-actions{ display:flex; flex-direction:column; gap:8px; margin-top:22px; }
+  .btn-primary{ padding:12px; border-radius:12px; border:none; background:var(--accent); color:var(--accent-contrast); font-weight:700; font-size:13.5px; cursor:pointer; }
+  .btn-secondary{ padding:12px; border-radius:12px; border:1px solid var(--border); background:var(--surface-alt); color:var(--ink); font-weight:700; font-size:13.5px; cursor:pointer; }
+</style>
+
+<div class="frame">
+  <div class="frame-label">
+    <svg viewBox="0 0 120 120" aria-hidden="true"><rect x="30" y="20" width="60" height="80" rx="14" fill="#E6EBF0" opacity="0.92"/><circle cx="82" cy="26" r="14" fill="#1B2430"/></svg>
+    <span>コミュ力ノート</span><span class="dot"></span><span>新人研修用</span>
+  </div>
+  <div class="page" id="app"></div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var MSG_SVG = '<svg viewBox="0 0 120 120" aria-hidden="true">'
+    + '<rect x="26" y="10" width="56" height="100" rx="14" fill="#35394A"/>'
+    + '<rect x="26" y="10" width="56" height="100" rx="14" fill="none" stroke="#282B38" stroke-width="2"/>'
+    + '<rect x="32" y="20" width="44" height="78" rx="8" fill="#EDE9DD"/>'
+    + '<rect x="36" y="30" width="24" height="10" rx="5" fill="#C7C2AF"/>'
+    + '<rect x="44" y="44" width="28" height="10" rx="5" fill="#2E6B93"/>'
+    + '<rect x="36" y="58" width="20" height="10" rx="5" fill="#C7C2AF"/>'
+    + '<circle cx="42" cy="74" r="2.2" fill="#A8A290"/>'
+    + '<circle cx="49" cy="74" r="2.2" fill="#A8A290"/>'
+    + '<circle cx="56" cy="74" r="2.2" fill="#A8A290"/>'
+    + '<rect x="48" y="93" width="12" height="3" rx="1.5" fill="#C7C2AF"/>'
+    + '<circle cx="88" cy="22" r="16" fill="#D9531E"/>'
+    + '<circle cx="88" cy="22" r="16" fill="none" stroke="#B43F14" stroke-width="1.5"/>'
+    + '<rect x="79" y="16" width="18" height="13" rx="2" fill="#FFFFFF"/>'
+    + '<line x1="79" y1="16" x2="88" y2="25" stroke="#D9531E" stroke-width="1.6"/>'
+    + '<line x1="97" y1="16" x2="88" y2="25" stroke="#D9531E" stroke-width="1.6"/>'
+    + '</svg>';
+
+  var CATEGORIES = [
+    {id:"mail", name:"メールの基本作法", desc:"正しい形式で、要件を分かりやすく伝える", varc:"--catMail", vars:"--catMail-soft"},
+    {id:"chat", name:"チャットのマナー", desc:"TeamsやSlackなど、日々のやり取りのコツ", varc:"--catChat", vars:"--catChat-soft"},
+    {id:"tone", name:"伝え方・トーン", desc:"断る・急ぐ・感情的になった時の伝え方", varc:"--catTone", vars:"--catTone-soft"},
+    {id:"trouble", name:"トラブル対応", desc:"誤送信や誤解が起きた時の対応", varc:"--catTrouble", vars:"--catTrouble-soft"}
+  ];
+
+  function T(text){ return {text:text}; }
+  function C(text, tier, feedback){
+    var pts = tier === "good" ? 10 : (tier === "ok" ? 5 : 0);
+    return {text:text, tier:tier, feedback:feedback, points:pts};
+  }
+
+  var SCENARIOS = [
+    {
+      id:"N1", cat:"mail", difficulty:1, icon:"✉️",
+      title:"初めての社外メールの書き出し", lead:"取引先に初めてメールを送ることになった。書き出しの挨拶文で悩んでいる。",
+      turns:[
+        { situation:T("書き出しの挨拶として、どれを選ぶか。"),
+          choices:[
+            C("「株式会社〇〇 △△様 いつもお世話になっております。□□株式会社の(自分の名前)です。」と、宛先・挨拶・名乗りを順に書く", "good", "宛先、挨拶、名乗りの順番は、ビジネスメールの基本の型です。"),
+            C("「こんにちは、□□株式会社の(自分の名前)です。」と、簡潔に名乗ってから本題に入る", "ok", "簡潔なこと自体は悪くありませんが、社外向けには「お世話になっております」などの定型の挨拶を添える方が丁寧です。"),
+            C("挨拶を省略し、すぐに本題の要件から書き始める", "bad", "社外の相手には、要件の前に一言挨拶を入れるのがマナーとして重要です。")
+          ]},
+        { situation:T("本文を書き終え、送信前に見直すことにした。何を確認するか。"),
+          choices:[
+            C("宛先(To/Cc)、添付ファイル、誤字脱字を一通り確認してから送信する", "good", "送信前の確認を習慣にすることで、誤送信やミスを防げます。"),
+            C("本文の内容だけをもう一度読み返して送信する", "ok", "内容の見直しは大切ですが、宛先や添付漏れの確認も忘れずに行うとより安心です。"),
+            C("急いでいたので、特に見直さずそのまま送信する", "bad", "見直しをしないと、誤字や送信先の間違いに気づけないまま送ってしまうことがあります。")
+          ]},
+        { situation:T("社外への初めてのメールを書くうえで、大切な心構えは?"),
+          choices:[
+            C("型を守りつつ、要件が相手に伝わりやすいかを意識して書く", "good", "形式と分かりやすさの両方を意識できる姿勢が身についています。"),
+            C("とにかく丁寧な言葉遣いを心がければ問題ないと考える", "ok", "丁寧さは大切ですが、それだけでなく要件が伝わる構成になっているかも意識する必要があります。"),
+            C("社内向けのメールと同じ感覚で、特に意識を変えずに書く", "bad", "社外向けには、社内とは異なる丁寧さや形式が求められます。")
+          ]}
+      ]
+    },
+    {
+      id:"N2", cat:"mail", difficulty:1, icon:"🏷️",
+      title:"分かりやすい件名の付け方", lead:"上司に依頼メールを送ろうとしているが、件名をどうつけるか迷っている。",
+      turns:[
+        { situation:T("件名として、どれが適切か。"),
+          choices:[
+            C("「【要確認】〇〇資料のご確認のお願い(9/10締切)」のように、要件と期限が分かる件名にする", "good", "要件と期限が一目で分かる件名は、相手が優先度を判断しやすくなります。"),
+            C("「ご確認のお願い」とだけ、簡潔な件名にする", "ok", "簡潔なこと自体は良いですが、何についての確認かが件名だけでは分からず、探しにくくなることがあります。"),
+            C("件名を空欄のまま送信する", "bad", "件名がないメールは見落とされやすく、相手に不親切な印象を与えてしまいます。")
+          ]},
+        { situation:T("同じ相手に、少し内容の異なる別件のメールも送る必要が出てきた。"),
+          choices:[
+            C("別件として、新しいメールを立てて、それぞれ分かる件名をつける", "good", "案件ごとにメールを分けることで、後から探しやすく、返信の行き違いも防げます。"),
+            C("手間を省くため、同じメールの続きに別件の内容も追記して送る", "ok", "手間は省けますが、案件が混ざると後で確認しづらくなることがあります。"),
+            C("既存のメールに返信する形で、件名はそのままにして全く別の内容を書く", "bad", "件名と内容が合っていないと、後から探すときや第三者が見たときに混乱を招きます。")
+          ]},
+        { situation:T("件名のつけ方として、日頃から意識すべきことは?"),
+          choices:[
+            C("件名だけを見て、相手が「何を」「いつまでに」すればいいかが分かるようにする", "good", "件名の役割を正しく理解できています。"),
+            C("件名は多少分かりにくくても、本文をきちんと読んでもらえれば問題ないと考える", "ok", "本文の内容が良くても、件名が分かりにくいと読んでもらえない、後回しにされるといったことが起こり得ます。"),
+            C("件名は形式的なものなので、あまり深く考えずに毎回同じような件名をつけている", "bad", "毎回同じ件名だと、後から検索したり見分けたりすることが難しくなります。")
+          ]}
+      ]
+    },
+    {
+      id:"N3", cat:"mail", difficulty:2, icon:"📝",
+      title:"依頼メールの構成", lead:"別部署の担当者に、資料の提出を依頼するメールを書くことになった。",
+      turns:[
+        { situation:T("依頼メールの本文を、どのような構成で書くか。"),
+          choices:[
+            C("挨拶の後に、依頼の目的・具体的にお願いしたい内容・期限の順に、簡潔にまとめる", "good", "目的から期限までを順序立てて書くことで、相手が読みやすく行動しやすくなります。"),
+            C("背景の説明から始めて、経緯を詳しく書いた後に依頼内容を書く", "ok", "背景を伝えること自体は悪くありませんが、長くなりすぎると、肝心の依頼内容が伝わりにくくなることがあります。"),
+            C("とりあえず「資料をお願いします」とだけ書いて送る", "bad", "具体的に何を、いつまでに、なぜ必要かが分からないと、相手も対応に困ってしまいます。")
+          ]},
+        { situation:T("メールを送った後、期限が近づいても返信がない。"),
+          choices:[
+            C("催促のメールを送る際、まず前回の依頼内容を簡潔に振り返り、状況を確認する形で丁寧に伝える", "good", "相手を責める形にせず、状況確認という形で丁寧に伝えるのは良い対応です。"),
+            C("特に催促せず、期限を過ぎるまで静かに待つ", "ok", "催促をためらう気持ちは分かりますが、期限が近い場合は早めに確認する方が良いことが多いです。"),
+            C("返信がないことに苛立ち、強い口調で催促のメールを送る", "bad", "強い口調での催促は、相手との関係を損ねてしまう可能性があります。")
+          ]},
+        { situation:T("依頼メールを書くうえで大切な考え方は?"),
+          choices:[
+            C("相手の立場に立って、何をすればいいかがすぐに分かる文章になっているかを意識する", "good", "相手の視点で読みやすさを考える姿勢が身についています。"),
+            C("丁寧な言葉遣いを使っていれば、多少分かりにくくても問題ないと考える", "ok", "丁寧さだけでなく、内容の分かりやすさも合わせて意識する必要があります。"),
+            C("依頼は口頭やチャットで伝えれば十分で、メールの書き方まで気にしなくてもよいと考える", "bad", "内容によっては記録に残るメールでの依頼が適切な場合もあり、書き方を軽視するのは避けたいところです。")
+          ]}
+      ]
+    },
+    {
+      id:"N4", cat:"chat", difficulty:1, icon:"💬",
+      title:"チャットとメール、どちらを使うか", lead:"上司に確認したいことがある。急ぎではないが、今日中には返事がほしい内容。",
+      turns:[
+        { situation:T("この内容を伝えるのに、どちらの手段を選ぶか。"),
+          choices:[
+            C("社内のチャットツール(Teamsなど)で、要点を簡潔にまとめて送る", "good", "社内のちょっとした確認事項には、気軽にやり取りできるチャットが向いています。"),
+            C("念のため、メールでかしこまった文面にして送る", "ok", "間違いではありませんが、社内の日常的な確認事項にはチャットの方がスピーディーでやり取りしやすいことが多いです。"),
+            C("手間を惜しんで、忙しそうな上司の席に行き、口頭だけで済ませて記録を残さない", "bad", "内容によっては、後から確認できるよう文字で残しておくことも大切です。")
+          ]},
+        { situation:T("チャットで送ったが、しばらく既読がつかない。"),
+          choices:[
+            C("今日中に返事がほしいことを踏まえ、催促せず少し待ちつつ、必要なら別の業務を進めておく", "good", "相手の都合も考えながら、焦らず対応する姿勢が適切です。"),
+            C("既読がつかないことが気になり、何度も同じ内容を送ってしまう", "ok", "気持ちは分かりますが、同じ内容を繰り返し送ると相手の負担になることがあります。"),
+            C("既読がつかないので、もう諦めて確認せずに自己判断で作業を進めてしまう", "bad", "確認が必要な内容を自己判断で進めてしまうと、後で修正が必要になる可能性があります。")
+          ]},
+        { situation:T("チャットとメールを使い分けるうえで、大切な考え方は?"),
+          choices:[
+            C("緊急度や記録の必要性に応じて、チャットとメールを使い分ける", "good", "手段ごとの特性を理解した使い分けができています。"),
+            C("基本的にはどちらを使っても同じなので、その時の気分で選ぶ", "ok", "手段による特性の違い(スピード感や記録の残り方)を意識すると、より適切な選択ができます。"),
+            C("上司や周りが使っている手段に、特に理由もなく合わせるようにしている", "bad", "内容に応じて適切な手段を自分で判断できるようにしておくことが大切です。")
+          ]}
+      ]
+    },
+    {
+      id:"N5", cat:"chat", difficulty:1, icon:"🧵",
+      title:"スレッドでの返信の仕方", lead:"チームのチャットで、複数の話題が同時に進んでいるグループに参加することになった。",
+      turns:[
+        { situation:T("ある話題に返信したい時、どうするか。"),
+          choices:[
+            C("元のメッセージにスレッドで返信し、話題ごとに会話がまとまるようにする", "good", "スレッドを使うことで、後から話題を追いやすくなります。"),
+            C("スレッドを使わず、チャンネルに新しいメッセージとして返信する", "ok", "内容は伝わりますが、複数の話題が入り混じると、後から経緯を追いにくくなることがあります。"),
+            C("どの話題に対する返信か分からないまま、思いついたことをそのまま投稿する", "bad", "文脈が分からないまま投稿すると、周囲が混乱してしまいます。")
+          ]},
+        { situation:T("自分が投稿した内容に対して、複数人からスレッドで返信が来た。"),
+          choices:[
+            C("全員の返信に目を通し、必要な人には個別にお礼や返答をする", "good", "反応をきちんと確認し、対応する姿勢は良いコミュニケーションです。"),
+            C("内容を確認はするが、特に返信せずそのままにしておく", "ok", "確認すること自体は良いですが、反応を返すことで会話がより円滑になります。"),
+            C("通知が多くて面倒に感じ、スレッドの内容を確認せずに放置する", "bad", "確認や返信を怠ると、重要な情報を見逃したり、相手を待たせたりすることになります。")
+          ]},
+        { situation:T("チャットでのスレッドの使い方として、大切な考え方は?"),
+          choices:[
+            C("話題ごとに会話を整理することで、自分だけでなく周囲も情報を追いやすくなると意識する", "good", "自分だけでなくチーム全体の見やすさを意識できています。"),
+            C("自分が使いやすい方法であれば、スレッドを使うかどうかはあまり気にしない", "ok", "個人の使いやすさだけでなく、チーム全体の見やすさも意識する方が良いコミュニケーションにつながります。"),
+            C("スレッドの機能自体、特に意識して使ったことがない", "bad", "機能を知らないまま使うと、チーム全体の会話が分かりにくくなってしまうことがあります。")
+          ]}
+      ]
+    },
+    {
+      id:"N6", cat:"chat", difficulty:2, icon:"⏱️",
+      title:"既読後の返信タイミング", lead:"チャットでメッセージを受け取り、内容は確認したが、すぐに返信できる状況ではなかった。",
+      turns:[
+        { situation:T("この状況で、どうするか。"),
+          choices:[
+            C("すぐに詳しい返信ができなくても、「確認しました、後ほど返信します」と一言だけ先に送る", "good", "一言でも先に返すことで、相手を不安にさせずに済みます。"),
+            C("手が空いてから、まとめてきちんとした返信をしようと考え、そのままにしておく", "ok", "きちんと返信しようとする姿勢は良いですが、既読のまま長時間放置すると相手が不安に感じることがあります。"),
+            C("既読をつけると催促されそうで嫌なので、通知だけ確認して既読をつけないようにする", "bad", "既読を避ける対応は、かえって相手との信頼関係を損ねる可能性があります。")
+          ]},
+        { situation:T("「後ほど返信します」と送った後、思ったより忙しく、返信が半日以上空いてしまった。"),
+          choices:[
+            C("気づいた時点で、遅くなったことを一言添えてから、きちんと返信する", "good", "遅れたことを一言添える配慮が、相手への印象を良くします。"),
+            C("特に触れずに、通常通りの内容だけを返信する", "ok", "内容の返信自体は問題ありませんが、一言添えるとより丁寧な印象になります。"),
+            C("遅れてしまったことが気まずく、返信自体をさらに先延ばしにしてしまう", "bad", "気まずさから先延ばしにすると、相手をさらに待たせてしまうことになります。")
+          ]},
+        { situation:T("チャットでの返信タイミングについて、大切な考え方は?"),
+          choices:[
+            C("すぐに詳しく返せなくても、一言だけでも早めに反応することを心がける", "good", "「早い反応」と「丁寧な返信」を分けて考えられています。"),
+            C("きちんとした内容で返信することを優先し、多少時間がかかっても仕方ないと考える", "ok", "内容の質も大切ですが、反応の早さも相手の安心感につながります。"),
+            C("チャットは相手も忙しいだろうから、返信は気が向いた時でよいと考える", "bad", "相手も返信を待っている可能性があるため、あまり長く放置しない方が良いです。")
+          ]}
+      ]
+    },
+    {
+      id:"N7", cat:"tone", difficulty:2, icon:"🙅",
+      title:"依頼を断る時の伝え方", lead:"同僚から、自分の業務量的に対応が難しい作業を頼まれた。",
+      turns:[
+        { situation:T("この依頼を断る際、どう伝えるか。"),
+          choices:[
+            C("今の業務状況を簡潔に伝えたうえで、対応が難しいことと、可能であれば代替案(期限をずらす、他の人に相談するなど)を伝える", "good", "理由と代替案を添えることで、単なる拒否ではなく建設的な対応になります。"),
+            C("「ちょっと難しいです」とだけ伝え、詳しい理由は説明しない", "ok", "断ること自体は問題ありませんが、理由が分からないと相手が対応に困ってしまうことがあります。"),
+            C("断りづらくて、できるかどうか分からないまま「やっておきます」と返事をしてしまう", "bad", "その場しのぎで引き受けてしまうと、後で対応できずに相手により迷惑をかけることになりかねません。")
+          ]},
+        { situation:T("理由を伝えて断ったところ、相手が少し困った様子だった。"),
+          choices:[
+            C("困っている様子を汲み取り、自分でできる範囲の代替案(一部だけ手伝う、別の担当者を紹介するなど)を追加で提案する", "good", "断った後もフォローする姿勢が、良好な関係を保つことにつながります。"),
+            C("断った以上仕方ないと考え、特にそれ以上は対応しない", "ok", "断ること自体は正しい判断ですが、可能な範囲でのフォローがあるとより良い対応になります。"),
+            C("相手の様子が気になり、やはり無理をしてでも引き受けようと考え直す", "bad", "一度立てた判断を状況の空気だけで覆すと、同じような無理を繰り返すことになりがちです。")
+          ]},
+        { situation:T("依頼を断る際に大切な考え方は?"),
+          choices:[
+            C("断ること自体は問題ないと理解しつつ、理由と代替案をセットで伝えることを意識する", "good", "断ることへの罪悪感ではなく、伝え方の工夫に意識を向けられています。"),
+            C("できるだけ断らずに済むよう、多少無理をしてでも引き受けるようにする", "ok", "無理をして引き受け続けると、自分の業務にも支障が出てしまうことがあります。"),
+            C("断ると角が立つと思い、はっきり断らずに曖昧な返事でごまかす", "bad", "曖昧な返事は、後で認識のずれによるトラブルの原因になります。")
+          ]}
+      ]
+    },
+    {
+      id:"N8", cat:"tone", difficulty:2, icon:"❗",
+      title:"緊急度の高い連絡の書き方", lead:"システムに不具合が見つかり、上司にすぐ知らせる必要がある。",
+      turns:[
+        { situation:T("この内容を伝える際、どのように書くか。"),
+          choices:[
+            C("チャットで「至急」と分かるように一文目に要点を書き、詳細を続けて伝える", "good", "緊急度が高い内容は、結論から先に伝えるのが基本です。"),
+            C("普段通りの丁寧な文章で、経緯から順番に詳しく説明する", "ok", "丁寧さは良いですが、緊急時は結論を先に伝えないと、読むのに時間がかかってしまいます。"),
+            C("詳細が分かってから伝えようと、原因を調べ終えるまで連絡を控える", "bad", "緊急性が高い内容は、分かっている範囲だけでも早く伝える方が望ましいです。")
+          ]},
+        { situation:T("チャットで一報を入れたが、相手からの反応がすぐにない。"),
+          choices:[
+            C("緊急度が高いと判断し、電話などチャット以外の手段でも一報を入れる", "good", "緊急時は一つの手段にこだわらず、確実に伝わる方法を選ぶことが重要です。"),
+            C("チャットを送ったので大丈夫だろうと考え、そのまま反応を待つ", "ok", "緊急度によっては、より確実に伝わる手段を追加で検討した方が安全です。"),
+            C("反応がないので、自分の判断だけで対応を進めてしまう", "bad", "重大な判断が必要な場面では、上司の確認を待たずに進めるのはリスクがあります。")
+          ]},
+        { situation:T("緊急度の高い連絡をする際に、大切な考え方は?"),
+          choices:[
+            C("「結論から伝える」「確実に届く手段を選ぶ」という2点を意識する", "good", "緊急連絡の基本が押さえられています。"),
+            C("とにかく早く連絡することだけを意識する", "ok", "早さは大切ですが、伝え方や手段の選び方も合わせて意識する必要があります。"),
+            C("緊急時こそ丁寧な言葉遣いを一番に優先すべきだと考える", "bad", "丁寧さより先に、要点を早く確実に伝えることが優先されます。")
+          ]}
+      ]
+    },
+    {
+      id:"N9", cat:"tone", difficulty:2, icon:"😤",
+      title:"感情的になった時の送信判断", lead:"チャットで届いたメッセージの言い方に、少しかちんときてしまった。すぐに返信を打とうとしている。",
+      turns:[
+        { situation:T("この状態で、どうするか。"),
+          choices:[
+            C("一度送信せずに下書きのまま置いておき、少し時間を置いてから読み返して送る", "good", "感情が高ぶっている時に間を置くのは、冷静な文章にするための有効な方法です。"),
+            C("多少きつい言い方になっているかもしれないと思いつつ、そのまま送信する", "ok", "気づいている点は良いですが、気づいた時点で見直す方が望ましいです。"),
+            C("むしゃくしゃした気持ちのまま、思ったことをそのまま打って送信する", "bad", "感情のままに送信すると、後で関係の修復に時間がかかることがあります。")
+          ]},
+        { situation:T("少し時間を置いてから読み返すと、送ろうとしていた文章がかなりきつい言い方になっていた。"),
+          choices:[
+            C("事実と感情を分けて書き直し、必要な内容だけを冷静な言葉で伝える", "good", "事実と感情を切り分けて書き直す姿勢は、建設的なコミュニケーションにつながります。"),
+            C("きついと感じたので、結局その件については何も返信しないでおく", "ok", "気持ちは分かりますが、必要な内容であれば、伝え方を変えて伝える方が良いこともあります。"),
+            C("きつい言い方のまま、多少表現だけ和らげて送信する", "bad", "表現を少し変えるだけでは、根本的な伝わり方はあまり変わらないことがあります。")
+          ]},
+        { situation:T("感情的になった時のメッセージ送信について、大切な考え方は?"),
+          choices:[
+            C("感情が高ぶっている時ほど、一度立ち止まってから送信するかどうかを判断する", "good", "感情と送信のタイミングを切り分ける発想が身についています。"),
+            C("感情的になるのは仕方ないので、多少きつくなっても正直に伝えるべきだと考える", "ok", "正直に伝えること自体は大切ですが、伝え方次第で受け取られ方が大きく変わります。"),
+            C("文字でのやり取りは感情が伝わりにくいので、多少強めに書いても問題ないと考える", "bad", "文字だからこそ、表現のきつさがそのまま伝わってしまうこともあります。")
+          ]}
+      ]
+    },
+    {
+      id:"N10", cat:"trouble", difficulty:2, icon:"⚠️",
+      title:"誤送信をしてしまった時の対応", lead:"メールを送信した直後、宛先を間違えていたことに気づいた。",
+      turns:[
+        { situation:T("気づいた直後、まずどうするか。"),
+          choices:[
+            C("できるだけ早く、上司や関係者に誤送信したことを報告する", "good", "早めの報告が、被害を最小限に抑えるための第一歩です。"),
+            C("まずは自分でどうにかできないか、削除や取り消しの方法を調べてから報告しようとする", "ok", "対応策を調べること自体は悪くありませんが、報告が遅れると対応が後手に回ることがあります。"),
+            C("気まずくて、誰にも言わずにそのまま様子を見ることにする", "bad", "報告を怠ると、問題が大きくなってから発覚し、対応がより難しくなってしまいます。")
+          ]},
+        { situation:T("上司に報告したところ、誤送信した相手にすぐお詫びの連絡をするよう指示された。"),
+          choices:[
+            C("指示に従い、誤送信した旨と、内容の取り扱いについてのお願いを、丁寧にすぐ連絡する", "good", "早めの連絡が、相手の不安や誤解を防ぐことにつながります。"),
+            C("指示は理解したが、どう伝えればいいか分からず、文面を考えるのに時間をかけてしまう", "ok", "丁寧に伝えようとする姿勢は良いですが、緊急性の高い場面では早さも重要です。"),
+            C("相手に知らせるのが気まずく、連絡を先延ばしにする", "bad", "先延ばしにすると、相手側で情報が広まってしまうなど、状況が悪化する可能性があります。")
+          ]},
+        { situation:T("誤送信をしてしまった時の対応として、大切な考え方は?"),
+          choices:[
+            C("隠さずすぐに報告し、関係者と一緒に早く対応することを優先する", "good", "ミスを一人で抱え込まない姿勢が、被害を抑える鍵になります。"),
+            C("同じミスを繰り返さないよう、次回から一層注意することを心がける", "ok", "今後への意識も大切ですが、起きてしまったミスへの早い対応も同じくらい重要です。"),
+            C("誤送信は誰にでもあることなので、あまり気にしすぎないようにする", "bad", "気にしすぎないことより、起きてしまった問題に適切に対応することが優先されます。")
+          ]}
+      ]
+    },
+    {
+      id:"N11", cat:"trouble", difficulty:2, icon:"🤔",
+      title:"チャットでの言葉が誤解を招いた時", lead:"チャットで送った短いメッセージが、相手には素っ気ない、あるいは怒っているように受け取られてしまったようだ。",
+      turns:[
+        { situation:T("相手の反応から誤解に気づいた時、どうするか。"),
+          choices:[
+            C("誤解を与えてしまったことに気づき、そのつもりはなかったことを補足するメッセージを送る", "good", "早めに補足することで、誤解が大きくなる前に解消できます。"),
+            C("気づいてはいるが、説明すると余計にこじれそうで、特にフォローせずそのままにする", "ok", "気持ちは分かりますが、誤解を放置すると関係がぎくしゃくしたままになる可能性があります。"),
+            C("自分はそんなつもりはなかったのだから、相手の受け取り方の問題だと考える", "bad", "意図がどうであれ、相手にどう伝わったかにも目を向けることが大切です。")
+          ]},
+        { situation:T("フォローのメッセージを送ることにした。どのように伝えるか。"),
+          choices:[
+            C("「言葉足らずで、そっけない印象を与えてしまっていたらすみません」と、素直に補足する", "good", "素直に補足することで、相手も安心しやすくなります。"),
+            C("特に謝らず、話題を変えるように別の明るい話を振ってみる", "ok", "雰囲気を和らげようとする気持ちは分かりますが、直接触れた方が誤解は解消しやすいことが多いです。"),
+            C("「そんなつもりじゃなかったんですけど」と、やや不満げなニュアンスで伝える", "bad", "不満げなニュアンスが伝わると、かえって関係がこじれてしまうことがあります。")
+          ]},
+        { situation:T("チャットでの言葉の受け取られ方について、大切な考え方は?"),
+          choices:[
+            C("文字だけのやり取りは、対面より意図が伝わりにくいと理解し、短い文章でも一言添える配慮を心がける", "good", "文字コミュニケーションの特性を理解した配慮ができています。"),
+            C("誤解されないよう、できるだけ長い文章で丁寧に説明するようにする", "ok", "丁寧さは大切ですが、長すぎる文章もまた読みにくく、別の誤解を生むことがあります。"),
+            C("誤解するかどうかは相手次第なので、自分の書き方を変える必要はないと考える", "bad", "自分の書き方次第で、相手の受け取り方が変わることも意識しておきたいところです。")
+          ]}
+      ]
+    },
+    {
+      id:"N12", cat:"trouble", difficulty:1, icon:"👥",
+      title:"全員へのCC/メンションの判断", lead:"チームのチャットで、ある業務連絡をどの範囲まで共有するか迷っている。",
+      turns:[
+        { situation:T("この連絡を送る際、どうするか。"),
+          choices:[
+            C("関係する業務に直接関わるメンバーだけに絞って、必要な情報を送る", "good", "関係者を適切に絞ることで、受け取る側の負担を減らせます。"),
+            C("念のため、少し関係が薄いメンバーも含めて広めに共有しておく", "ok", "念のための共有自体は悪くありませんが、関係のない通知が増えると、重要な情報が埋もれやすくなります。"),
+            C("誰が関係するか考えず、チーム全員が入っているチャンネルに全体宛てで送る", "bad", "関係のないメンバーにまで通知が届くと、大事な連絡が見落とされやすくなる原因になります。")
+          ]},
+        { situation:T("後から、共有すべきだったメンバーが一人漏れていたことに気づいた。"),
+          choices:[
+            C("気づいた時点で、そのメンバーに個別に内容を共有し、経緯も簡単に伝える", "good", "気づいた時点ですぐにフォローする対応は適切です。"),
+            C("次に関連する話があったタイミングで、まとめて伝えようとする", "ok", "対応しようとする姿勢は良いですが、重要な連絡であれば気づいた時点で早めに伝える方が安心です。"),
+            C("特に大きな問題にはならなそうなので、そのままにしておく", "bad", "情報が共有されていないことで、後から本人が困ったり、認識のずれが生じたりする可能性があります。")
+          ]},
+        { situation:T("チャットでの共有範囲(CCやメンション)を決める際、大切な考え方は?"),
+          choices:[
+            C("「誰が知っておくべきか」を基準に、必要な範囲を考えてから送る", "good", "宛先を目的から逆算して考える習慣が身についています。"),
+            C("迷ったら、なるべく多くの人に共有しておけば安心だと考える", "ok", "安心感はありますが、共有範囲が広すぎると、かえって重要な情報が埋もれてしまうことがあります。"),
+            C("共有範囲は特に気にせず、いつも同じメンバーに同じように送っている", "bad", "案件ごとに関係者が変わることを意識せず送ると、必要な人に届いていなかったり、不要な人に届いたりすることがあります。")
+          ]}
+      ]
+    }
+  ];
+
+  var TIPS = [
+    {desc:"件名は「何を」「いつまでに」が一目で分かるようにつける。"},
+    {desc:"依頼メールは、目的・依頼内容・期限の順にまとめる。"},
+    {desc:"緊急度が高い内容は、結論から先に伝える。"},
+    {desc:"チャットとメールは、緊急度や記録の必要性で使い分ける。"},
+    {desc:"スレッドを使って、話題ごとに会話を整理する。"},
+    {desc:"すぐに詳しく返信できなくても、一言だけ早めに反応する。"},
+    {desc:"断る時は、理由と代替案をセットで伝える。"},
+    {desc:"感情的になった時ほど、一度置いてから送信するか判断する。"},
+    {desc:"誤送信や誤解に気づいたら、隠さずすぐにフォローする。"},
+    {desc:"共有範囲(CC・メンション)は「誰が知っておくべきか」で決める。"}
+  ];
+
+  /* ---------------- storage ---------------- */
+  var STORE_KEY = "mailchat-sim-progress-v1";
+  function loadProgress(){ try{ var raw = localStorage.getItem(STORE_KEY); return raw ? JSON.parse(raw) : {}; }catch(e){ return {}; } }
+  function saveProgress(p){ try{ localStorage.setItem(STORE_KEY, JSON.stringify(p)); }catch(e){} }
+
+  /* ---------------- state ---------------- */
+  var state = {
+    screen:"home", scenarioId:null, phase:"intro", turnIndex:0,
+    currentChoices:null, record:[], review:[], score:0, maxScore:0
+  };
+  var progress = loadProgress();
+
+  function shuffle(arr){
+    var a = arr.slice();
+    for(var i=a.length-1;i>0;i--){ var j = Math.floor(Math.random()*(i+1)); var t=a[i]; a[i]=a[j]; a[j]=t; }
+    return a;
+  }
+  function catInfo(id){ for(var i=0;i<CATEGORIES.length;i++){ if(CATEGORIES[i].id===id) return CATEGORIES[i]; } return CATEGORIES[0]; }
+  function scenarioById(id){ for(var i=0;i<SCENARIOS.length;i++){ if(SCENARIOS[i].id===id) return SCENARIOS[i]; } return null; }
+  function escapeHtml(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+  function tierLabel(tier){ return tier==="good" ? "とても良い対応です" : (tier==="ok" ? "OKですが、改善の余地があります" : "見直しが必要です"); }
+  function tierIcon(tier){ return tier==="good" ? "◎" : (tier==="ok" ? "○" : "✕"); }
+  function truncate(s, n){ return s.length > n ? s.slice(0,n) + "…" : s; }
+
+  var app = document.getElementById("app");
+
+  function render(){
+    if(state.screen==="home") renderHome();
+    else if(state.screen==="manual") renderManual();
+    else if(state.screen==="scenario") renderScenario();
+    else if(state.screen==="result") renderResult();
+  }
+
+  /* ---------------- HOME ---------------- */
+  function renderHome(){
+    var completed = 0;
+    SCENARIOS.forEach(function(s){ if(progress[s.id]) completed++; });
+    var pct = Math.round(completed/SCENARIOS.length*100);
+
+    var html = '';
+    html += '<div class="home">';
+    html += '<div class="cover-art">'+MSG_SVG+'<div class="cover-caption">MAIL & CHAT · 伝わる書き方</div></div>';
+    html += '<div class="home-head">';
+    html += '<div class="eyebrow">新人研修プログラム</div>';
+    html += '<h1 class="home-title"><span style="white-space:nowrap">メール・チャット</span><span style="white-space:nowrap">シミュレーター</span></h1>';
+    html += '<p class="home-sub">メールとチャット(Teams・Slackなど)、それぞれの書き方や使い分けのコツを学びます。よくある場面を選んで、選択肢に答えるだけです。</p>';
+    html += '<div class="progress-row"><div class="progress-track"><div class="progress-fill" style="width:'+pct+'%"></div></div><div class="progress-label mono">'+completed+' / '+SCENARIOS.length+'</div></div>';
+    html += '<button class="manual-link" data-action="open-manual">📘 メール・チャットの基本10か条を見る</button>';
+    html += '</div>';
+
+    CATEGORIES.forEach(function(cat){
+      var list = SCENARIOS.filter(function(s){ return s.cat===cat.id; });
+      if(list.length===0) return;
+      html += '<div class="cat-block">';
+      html += '<div class="cat-head"><span class="cat-dot" style="background:var('+cat.varc+')"></span><span class="cat-name">'+cat.name+'</span></div>';
+      html += '<div class="cat-desc">'+cat.desc+'</div>';
+      html += '<div class="card-list">';
+      list.forEach(function(s){
+        var stars = "★".repeat(s.difficulty) + "☆".repeat(3-s.difficulty);
+        var best = progress[s.id];
+        html += '<button class="scenario-card" data-action="open-scenario" data-id="'+s.id+'">';
+        html += '<span class="avatar" style="background:var('+cat.vars+')">'+s.icon+'</span>';
+        html += '<span class="card-body"><span class="card-title">'+escapeHtml(s.title)+'</span><br><span class="card-meta">'+escapeHtml(truncate(s.lead, 30))+'</span></span>';
+        html += '<span class="card-side"><span class="stars">'+stars+'</span>' + (best ? '<span class="best-badge">ベスト '+best.pct+'%</span>' : '') + '</span>';
+        html += '</button>';
+      });
+      html += '</div></div>';
+    });
+
+    html += '</div>';
+    app.innerHTML = html;
+  }
+
+  /* ---------------- MANUAL ---------------- */
+  function renderManual(){
+    var html = '<div class="manual">';
+    html += '<div class="back-row"><button class="icon-btn" data-action="go-home">←</button><span class="screen-title">メール・チャットの基本10か条</span></div>';
+    TIPS.forEach(function(tip, i){
+      html += '<div class="tip-card"><div class="tip-num">POINT '+(i+1)+'</div><div class="tip-desc">'+escapeHtml(tip.desc)+'</div></div>';
+    });
+    html += '</div>';
+    app.innerHTML = html;
+  }
+
+  /* ---------------- SCENARIO ---------------- */
+  function openScenario(id){
+    var sc = scenarioById(id);
+    if(!sc) return;
+    state.screen = "scenario"; state.scenarioId = id; state.phase = "intro"; state.turnIndex = 0;
+    state.currentChoices = null; state.record = []; state.review = []; state.score = 0;
+    state.maxScore = sc.turns.length * 10;
+    render();
+  }
+
+  function renderScenario(){
+    var sc = scenarioById(state.scenarioId);
+    var cat = catInfo(sc.cat);
+
+    if(state.phase === "intro"){
+      var html = '<div class="intro">';
+      html += '<span class="avatar" style="background:var('+cat.vars+')">'+sc.icon+'</span>';
+      html += '<div class="intro-cat">'+escapeHtml(cat.name)+'</div>';
+      html += '<div class="intro-title">'+escapeHtml(sc.title)+'</div>';
+      html += '<div class="intro-lead">'+escapeHtml(sc.lead)+'</div>';
+      html += '<div class="intro-actions">';
+      html += '<button class="next-btn" data-action="start-scenario">この場面を始める</button>';
+      html += '<button class="ghost-btn" data-action="go-home">一覧に戻る</button>';
+      html += '</div></div>';
+      app.innerHTML = html;
+      return;
+    }
+
+    var html2 = '';
+    html2 += '<div class="rec-top">';
+    html2 += '<div><div class="rec-top-title">'+escapeHtml(sc.title)+'</div><div class="rec-top-cat">'+escapeHtml(cat.name)+'</div></div>';
+    html2 += '<div class="rec-step mono">STEP '+(state.turnIndex+1)+' / '+sc.turns.length+'</div>';
+    html2 += '</div>';
+
+    html2 += '<div class="record" id="record" style="--cat-color:var('+cat.varc+')">';
+    state.record.forEach(function(item){
+      if(item.speaker === "situation"){
+        html2 += '<div class="sit-card"><div class="sit-label">状況</div>'+escapeHtml(item.text)+'</div>';
+      } else {
+        html2 += '<div><div class="act-label">あなたの行動</div><div class="act-row"><div class="act-bubble">'+escapeHtml(item.text)+'</div></div></div>';
+      }
+    });
+    html2 += '</div>';
+
+    html2 += '<div class="choices-panel">';
+    if(state.phase === "active"){
+      html2 += '<div class="choices-hint">どう対応しますか?</div>';
+      state.currentChoices.forEach(function(choice, idx){
+        html2 += '<button class="choice-btn" data-action="pick-choice" data-idx="'+idx+'">'+escapeHtml(choice.text)+'</button>';
+      });
+    } else if(state.phase === "feedback"){
+      var last = state.review[state.review.length-1];
+      html2 += '<div class="feedback-panel">';
+      html2 += '<span class="feedback-tag '+last.tier+'">'+tierIcon(last.tier)+' '+tierLabel(last.tier)+'</span>';
+      html2 += '<div class="feedback-text">'+escapeHtml(last.feedback)+'</div>';
+      var isLast = state.turnIndex >= sc.turns.length - 1;
+      html2 += '<button class="next-btn" data-action="next-turn">'+(isLast ? "この場面を終える" : "次へ")+'</button>';
+      html2 += '</div>';
+    }
+    html2 += '</div>';
+
+    app.innerHTML = html2;
+    var rEl = document.getElementById("record");
+    if(rEl) rEl.scrollTop = rEl.scrollHeight;
+  }
+
+  function startScenario(){
+    var sc = scenarioById(state.scenarioId);
+    state.phase = "active"; state.turnIndex = 0;
+    pushSituation(sc, 0);
+    state.currentChoices = shuffle(sc.turns[0].choices);
+    render();
+  }
+
+  function pushSituation(sc, idx){ state.record.push({speaker:"situation", text: sc.turns[idx].situation.text}); }
+
+  function pickChoice(idx){
+    var sc = scenarioById(state.scenarioId);
+    var choice = state.currentChoices[idx];
+    state.record.push({speaker:"you", text: choice.text});
+    state.score += choice.points;
+    state.review.push({
+      situation: sc.turns[state.turnIndex].situation.text,
+      chosen: choice.text, tier: choice.tier, feedback: choice.feedback
+    });
+    state.phase = "feedback";
+    render();
+  }
+
+  function nextTurn(){
+    var sc = scenarioById(state.scenarioId);
+    if(state.turnIndex >= sc.turns.length - 1){ finishScenario(); return; }
+    state.turnIndex++;
+    pushSituation(sc, state.turnIndex);
+    state.currentChoices = shuffle(sc.turns[state.turnIndex].choices);
+    state.phase = "active";
+    render();
+  }
+
+  function finishScenario(){
+    var pct = Math.round(state.score / state.maxScore * 100);
+    progress[state.scenarioId] = progress[state.scenarioId] && progress[state.scenarioId].pct > pct
+      ? progress[state.scenarioId] : {pct: pct};
+    saveProgress(progress);
+    state.screen = "result";
+    render();
+  }
+
+  /* ---------------- RESULT ---------------- */
+  function renderResult(){
+    var sc = scenarioById(state.scenarioId);
+    var pct = Math.round(state.score / state.maxScore * 100);
+    var grade = pct >= 90 ? "S" : pct >= 75 ? "A" : pct >= 55 ? "B" : "C";
+    var msg = pct >= 90 ? "とても良い判断です。この調子で、他の場面にも挑戦してみましょう。"
+      : pct >= 75 ? "良い対応ができています。○や✕がついた場面の理由を振り返ると、さらにコツがつかめます。"
+      : pct >= 55 ? "基本はできています。迷った場面を見直して、伝え方の基準を整理してみましょう。"
+      : "焦らず大丈夫です。下の振り返りを読んで、もう一度この場面に挑戦してみましょう。";
+
+    var html = '<div class="result">';
+    html += '<div class="result-badge"><span class="grade">'+grade+'</span></div>';
+    html += '<div class="result-score">スコア <span class="mono">'+state.score+' / '+state.maxScore+'</span>(' + pct + '%)</div>';
+    html += '<div class="result-title">'+escapeHtml(sc.title)+'・振り返り</div>';
+    html += '<div class="result-msg">'+msg+'</div>';
+
+    html += '<div class="review-list">';
+    state.review.forEach(function(r, i){
+      html += '<div class="review-item">';
+      html += '<div class="review-head"><span class="review-icon '+r.tier+'">'+tierIcon(r.tier)+'</span><span class="review-situation">場面'+(i+1)+'. '+escapeHtml(truncate(r.situation, 32))+'</span></div>';
+      html += '<div class="review-feedback">'+escapeHtml(r.feedback)+'</div>';
+      html += '</div>';
+    });
+    html += '</div>';
+
+    html += '<div class="result-actions">';
+    html += '<button class="btn-primary" data-action="retry-scenario">もう一度この場面に挑戦する</button>';
+    html += '<button class="btn-secondary" data-action="open-manual">10か条を振り返る</button>';
+    html += '<button class="btn-secondary" data-action="go-home">シナリオ一覧に戻る</button>';
+    html += '</div>';
+    html += '</div>';
+    app.innerHTML = html;
+  }
+
+  /* ---------------- events ---------------- */
+  app.addEventListener("click", function(e){
+    var btn = e.target.closest("[data-action]");
+    if(!btn) return;
+    var action = btn.getAttribute("data-action");
+    if(action === "open-scenario"){ openScenario(btn.getAttribute("data-id")); }
+    else if(action === "open-manual"){ state.screen = "manual"; render(); }
+    else if(action === "go-home"){ state.screen = "home"; render(); }
+    else if(action === "start-scenario"){ startScenario(); }
+    else if(action === "pick-choice"){ pickChoice(parseInt(btn.getAttribute("data-idx"), 10)); }
+    else if(action === "next-turn"){ nextTurn(); }
+    else if(action === "retry-scenario"){ openScenario(state.scenarioId); }
+  });
+
+  render();
+})();
+</script>
