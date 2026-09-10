@@ -1,0 +1,826 @@
+<title>ビジネスマナーシミュレーター 飲み会編</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700;900&family=Noto+Sans+JP:wght@400;500;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+  :root{
+    --bg:#EFEAE0;
+    --surface:#FBF8F2;
+    --surface-alt:#F1ECDF;
+    --ink:#26231D;
+    --ink-soft:#726C5C;
+    --border:#DCD5C4;
+    --accent:#A8791E;
+    --accent-contrast:#FFFFFF;
+    --good:#3F7D4C;
+    --good-soft:#E4EEE2;
+    --warn:#A97A1E;
+    --warn-soft:#F3EAD4;
+    --bad:#B14A3D;
+    --bad-soft:#F5E2DE;
+    --catInvite:#2B5C63;
+    --catInvite-soft:#E1EBEA;
+    --catToast:#8B5E0E;
+    --catToast-soft:#F0E8D6;
+    --catStanding:#7A3E52;
+    --catStanding-soft:#F0E1E6;
+    --catTalk:#3C5A78;
+    --catTalk-soft:#E2E8EE;
+    --cover:#2B1A16;
+    --cover-text:#EFE6D5;
+    --shadow: 0 20px 50px -20px rgba(20,20,15,0.35);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#141310;
+      --surface:#1D1C17;
+      --surface-alt:#26241D;
+      --ink:#ECE8DC;
+      --ink-soft:#A8A290;
+      --border:#37342A;
+      --accent:#D9B054;
+      --accent-contrast:#2A1D08;
+      --good:#6FBF7C;
+      --good-soft:#233127;
+      --warn:#D9A94A;
+      --warn-soft:#332C1C;
+      --bad:#E1786A;
+      --bad-soft:#38221E;
+      --catInvite:#5AA3AA;
+      --catInvite-soft:#20302F;
+      --catToast:#C99A4A;
+      --catToast-soft:#332A18;
+      --catStanding:#C98CA0;
+      --catStanding-soft:#32222A;
+      --catTalk:#8FB0D6;
+      --catTalk-soft:#212B36;
+      --shadow: 0 20px 50px -20px rgba(0,0,0,0.6);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#141310;
+    --surface:#1D1C17;
+    --surface-alt:#26241D;
+    --ink:#ECE8DC;
+    --ink-soft:#A8A290;
+    --border:#37342A;
+    --accent:#D9B054;
+    --accent-contrast:#2A1D08;
+    --good:#6FBF7C;
+    --good-soft:#233127;
+    --warn:#D9A94A;
+    --warn-soft:#332C1C;
+    --bad:#E1786A;
+    --bad-soft:#38221E;
+    --catInvite:#5AA3AA;
+    --catInvite-soft:#20302F;
+    --catToast:#C99A4A;
+    --catToast-soft:#332A18;
+    --catStanding:#C98CA0;
+    --catStanding-soft:#32222A;
+    --catTalk:#8FB0D6;
+    --catTalk-soft:#212B36;
+    --shadow: 0 20px 50px -20px rgba(0,0,0,0.6);
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;height:100%;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:"Noto Sans JP","Hiragino Kaku Gothic ProN","Hiragino Sans",Meiryo,sans-serif;
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    padding:20px 14px;
+  }
+  h1,h2,h3,.display{ font-family:"Zen Kaku Gothic New","Noto Sans JP",sans-serif; text-wrap:balance; margin:0; }
+  .mono{ font-family:"JetBrains Mono", ui-monospace, monospace; font-variant-numeric:tabular-nums; }
+  button{font-family:inherit;}
+  button:focus-visible, a:focus-visible, [tabindex]:focus-visible{ outline:3px solid var(--accent); outline-offset:2px; }
+  @media (prefers-reduced-motion: reduce){ *{animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0.001ms !important;} }
+
+  /* ---- outer frame (cover) ---- */
+  .frame{
+    width:100%; max-width:480px; height:min(720px, calc(100vh - 40px));
+    background:var(--cover); border-radius:22px; padding:14px; box-shadow:var(--shadow);
+    display:flex; flex-direction:column;
+  }
+  .frame-label{
+    flex-shrink:0; display:flex; align-items:center; justify-content:center; gap:7px;
+    padding:2px 0 12px; color:var(--cover-text); font-size:12.5px; font-weight:700; letter-spacing:0.03em;
+  }
+  .frame-label svg{ width:14px; height:14px; }
+  .frame-label .dot{ width:6px;height:6px;border-radius:50%; background:var(--cover-text); opacity:0.55; }
+  .page{
+    background:var(--surface); border-radius:16px; flex:1; min-height:0;
+    display:flex; flex-direction:column; overflow:hidden; position:relative;
+  }
+
+  /* ---- home ---- */
+  .home{ padding:20px 20px 20px; overflow-y:auto; flex:1; min-height:0; }
+  .cover-art{ display:flex; flex-direction:column; align-items:center; padding:6px 0 14px; }
+  .cover-art svg{ width:76px; height:76px; }
+  .cover-caption{ font-size:10.5px; color:var(--ink-soft); margin-top:6px; letter-spacing:0.03em; }
+  .home-head{ padding:0 2px 18px; border-bottom:1px solid var(--border); margin-bottom:16px; }
+  .eyebrow{ font-size:11px; letter-spacing:0.12em; color:var(--accent); font-weight:700; text-transform:uppercase; text-align:center; }
+  .home-title{ font-size:21px; font-weight:900; margin-top:6px; line-height:1.35; text-align:center; }
+  .home-sub{ font-size:12.5px; color:var(--ink-soft); margin-top:8px; line-height:1.65; text-align:center; }
+  .progress-row{ display:flex; align-items:center; gap:10px; margin-top:14px; }
+  .progress-track{ flex:1; height:6px; background:var(--surface-alt); border-radius:4px; overflow:hidden; border:1px solid var(--border); }
+  .progress-fill{ height:100%; background:var(--accent); border-radius:4px; transition:width .4s ease; }
+  .progress-label{ font-size:12px; color:var(--ink-soft); white-space:nowrap; }
+  .manual-link{
+    margin-top:14px; display:flex; align-items:center; justify-content:center; gap:6px; font-size:13px; font-weight:700;
+    color:var(--accent); background:var(--surface-alt); border:1px solid var(--border); padding:9px 14px; border-radius:10px; cursor:pointer; width:100%;
+  }
+  .cat-block{ margin-bottom:20px; }
+  .cat-head{ display:flex; align-items:center; gap:8px; margin-bottom:2px; }
+  .cat-dot{ width:9px;height:9px;border-radius:50%; flex-shrink:0; }
+  .cat-name{ font-size:14px; font-weight:700; }
+  .cat-desc{ font-size:11.5px; color:var(--ink-soft); margin:2px 0 8px 17px; }
+  .card-list{ display:flex; flex-direction:column; gap:8px; }
+  .scenario-card{
+    display:flex; align-items:center; gap:12px; background:var(--surface-alt); border:1px solid var(--border);
+    border-radius:14px; padding:11px 12px; cursor:pointer; text-align:left; width:100%;
+  }
+  .scenario-card:hover{ border-color:var(--accent); }
+  .avatar{ width:38px;height:38px;border-radius:12px; display:flex;align-items:center;justify-content:center; font-size:17px; flex-shrink:0; }
+  .card-body{ flex:1; min-width:0; }
+  .card-title{ font-size:13.5px; font-weight:700; }
+  .card-meta{ font-size:11.5px; color:var(--ink-soft); margin-top:2px; line-height:1.5; }
+  .card-side{ display:flex; flex-direction:column; align-items:flex-end; gap:4px; flex-shrink:0; }
+  .stars{ font-size:11px; color:var(--warn); letter-spacing:1px; white-space:nowrap; }
+  .best-badge{ font-size:10.5px; font-weight:700; color:var(--good); background:var(--good-soft); padding:2px 7px; border-radius:20px; white-space:nowrap; }
+
+  /* ---- manual ---- */
+  .manual{ padding:20px 20px 24px; overflow-y:auto; flex:1; min-height:0; }
+  .back-row{ display:flex; align-items:center; gap:10px; margin-bottom:14px; }
+  .icon-btn{
+    width:32px;height:32px;border-radius:50%; background:var(--surface-alt); border:1px solid var(--border);
+    display:flex;align-items:center;justify-content:center; cursor:pointer; color:var(--ink); font-size:16px; flex-shrink:0;
+  }
+  .screen-title{ font-size:16.5px; font-weight:900; }
+  .tip-card{ background:var(--surface-alt); border:1px solid var(--border); border-radius:14px; padding:13px 14px; margin-bottom:10px; }
+  .tip-num{ font-size:11px; font-weight:700; color:var(--accent); }
+  .tip-desc{ font-size:12.5px; color:var(--ink); margin-top:4px; line-height:1.7; }
+
+  /* ---- scenario: intro ---- */
+  .intro{ flex:1; min-height:0; overflow-y:auto; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:34px 28px; text-align:center; gap:6px; }
+  .intro .avatar{ width:76px; height:76px; border-radius:22px; font-size:32px; margin-bottom:14px; }
+  .intro-cat{ font-size:11.5px; font-weight:700; letter-spacing:0.04em; color:var(--ink-soft); text-transform:uppercase; }
+  .intro-title{ font-size:19px; font-weight:900; margin-top:8px; line-height:1.4; }
+  .intro-lead{ font-size:12.5px; color:var(--ink-soft); margin-top:12px; line-height:1.75; max-width:320px; }
+  .intro-actions{ display:flex; flex-direction:column; gap:9px; width:100%; max-width:260px; margin-top:26px; }
+
+  /* ---- scenario: active ---- */
+  .rec-top{ display:flex; align-items:center; justify-content:space-between; gap:10px; padding:14px 18px 12px; border-bottom:1px solid var(--border); flex-shrink:0; }
+  .rec-top-title{ font-size:13.5px; font-weight:700; line-height:1.4; }
+  .rec-top-cat{ font-size:11px; color:var(--ink-soft); margin-top:2px; }
+  .rec-step{ font-size:11.5px; color:var(--accent); font-weight:700; white-space:nowrap; flex-shrink:0; }
+
+  .record{ flex:1; min-height:0; overflow-y:auto; padding:16px 16px 8px; display:flex; flex-direction:column; gap:12px; }
+  .sit-card{ background:var(--surface-alt); border:1px solid var(--border); border-left:4px solid var(--cat-color, var(--accent)); border-radius:10px; padding:11px 13px; font-size:13px; line-height:1.7; }
+  .sit-label{ font-size:10.5px; font-weight:700; color:var(--ink-soft); letter-spacing:0.04em; margin-bottom:4px; text-transform:uppercase; }
+  .act-row{ display:flex; justify-content:flex-end; }
+  .act-bubble{ max-width:86%; background:var(--accent); color:var(--accent-contrast); border-radius:12px; border-bottom-right-radius:4px; padding:9px 13px; font-size:12.5px; line-height:1.65; }
+  .act-label{ font-size:10px; color:var(--ink-soft); text-align:right; margin:0 2px 3px; }
+
+  .choices-panel{ border-top:1px solid var(--border); padding:12px 16px 16px; flex-shrink:0; background:var(--surface); max-height:46vh; overflow-y:auto; }
+  .choices-hint{ font-size:11px; color:var(--ink-soft); margin-bottom:8px; }
+  .choice-btn{
+    display:block; width:100%; text-align:left; background:var(--surface-alt); border:1px solid var(--border);
+    border-radius:12px; padding:10px 13px; margin-bottom:8px; font-size:13px; line-height:1.6; color:var(--ink); cursor:pointer;
+  }
+  .choice-btn:hover{ border-color:var(--accent); }
+  .choice-btn:last-child{ margin-bottom:0; }
+
+  .feedback-panel{ padding:4px 2px 2px; }
+  .feedback-tag{ display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:700; padding:4px 11px; border-radius:20px; margin-bottom:8px; }
+  .feedback-tag.good{ background:var(--good-soft); color:var(--good); }
+  .feedback-tag.ok{ background:var(--warn-soft); color:var(--warn); }
+  .feedback-tag.bad{ background:var(--bad-soft); color:var(--bad); }
+  .feedback-text{ font-size:13px; line-height:1.7; color:var(--ink); margin-bottom:12px; }
+  .next-btn{ width:100%; padding:11px; border-radius:12px; border:none; background:var(--accent); color:var(--accent-contrast); font-weight:700; font-size:13.5px; cursor:pointer; }
+  .ghost-btn{ width:100%; padding:11px; border-radius:12px; border:1px solid var(--border); background:var(--surface-alt); color:var(--ink); font-weight:700; font-size:13.5px; cursor:pointer; }
+
+  /* ---- result ---- */
+  .result{ padding:22px 22px 26px; overflow-y:auto; flex:1; min-height:0; display:flex; flex-direction:column;}
+  .result-badge{
+    width:92px;height:92px;border-radius:50%; margin:6px auto 14px;
+    display:flex; align-items:center; justify-content:center; border:3px solid var(--accent); color:var(--accent);
+  }
+  .result-badge .grade{ font-size:28px; font-weight:900; font-family:"Zen Kaku Gothic New",sans-serif; }
+  .result-score{ text-align:center; font-size:13px; color:var(--ink-soft); }
+  .result-score .mono{ font-size:15px; color:var(--ink); font-weight:700; }
+  .result-title{ text-align:center; font-size:15.5px; font-weight:900; margin-top:14px; }
+  .result-msg{ text-align:center; font-size:12.5px; color:var(--ink-soft); margin-top:6px; line-height:1.75;}
+  .review-list{ margin-top:20px; display:flex; flex-direction:column; gap:8px; }
+  .review-item{ background:var(--surface-alt); border:1px solid var(--border); border-radius:12px; padding:10px 12px; }
+  .review-head{ display:flex; align-items:center; gap:8px; }
+  .review-icon{ width:20px;height:20px;border-radius:50%; flex-shrink:0; display:flex;align-items:center;justify-content:center; font-size:11px; font-weight:900; color:#fff; }
+  .review-icon.good{ background:var(--good); }
+  .review-icon.ok{ background:var(--warn); }
+  .review-icon.bad{ background:var(--bad); }
+  .review-situation{ font-size:12px; font-weight:700; }
+  .review-feedback{ font-size:11.5px; color:var(--ink-soft); margin-top:5px; line-height:1.6; padding-left:28px;}
+  .result-actions{ display:flex; flex-direction:column; gap:8px; margin-top:22px; }
+  .btn-primary{ padding:12px; border-radius:12px; border:none; background:var(--accent); color:var(--accent-contrast); font-weight:700; font-size:13.5px; cursor:pointer; }
+  .btn-secondary{ padding:12px; border-radius:12px; border:1px solid var(--border); background:var(--surface-alt); color:var(--ink); font-weight:700; font-size:13.5px; cursor:pointer; }
+</style>
+
+<div class="frame">
+  <div class="frame-label">
+    <svg viewBox="0 0 120 120" aria-hidden="true"><rect x="34" y="30" width="30" height="60" rx="8" fill="#EFE6D5" opacity="0.92"/><circle cx="82" cy="40" r="14" fill="#2B1A16"/></svg>
+    <span>宴席ノート</span><span class="dot"></span><span>新人研修用</span>
+  </div>
+  <div class="page" id="app"></div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var CHEERS_SVG = '<svg viewBox="0 0 120 120" aria-hidden="true">'
+    + '<g transform="rotate(-18 40 65)">'
+    + '<path d="M56 44 Q68 44 68 56 Q68 68 56 68" fill="none" stroke="#C4841F" stroke-width="4" stroke-linecap="round"/>'
+    + '<rect x="24" y="38" width="32" height="48" rx="7" fill="#E8A94A"/>'
+    + '<rect x="24" y="38" width="32" height="48" rx="7" fill="none" stroke="#C4841F" stroke-width="1.5"/>'
+    + '<rect x="22" y="31" width="36" height="11" rx="5.5" fill="#F5EFE0"/>'
+    + '<rect x="22" y="31" width="36" height="11" rx="5.5" fill="none" stroke="#DCD5C4" stroke-width="1.2"/>'
+    + '</g>'
+    + '<g transform="rotate(18 82 65)">'
+    + '<path d="M68 34 L92 34 L86 82 L74 82 Z" fill="#E6B9C9"/>'
+    + '<path d="M68 34 L92 34 L86 82 L74 82 Z" fill="none" stroke="#C98CA0" stroke-width="1.5"/>'
+    + '<rect x="77" y="82" width="8" height="9" rx="2" fill="#B9AFA0"/>'
+    + '<ellipse cx="81" cy="93" rx="10" ry="3" fill="#B9AFA0"/>'
+    + '<path d="M70 40 L90 40 L87 56 L73 56 Z" fill="#F3D3E0" opacity="0.55"/>'
+    + '</g>'
+    + '<g stroke="#D9B054" stroke-width="2.6" stroke-linecap="round">'
+    + '<line x1="62" y1="20" x2="62" y2="10"/>'
+    + '<line x1="52" y1="24" x2="45" y2="16"/>'
+    + '<line x1="72" y1="24" x2="79" y2="16"/>'
+    + '</g>'
+    + '<circle cx="30" cy="26" r="2.4" fill="#DCD5C4" opacity="0.85"/>'
+    + '<circle cx="38" cy="18" r="1.8" fill="#DCD5C4" opacity="0.7"/>'
+    + '</svg>';
+
+  var CATEGORIES = [
+    {id:"invite", name:"誘いへの対応", desc:"断り方と、参加する時の心構え", varc:"--catInvite", vars:"--catInvite-soft"},
+    {id:"toast", name:"乾杯・お酌のマナー", desc:"乾杯の作法と、お酒を断る時の伝え方", varc:"--catToast", vars:"--catToast-soft"},
+    {id:"standing", name:"立食パーティーでの振る舞い", desc:"料理・グラスの扱いと、挨拶回り", varc:"--catStanding", vars:"--catStanding-soft"},
+    {id:"talk", name:"話題選び・締めくくり", desc:"会話の話題と、帰り際の挨拶", varc:"--catTalk", vars:"--catTalk-soft"}
+  ];
+
+  function T(text){ return {text:text}; }
+  function C(text, tier, feedback){
+    var pts = tier === "good" ? 10 : (tier === "ok" ? 5 : 0);
+    return {text:text, tier:tier, feedback:feedback, points:pts};
+  }
+
+  var SCENARIOS = [
+    {
+      id:"K1", cat:"invite", difficulty:1, icon:"🙅",
+      title:"飲み会の誘いを断る時", lead:"上司から「今日、軽く飲みに行かないか」と誘われたが、その日はすでに予定がある。",
+      turns:[
+        { situation:T("この誘いに、どう対応するか。"),
+          choices:[
+            C("「ありがとうございます、今日は先約がありまして。またぜひ誘ってください」と、感謝と前向きな姿勢を伝えたうえで断る", "good", "誘ってくれたことへの感謝と、次への前向きな姿勢を添えることで、良い関係を保ちながら断れます。"),
+            C("「今日はちょっと厳しいです」とだけ伝え、理由や次への言葉は特に添えない", "ok", "断ること自体は問題ありませんが、理由や前向きな一言があると、より感じの良い印象になります。"),
+            C("断りづらくて、あいまいに返事をしたまま、当日になって連絡もせず不参加にする", "bad", "はっきり断らずに濁すと、相手を待たせたり、当日の対応に困らせたりしてしまいます。")
+          ]},
+        { situation:T("後日、また別の飲み会に誘われた。今度は特に予定もない。"),
+          choices:[
+            C("特に予定がないことを踏まえ、「ぜひ参加させてください」と前向きに返事をする", "good", "断ってばかりでは印象が悪くなることもあるため、都合がつく時は積極的に応じる姿勢も大切です。"),
+            C("特に理由もなく、なんとなく気が乗らないので今回も断ってしまう", "ok", "毎回断っていると、誘う側も次第に誘いにくくなってしまうことがあります。"),
+            C("予定がないことを伝えず、「その日はちょっと」とまた曖昧に断る", "bad", "本当は都合がつくのに毎回曖昧に断ると、不自然な印象を与えてしまいます。")
+          ]},
+        { situation:T("飲み会の誘いへの対応として、大切な考え方は?"),
+          choices:[
+            C("断る時も感謝を伝え、参加できる時は積極的に応じることで、誘いやすい関係を保つ", "good", "断ることと参加することのバランスを意識できています。"),
+            C("できるだけ角が立たないよう、毎回当たり障りのない返事でやり過ごす", "ok", "その場をやり過ごすことはできますが、はっきりした対応の方が相手にも伝わりやすいです。"),
+            C("飲み会は業務ではないので、誘われても特に気にせず自由に対応すればよいと考える", "bad", "業務ではなくても、職場の人間関係の一部であり、対応の仕方が印象に影響することがあります。")
+          ]}
+      ]
+    },
+    {
+      id:"K2", cat:"invite", difficulty:2, icon:"⏳",
+      title:"急な誘いへの対応", lead:"就業後、上司から「これから空いてる?ちょっと一杯どう」と急に誘われた。既に電車の時間を調整して帰ろうとしていた。",
+      turns:[
+        { situation:T("この場で、どう対応するか。"),
+          choices:[
+            C("少し考える間を置きつつ、「今日は難しいのですが、また誘っていただけると嬉しいです」と、はっきり伝える", "good", "急な誘いでも、はっきりと丁寧に対応することで、相手も気持ちよく受け止められます。"),
+            C("気まずくて、はっきり断れずに「うーん、どうしようかな」と曖昧なまま黙り込んでしまう", "ok", "気持ちは分かりますが、曖昧な態度が続くと、相手も判断に困ってしまいます。"),
+            C("断りたい気持ちを隠して、その場では「行きます」と答えてしまう", "bad", "その場しのぎで承諾すると、後で予定の調整に困ったり、無理をすることになったりします。")
+          ]},
+        { situation:T("誘いを断った後、上司が少し残念そうな様子だった。"),
+          choices:[
+            C("「今日は難しいのですが、来週あたりお時間あればぜひ」と、次の機会に前向きな姿勢を示す", "good", "断った後のフォローがあることで、関係が気まずくならずに済みます。"),
+            C("特に何も言わず、そのまま会話を終えてしまう", "ok", "断ること自体は問題ありませんが、一言添えるとより良い印象で終えられます。"),
+            C("気まずさから、やはり予定を変更して急遽参加することにする", "bad", "その場の空気で判断を変えてしまうと、無理をする場面が繰り返されやすくなります。")
+          ]},
+        { situation:T("急な誘いへの対応として、大切な考え方は?"),
+          choices:[
+            C("自分の予定も大切にしながら、断る時は相手が気持ちよく受け止められる伝え方を意識する", "good", "自分の都合と相手への配慮の両方を意識できています。"),
+            C("誘われたら基本的には応じるようにし、断ることはできるだけ避けるようにする", "ok", "応じる姿勢も大切ですが、毎回無理をして応じ続けると、自分の負担が大きくなってしまいます。"),
+            C("急な誘いは失礼にあたるので、内容にかかわらずいつも断るようにしている", "bad", "一律に断るのではなく、状況に応じて対応を判断できるとより柔軟に関係を築けます。")
+          ]}
+      ]
+    },
+    {
+      id:"K3", cat:"invite", difficulty:2, icon:"🚪",
+      title:"二次会の誘いを断る", lead:"一次会が終わり、上司や先輩から「このまま二次会行くぞ」と誘われた。今日はここで切り上げたい。",
+      turns:[
+        { situation:T("この誘いに、どう対応するか。"),
+          choices:[
+            C("「今日は一次会だけで失礼します、ありがとうございました」と、感謝を伝えながらはっきり伝える", "good", "感謝を添えたうえではっきり伝えることで、気持ちよく切り上げられます。"),
+            C("特に理由も言わず、「自分はいいです」とだけ短く伝える", "ok", "断ること自体は問題ありませんが、感謝の一言があるとより丁寧な印象になります。"),
+            C("断りづらく、なんとなく流れに任せて二次会にもついていってしまう", "bad", "その場の空気に流されて無理をすると、自分の負担が積み重なってしまいます。")
+          ]},
+        { situation:T("一次会の会計のタイミングになった。"),
+          choices:[
+            C("先輩や上司の動きを見ながら、自分の分を渡すか、割り勘の案内があれば速やかに応じる", "good", "会計の場面で速やかに対応する姿勢は、良い印象につながります。"),
+            C("特に何もせず、誰かが会計を進めてくれるのを待つ", "ok", "待つこと自体が失礼になるわけではありませんが、自分から動く姿勢があるとより良い印象になります。"),
+            C("会計のことは気にせず、先に一人で帰る準備を始めてしまう", "bad", "会計が済むまでは、その場の流れに合わせて対応する方が良いでしょう。")
+          ]},
+        { situation:T("二次会の誘いを断るうえで、大切な考え方は?"),
+          choices:[
+            C("毎回無理に付き合う必要はないと理解しつつ、断る時の感謝や伝え方には気を配る", "good", "断ることへの罪悪感ではなく、伝え方の工夫に意識を向けられています。"),
+            C("断ると印象が悪くなりそうで心配なので、できるだけ参加するようにしている", "ok", "気持ちは分かりますが、無理に参加し続けると、自分自身の負担が大きくなってしまいます。"),
+            C("二次会は義務ではないので、何も言わずに一次会の途中でこっそり帰ってしまう", "bad", "何も言わずに帰ってしまうと、心配をかけたり、失礼な印象を与えたりすることがあります。")
+          ]}
+      ]
+    },
+    {
+      id:"K4", cat:"toast", difficulty:1, icon:"🍻",
+      title:"乾杯前のグラスの扱い", lead:"飲み会の席で、飲み物が全員に行き渡ったが、まだ乾杯の挨拶が始まっていない。",
+      turns:[
+        { situation:T("この時、どうするか。"),
+          choices:[
+            C("グラスに軽く手を添えて待ちつつ、乾杯の挨拶が終わってから口をつける", "good", "乾杯の前に飲み始めないのが基本のマナーです。"),
+            C("喉が渇いていたので、乾杯の前に少しだけ口をつけてしまう", "ok", "少しの量でも、乾杯前に飲むのは避けた方が良いとされています。"),
+            C("手持ち無沙汰で、乾杯の前にグラスの中身をほとんど飲んでしまう", "bad", "乾杯前に飲んでしまうと、場の雰囲気を乱してしまうことがあります。")
+          ]},
+        { situation:T("乾杯の挨拶をする段になり、上司がグラスを掲げた。"),
+          choices:[
+            C("自分のグラスを、上司のグラスより少し低い位置で合わせる", "good", "目上の方のグラスより低く合わせるのが、乾杯の際の配慮とされています。"),
+            C("特に位置は気にせず、同じ高さでグラスを合わせる", "ok", "大きな失礼にはなりませんが、少し低く合わせる配慮ができるとより丁寧です。"),
+            C("乾杯の掛け声と同時に、勢いよく自分のグラスを高く掲げる", "bad", "勢いよく掲げると、周囲のグラスにぶつかってしまうなど、思わぬトラブルにつながることがあります。")
+          ]},
+        { situation:T("乾杯の場面で、大切な考え方は?"),
+          choices:[
+            C("形式的な作法の背景に、その場の全員で気持ちを揃えて始めるという意味があると理解する", "good", "作法の意味を理解した考え方ができています。"),
+            C("細かい作法よりも、明るく元気に振る舞うことを優先する", "ok", "場を盛り上げる姿勢も大切ですが、基本の作法も合わせて意識できるとより良い印象になります。"),
+            C("乾杯の作法は堅苦しいので、あまり気にしなくてもよいと考える", "bad", "簡単な作法であっても、意識できているかどうかで周囲の印象は変わってきます。")
+          ]}
+      ]
+    },
+    {
+      id:"K5", cat:"toast", difficulty:2, icon:"🍶",
+      title:"お酌のマナー", lead:"上司の隣に座り、上司のグラスが空きかけていることに気づいた。",
+      turns:[
+        { situation:T("この時、どうするか。"),
+          choices:[
+            C("「お注ぎします」と一言添えて、瓶やボトルのラベルを上にして両手で注ぐ", "good", "一言添えて両手で丁寧に注ぐのが、お酌の基本のマナーです。"),
+            C("特に声をかけず、黙ってグラスに注ぐ", "ok", "注ぐこと自体は良い気配りですが、一言添えるとより丁寧な印象になります。"),
+            C("気づいていたが、自分から動くのは気が引けて、そのままにしておく", "bad", "気づいた時に自然に気を配れると、周囲からの印象も良くなります。")
+          ]},
+        { situation:T("逆に、自分のグラスに上司がお酌をしようとしてくれた。"),
+          choices:[
+            C("グラスを両手で持ち、軽く傾けて受ける", "good", "両手で受けることで、相手への敬意が伝わります。"),
+            C("片手でグラスを持ったまま受ける", "ok", "大きな失礼にはなりませんが、両手で受ける方がより丁寧な印象になります。"),
+            C("恐縮して、グラスを持たずに「大丈夫です」と辞退してしまう", "bad", "相手の厚意を無下に断ってしまうと、気まずい雰囲気になることがあります。")
+          ]},
+        { situation:T("お酌のやり取りで、大切な考え方は?"),
+          choices:[
+            C("お酌は上下関係の形式だけでなく、互いに気を配り合うコミュニケーションの一つだと理解する", "good", "お酌の背景にある考え方を理解できています。"),
+            C("決められた作法を間違えないようにすることだけを意識する", "ok", "作法を守ることも大切ですが、気配りの気持ちを持てるとより自然な振る舞いになります。"),
+            C("お酌のようなやり取りは古い習慣なので、特に気にしなくてもよいと考える", "bad", "簡略化される場面もありますが、まだ多くの職場で大切にされている気配りです。")
+          ]}
+      ]
+    },
+    {
+      id:"K6", cat:"toast", difficulty:2, icon:"🚱",
+      title:"お酒を断る時の伝え方", lead:"上司から「まあ一杯どう」とお酒を勧められたが、今日は飲みたくない気分だった。",
+      turns:[
+        { situation:T("この時、どう伝えるか。"),
+          choices:[
+            C("「ありがとうございます、今日はソフトドリンクでいただきます」と、感謝を伝えつつ穏やかに断る", "good", "感謝を伝えながら穏やかに断ることで、相手も気持ちよく受け止められます。"),
+            C("「いや、いいです」とだけ、短く断る", "ok", "断ること自体は問題ありませんが、感謝の一言があるとより柔らかい印象になります。"),
+            C("断りづらくて、飲みたくないのに「じゃあ少しだけ」と受け取ってしまう", "bad", "無理に受け取ってしまうと、自分の意思とは違う行動を重ねることになります。")
+          ]},
+        { situation:T("断った後も、「まあまあ、一杯くらい」と重ねて勧められた。"),
+          choices:[
+            C("「お気持ちだけいただきます、今日はこれで」と、笑顔で穏やかに繰り返し伝える", "good", "繰り返し勧められても、笑顔で穏やかに伝え続けることで、角を立てずに意思を示せます。"),
+            C("困った顔のまま、何も言わずにやり過ごそうとする", "ok", "気持ちは伝わりにくく、さらに勧められ続けてしまう可能性があります。"),
+            C("断り続けるのが気まずくなり、結局根負けして飲んでしまう", "bad", "自分の意思を曲げてしまうと、同じような場面で繰り返し無理をすることになりかねません。")
+          ]},
+        { situation:T("お酒を勧められた時の断り方として、大切な考え方は?"),
+          choices:[
+            C("断ることは失礼ではないと理解し、感謝を添えながら自分の意思をはっきり伝える", "good", "断ることへの罪悪感ではなく、伝え方の工夫に意識を向けられています。"),
+            C("できるだけ場の雰囲気を壊さないよう、多少無理してでも合わせるようにする", "ok", "場の雰囲気への配慮は大切ですが、無理をし続けると自分の負担になってしまいます。"),
+            C("お酒を勧められたら断ってはいけないと考えている", "bad", "断ってはいけないという思い込みは、必要以上に自分を追い込んでしまうことがあります。")
+          ]}
+      ]
+    },
+    {
+      id:"K7", cat:"standing", difficulty:1, icon:"🧍",
+      title:"立食パーティーでの位置取り", lead:"立食形式の懇親会に参加した。会場には料理が並ぶテーブルと、歓談のためのスペースがある。",
+      turns:[
+        { situation:T("会場に入って、まずどうするか。"),
+          choices:[
+            C("料理のテーブルの前に長く留まらず、皿を取ったら少し離れた場所に移動して歓談する", "good", "テーブルの前を占領しないことで、他の参加者も料理を取りやすくなります。"),
+            C("料理のテーブルのすぐそばに立ったまま、そこで食事と会話を続ける", "ok", "食べること自体は問題ありませんが、テーブル前に留まると他の人の動線を塞いでしまうことがあります。"),
+            C("会場の隅で、誰とも話さず一人で料理を食べ続ける", "bad", "立食パーティーは交流の場でもあるため、動きながら挨拶や会話をする姿勢が大切です。")
+          ]},
+        { situation:T("しばらくして、上司が近くの人と話しているのが見えた。"),
+          choices:[
+            C("会話の切れ目を見計らって、「お疲れ様です」と挨拶をしに行く", "good", "タイミングを見計らって挨拶する姿勢は、良い印象につながります。"),
+            C("話しかけるタイミングが分からず、遠くから様子をうかがうだけで終わってしまう", "ok", "気持ちは分かりますが、挨拶の機会を逃してしまうのはもったいないところです。"),
+            C("会話の途中に構わず割り込んで、自分の話を始めてしまう", "bad", "会話を遮ってしまうと、周囲に慌ただしい印象を与えてしまいます。")
+          ]},
+        { situation:T("立食パーティーでの立ち振る舞いとして、大切な考え方は?"),
+          choices:[
+            C("一か所に留まらず、適度に会場を動きながら、いろいろな人と挨拶や会話をする", "good", "立食形式ならではの交流の機会を活かす姿勢が身についています。"),
+            C("料理を楽しむことを優先し、会話は話しかけられたら応じる程度でよいと考える", "ok", "料理を楽しむこと自体は良いですが、自分からも動いて挨拶する姿勢があるとより良い機会になります。"),
+            C("立食パーティーは食事の場なので、交流はあまり意識しなくてもよいと考える", "bad", "立食形式は、着席の会以上に交流を目的としていることが多い形式です。")
+          ]}
+      ]
+    },
+    {
+      id:"K8", cat:"standing", difficulty:1, icon:"🍽️",
+      title:"皿の持ち方・食べる量", lead:"立食パーティーで、料理を取りに行くことになった。",
+      turns:[
+        { situation:T("皿に料理を取る際、どうするか。"),
+          choices:[
+            C("一度に食べきれる量を、少しずつ取るようにする", "good", "少しずつ取ることで、他の参加者にも料理が行き渡りやすくなります。"),
+            C("好きな料理を見つけたら、まとめて多めに取っておく", "ok", "たくさん取りたい気持ちは分かりますが、他の参加者の分も考えて少しずつ取る方が望ましいです。"),
+            C("会話に集中していて食べる暇がなく、皿に料理を山盛りにしたまま持ち歩く", "bad", "食べきれない量の料理を持ち歩くと、置き場所に困ったり、見た目にも慌ただしい印象になります。")
+          ]},
+        { situation:T("皿とグラスの両方を持って、会話をすることになった。"),
+          choices:[
+            C("片手に皿、もう片方の手にグラスを持ち、料理は少しずつ、会話の合間に食べる", "good", "両手をうまく使い分けることで、会話と食事を両立できます。"),
+            C("皿とグラスを持つのが大変で、料理はテーブルに置いたまま会話だけに集中する", "ok", "会話に集中すること自体は良いですが、時々料理も楽しめるとより自然な振る舞いになります。"),
+            C("両手がふさがって握手や名刺交換ができず、その場で慌ててしまう", "bad", "とっさに対応できるよう、皿やグラスを一時的に置ける場所を意識しておくと安心です。")
+          ]},
+        { situation:T("立食パーティーでの食事の仕方として、大切な考え方は?"),
+          choices:[
+            C("食事も楽しみつつ、あくまで会話や交流が主な目的であることを意識する", "good", "立食パーティーの目的を正しく理解できています。"),
+            C("出された料理はできるだけしっかり楽しむことを優先する", "ok", "料理を楽しむこと自体は良いですが、会話や挨拶とのバランスを意識できるとより良い時間になります。"),
+            C("せっかくの機会なので、料理を取れるだけ取っておくべきだと考える", "bad", "多く取りすぎると、他の参加者の分が不足したり、食べきれなかったりすることがあります。")
+          ]}
+      ]
+    },
+    {
+      id:"K9", cat:"standing", difficulty:2, icon:"🤝",
+      title:"上司や取引先への挨拶回り", lead:"立食形式の懇親会で、まだ挨拶していない他部署の上司や取引先の姿が見えた。",
+      turns:[
+        { situation:T("このタイミングで、どうするか。"),
+          choices:[
+            C("会話の区切りを見計らって、自分から近づき、簡単な自己紹介と挨拶をする", "good", "自分から挨拶に行く姿勢が、良い印象と関係づくりにつながります。"),
+            C("相手が自分に気づいて声をかけてくれるのを待つ", "ok", "待つこと自体は失礼ではありませんが、自分から挨拶に行く方が積極的な印象を与えられます。"),
+            C("知らない人ばかりで気後れし、挨拶をせずその場を離れてしまう", "bad", "せっかくの機会を活かせないままになってしまいます。")
+          ]},
+        { situation:T("挨拶をして少し会話が続いている。次の人にも挨拶したいが、会話が途切れない。"),
+          choices:[
+            C("会話が一区切りついたところで、「お話しできて良かったです、失礼します」と丁寧に切り上げる", "good", "丁寧に区切りをつけることで、印象を損なわずに次の挨拶に移れます。"),
+            C("会話を切り上げるタイミングが分からず、長く一人の相手とだけ話し続けてしまう", "ok", "一人と長く話すこと自体は悪くありませんが、他の人への挨拶の機会も意識できるとより良いです。"),
+            C("会話の途中で、何も言わずに離れてしまう", "bad", "唐突に離れると、相手に失礼な印象を与えてしまいます。")
+          ]},
+        { situation:T("挨拶回りをするうえで、大切な考え方は?"),
+          choices:[
+            C("一人ひとりとの会話を大切にしつつ、限られた時間で多くの人に挨拶できるよう意識する", "good", "会話の質と挨拶の機会、両方のバランスを意識できています。"),
+            C("とにかく多くの人に挨拶することを優先し、短い言葉だけで次々に回る", "ok", "多くの人に挨拶する姿勢は良いですが、一人ひとりとの会話も大切にできるとより良い関係につながります。"),
+            C("挨拶回りは形式的なものなので、あまり積極的に行わなくてもよいと考える", "bad", "懇親会は貴重な関係づくりの機会であり、積極的な姿勢が今後につながることもあります。")
+          ]}
+      ]
+    },
+    {
+      id:"K10", cat:"talk", difficulty:1, icon:"💭",
+      title:"話す話題の選び方", lead:"飲み会で、上司や先輩との会話が始まった。何を話そうか考えている。",
+      turns:[
+        { situation:T("話題として、どれを選ぶか。"),
+          choices:[
+            C("最近の仕事の話や、当たり障りのない趣味・食べ物の話題から始める", "good", "仕事や趣味など、共通して話しやすい話題から始めるのが無難です。"),
+            C("特に話題を選ばず、思いついたことをそのまま話す", "ok", "自然な会話も大切ですが、場に合った話題かどうかを少し意識できるとより安心です。"),
+            C("政治や宗教、個人的なお金の話など、意見が分かれやすい話題を積極的に話す", "bad", "意見が分かれやすい話題は、場の雰囲気を気まずくしてしまうことがあります。")
+          ]},
+        { situation:T("会話の中で、上司の家庭やプライベートな事情に話が及びそうになった。"),
+          choices:[
+            C("深入りせず、相手が話したい範囲に合わせて相槌を打つ程度にとどめる", "good", "相手のプライベートな話題には、踏み込みすぎない配慮が大切です。"),
+            C("気になって、詳しい事情をいろいろと質問してしまう", "ok", "興味を持つこと自体は自然ですが、質問しすぎると相手が話しにくく感じることがあります。"),
+            C("聞いた話を、後日他の同僚に話のネタとして話してしまう", "bad", "飲み会で聞いたプライベートな話を広めてしまうのは、信頼を損なう行動です。")
+          ]},
+        { situation:T("飲み会での会話の話題選びとして、大切な考え方は?"),
+          choices:[
+            C("相手が心地よく話せる話題を選び、聞いた話の扱いにも配慮する", "good", "話題選びと、聞いた後の配慮の両方を意識できています。"),
+            C("場を盛り上げることを優先し、面白ければどんな話題でもよいと考える", "ok", "場を盛り上げる姿勢は良いですが、相手が話しやすい話題かどうかも意識する必要があります。"),
+            C("お酒の席では、普段言えないことも自由に話してよいと考える", "bad", "お酒の席であっても、職場の人間関係の一部であることに変わりはありません。")
+          ]}
+      ]
+    },
+    {
+      id:"K11", cat:"talk", difficulty:2, icon:"👂",
+      title:"上司への相槌・聞き役", lead:"上司が仕事の昔話を熱心に話し始めた。同じような話を以前にも聞いたことがある。",
+      turns:[
+        { situation:T("この時、どうするか。"),
+          choices:[
+            C("以前に聞いた話であっても、初めて聞くように相槌を打ちながら耳を傾ける", "good", "同じ話でも丁寧に聞く姿勢は、相手への敬意として伝わります。"),
+            C("「その話、前にも伺いました」と、正直に伝えてしまう", "ok", "正直さは悪いことではありませんが、伝え方によっては相手の話す気持ちを削いでしまうことがあります。"),
+            C("興味がなさそうな態度で、スマートフォンを見ながら聞き流す", "bad", "話を聞く姿勢が伝わらないと、相手に失礼な印象を与えてしまいます。")
+          ]},
+        { situation:T("話が長く続き、自分も何か話したいことがある。"),
+          choices:[
+            C("上司の話が一区切りついたタイミングで、自然に自分の話題に移す", "good", "相手の話を尊重しつつ、自然な流れで会話を広げられています。"),
+            C("話を遮らないように我慢し続け、結局自分の話す機会がないまま終わる", "ok", "我慢強く聞く姿勢は良いですが、機会を見つけて自分からも話せるとより良い会話になります。"),
+            C("話の途中で「そういえば」と、強引に自分の話題に切り替えてしまう", "bad", "話を遮ってしまうと、相手に唐突で失礼な印象を与えることがあります。")
+          ]},
+        { situation:T("飲み会での聞き役としての振る舞いで、大切な考え方は?"),
+          choices:[
+            C("聞くことも会話の大切な役割だと理解し、相手が話しやすい雰囲気をつくる", "good", "聞き役としての価値を理解した考え方ができています。"),
+            C("自分から積極的に話すことが、飲み会での良い振る舞いだと考える", "ok", "積極的に話す姿勢も大切ですが、聞き役に回ることも同じくらい価値のある振る舞いです。"),
+            C("同じ話を繰り返す相手には、退屈な態度を見せても仕方ないと考える", "bad", "態度に表れると、相手との関係に影響してしまうことがあります。")
+          ]}
+      ]
+    },
+    {
+      id:"K12", cat:"talk", difficulty:1, icon:"👋",
+      title:"帰り際の挨拶・会計", lead:"飲み会もそろそろお開きの時間になった。",
+      turns:[
+        { situation:T("お店を出る前に、どうするか。"),
+          choices:[
+            C("お店を出る前に、上司や幹事に「今日はありがとうございました」と一言挨拶する", "good", "感謝の一言を伝えることで、良い形で会を締めくくれます。"),
+            C("特に挨拶はせず、周りの流れに合わせて店を出る", "ok", "大きな問題にはなりませんが、一言挨拶があるとより丁寧な印象になります。"),
+            C("疲れていたので、誰にも声をかけずに一人で先に帰ってしまう", "bad", "無断で先に帰ってしまうと、幹事や上司に心配や失礼な印象を与えてしまいます。")
+          ]},
+        { situation:T("会計のタイミングになった。幹事が金額を伝えている。"),
+          choices:[
+            C("金額を確認したら、速やかに会費を渡し、お礼を伝える", "good", "会計への対応も、感謝の気持ちを示す大切な場面です。"),
+            C("財布を出すのが少し遅れ、周りを待たせてしまう", "ok", "急いで支度する姿勢は大切ですが、事前に準備しておくとより安心です。"),
+            C("会費のことは特に気にせず、幹事に任せきりにしてしまう", "bad", "会計への協力も、参加者としての大切な振る舞いの一つです。")
+          ]},
+        { situation:T("飲み会の締め方として、大切な考え方は?"),
+          choices:[
+            C("最後まで、誘ってくれたことや準備してくれたことへの感謝を忘れずに伝える", "good", "始まりから終わりまで、感謝の気持ちを持ち続ける姿勢が身についています。"),
+            C("楽しく過ごせれば、締め方についてはあまり気にしなくてもよいと考える", "ok", "楽しく過ごすことも大切ですが、締め方一つで最後の印象が変わることもあります。"),
+            C("飲み会が終わったら、それで一区切りなので、特に何もしなくてよいと考える", "bad", "帰り際の一言や会計への協力が、次に誘われるかどうかにも影響することがあります。")
+          ]}
+      ]
+    }
+  ];
+
+  var TIPS = [
+    {desc:"誘いを断る時は、感謝を伝えたうえではっきりと伝える。"},
+    {desc:"断ってばかりにならないよう、参加できる時は積極的に応じる。"},
+    {desc:"乾杯の挨拶が終わるまでは、飲み物に口をつけない。"},
+    {desc:"お酌は「お注ぎします」の一言と、両手を添えることを意識する。"},
+    {desc:"お酒を断る時は、感謝を伝えながら穏やかに、繰り返し伝える。"},
+    {desc:"立食では、料理のテーブル前に長く留まらず、動きながら交流する。"},
+    {desc:"料理は一度に食べきれる量を、少しずつ取る。"},
+    {desc:"挨拶回りは、会話の区切りを見計らって自分から近づく。"},
+    {desc:"意見が分かれやすい話題や、深入りしすぎる質問は避ける。"},
+    {desc:"帰り際には、誘ってくれたことへの感謝を一言添えて締めくくる。"}
+  ];
+
+  /* ---------------- storage ---------------- */
+  var STORE_KEY = "nomikai-sim-progress-v1";
+  function loadProgress(){ try{ var raw = localStorage.getItem(STORE_KEY); return raw ? JSON.parse(raw) : {}; }catch(e){ return {}; } }
+  function saveProgress(p){ try{ localStorage.setItem(STORE_KEY, JSON.stringify(p)); }catch(e){} }
+
+  /* ---------------- state ---------------- */
+  var state = {
+    screen:"home", scenarioId:null, phase:"intro", turnIndex:0,
+    currentChoices:null, record:[], review:[], score:0, maxScore:0
+  };
+  var progress = loadProgress();
+
+  function shuffle(arr){
+    var a = arr.slice();
+    for(var i=a.length-1;i>0;i--){ var j = Math.floor(Math.random()*(i+1)); var t=a[i]; a[i]=a[j]; a[j]=t; }
+    return a;
+  }
+  function catInfo(id){ for(var i=0;i<CATEGORIES.length;i++){ if(CATEGORIES[i].id===id) return CATEGORIES[i]; } return CATEGORIES[0]; }
+  function scenarioById(id){ for(var i=0;i<SCENARIOS.length;i++){ if(SCENARIOS[i].id===id) return SCENARIOS[i]; } return null; }
+  function escapeHtml(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+  function tierLabel(tier){ return tier==="good" ? "とても良い対応です" : (tier==="ok" ? "OKですが、改善の余地があります" : "見直しが必要です"); }
+  function tierIcon(tier){ return tier==="good" ? "◎" : (tier==="ok" ? "○" : "✕"); }
+  function truncate(s, n){ return s.length > n ? s.slice(0,n) + "…" : s; }
+
+  var app = document.getElementById("app");
+
+  function render(){
+    if(state.screen==="home") renderHome();
+    else if(state.screen==="manual") renderManual();
+    else if(state.screen==="scenario") renderScenario();
+    else if(state.screen==="result") renderResult();
+  }
+
+  /* ---------------- HOME ---------------- */
+  function renderHome(){
+    var completed = 0;
+    SCENARIOS.forEach(function(s){ if(progress[s.id]) completed++; });
+    var pct = Math.round(completed/SCENARIOS.length*100);
+
+    var html = '';
+    html += '<div class="home">';
+    html += '<div class="cover-art">'+CHEERS_SVG+'<div class="cover-caption">KANPAI MANNERS · 飲み会編</div></div>';
+    html += '<div class="home-head">';
+    html += '<div class="eyebrow">新人研修プログラム</div>';
+    html += '<h1 class="home-title"><span style="white-space:nowrap">ビジネスマナーシミュレーター</span><br><span style="white-space:nowrap;font-size:0.68em;opacity:0.8;font-weight:700;">飲み会編</span></h1>';
+    html += '<p class="home-sub">断り方から、乾杯・お酌、立食での動き方、話題選びまで。飲み会の場で迷いがちな判断を、選択式で身につけます。</p>';
+    html += '<div class="progress-row"><div class="progress-track"><div class="progress-fill" style="width:'+pct+'%"></div></div><div class="progress-label mono">'+completed+' / '+SCENARIOS.length+'</div></div>';
+    html += '<button class="manual-link" data-action="open-manual">📘 飲み会マナーの基本10か条を見る</button>';
+    html += '</div>';
+
+    CATEGORIES.forEach(function(cat){
+      var list = SCENARIOS.filter(function(s){ return s.cat===cat.id; });
+      if(list.length===0) return;
+      html += '<div class="cat-block">';
+      html += '<div class="cat-head"><span class="cat-dot" style="background:var('+cat.varc+')"></span><span class="cat-name">'+cat.name+'</span></div>';
+      html += '<div class="cat-desc">'+cat.desc+'</div>';
+      html += '<div class="card-list">';
+      list.forEach(function(s){
+        var stars = "★".repeat(s.difficulty) + "☆".repeat(3-s.difficulty);
+        var best = progress[s.id];
+        html += '<button class="scenario-card" data-action="open-scenario" data-id="'+s.id+'">';
+        html += '<span class="avatar" style="background:var('+cat.vars+')">'+s.icon+'</span>';
+        html += '<span class="card-body"><span class="card-title">'+escapeHtml(s.title)+'</span><br><span class="card-meta">'+escapeHtml(truncate(s.lead, 30))+'</span></span>';
+        html += '<span class="card-side"><span class="stars">'+stars+'</span>' + (best ? '<span class="best-badge">ベスト '+best.pct+'%</span>' : '') + '</span>';
+        html += '</button>';
+      });
+      html += '</div></div>';
+    });
+
+    html += '</div>';
+    app.innerHTML = html;
+  }
+
+  /* ---------------- MANUAL ---------------- */
+  function renderManual(){
+    var html = '<div class="manual">';
+    html += '<div class="back-row"><button class="icon-btn" data-action="go-home">←</button><span class="screen-title">飲み会マナーの基本10か条</span></div>';
+    TIPS.forEach(function(tip, i){
+      html += '<div class="tip-card"><div class="tip-num">POINT '+(i+1)+'</div><div class="tip-desc">'+escapeHtml(tip.desc)+'</div></div>';
+    });
+    html += '</div>';
+    app.innerHTML = html;
+  }
+
+  /* ---------------- SCENARIO ---------------- */
+  function openScenario(id){
+    var sc = scenarioById(id);
+    if(!sc) return;
+    state.screen = "scenario"; state.scenarioId = id; state.phase = "intro"; state.turnIndex = 0;
+    state.currentChoices = null; state.record = []; state.review = []; state.score = 0;
+    state.maxScore = sc.turns.length * 10;
+    render();
+  }
+
+  function renderScenario(){
+    var sc = scenarioById(state.scenarioId);
+    var cat = catInfo(sc.cat);
+
+    if(state.phase === "intro"){
+      var html = '<div class="intro">';
+      html += '<span class="avatar" style="background:var('+cat.vars+')">'+sc.icon+'</span>';
+      html += '<div class="intro-cat">'+escapeHtml(cat.name)+'</div>';
+      html += '<div class="intro-title">'+escapeHtml(sc.title)+'</div>';
+      html += '<div class="intro-lead">'+escapeHtml(sc.lead)+'</div>';
+      html += '<div class="intro-actions">';
+      html += '<button class="next-btn" data-action="start-scenario">この場面を始める</button>';
+      html += '<button class="ghost-btn" data-action="go-home">一覧に戻る</button>';
+      html += '</div></div>';
+      app.innerHTML = html;
+      return;
+    }
+
+    var html2 = '';
+    html2 += '<div class="rec-top">';
+    html2 += '<div><div class="rec-top-title">'+escapeHtml(sc.title)+'</div><div class="rec-top-cat">'+escapeHtml(cat.name)+'</div></div>';
+    html2 += '<div class="rec-step mono">STEP '+(state.turnIndex+1)+' / '+sc.turns.length+'</div>';
+    html2 += '</div>';
+
+    html2 += '<div class="record" id="record" style="--cat-color:var('+cat.varc+')">';
+    state.record.forEach(function(item){
+      if(item.speaker === "situation"){
+        html2 += '<div class="sit-card"><div class="sit-label">状況</div>'+escapeHtml(item.text)+'</div>';
+      } else {
+        html2 += '<div><div class="act-label">あなたの行動</div><div class="act-row"><div class="act-bubble">'+escapeHtml(item.text)+'</div></div></div>';
+      }
+    });
+    html2 += '</div>';
+
+    html2 += '<div class="choices-panel">';
+    if(state.phase === "active"){
+      html2 += '<div class="choices-hint">どう対応しますか?</div>';
+      state.currentChoices.forEach(function(choice, idx){
+        html2 += '<button class="choice-btn" data-action="pick-choice" data-idx="'+idx+'">'+escapeHtml(choice.text)+'</button>';
+      });
+    } else if(state.phase === "feedback"){
+      var last = state.review[state.review.length-1];
+      html2 += '<div class="feedback-panel">';
+      html2 += '<span class="feedback-tag '+last.tier+'">'+tierIcon(last.tier)+' '+tierLabel(last.tier)+'</span>';
+      html2 += '<div class="feedback-text">'+escapeHtml(last.feedback)+'</div>';
+      var isLast = state.turnIndex >= sc.turns.length - 1;
+      html2 += '<button class="next-btn" data-action="next-turn">'+(isLast ? "この場面を終える" : "次へ")+'</button>';
+      html2 += '</div>';
+    }
+    html2 += '</div>';
+
+    app.innerHTML = html2;
+    var rEl = document.getElementById("record");
+    if(rEl) rEl.scrollTop = rEl.scrollHeight;
+  }
+
+  function startScenario(){
+    var sc = scenarioById(state.scenarioId);
+    state.phase = "active"; state.turnIndex = 0;
+    pushSituation(sc, 0);
+    state.currentChoices = shuffle(sc.turns[0].choices);
+    render();
+  }
+
+  function pushSituation(sc, idx){ state.record.push({speaker:"situation", text: sc.turns[idx].situation.text}); }
+
+  function pickChoice(idx){
+    var sc = scenarioById(state.scenarioId);
+    var choice = state.currentChoices[idx];
+    state.record.push({speaker:"you", text: choice.text});
+    state.score += choice.points;
+    state.review.push({
+      situation: sc.turns[state.turnIndex].situation.text,
+      chosen: choice.text, tier: choice.tier, feedback: choice.feedback
+    });
+    state.phase = "feedback";
+    render();
+  }
+
+  function nextTurn(){
+    var sc = scenarioById(state.scenarioId);
+    if(state.turnIndex >= sc.turns.length - 1){ finishScenario(); return; }
+    state.turnIndex++;
+    pushSituation(sc, state.turnIndex);
+    state.currentChoices = shuffle(sc.turns[state.turnIndex].choices);
+    state.phase = "active";
+    render();
+  }
+
+  function finishScenario(){
+    var pct = Math.round(state.score / state.maxScore * 100);
+    progress[state.scenarioId] = progress[state.scenarioId] && progress[state.scenarioId].pct > pct
+      ? progress[state.scenarioId] : {pct: pct};
+    saveProgress(progress);
+    state.screen = "result";
+    render();
+  }
+
+  /* ---------------- RESULT ---------------- */
+  function renderResult(){
+    var sc = scenarioById(state.scenarioId);
+    var pct = Math.round(state.score / state.maxScore * 100);
+    var grade = pct >= 90 ? "S" : pct >= 75 ? "A" : pct >= 55 ? "B" : "C";
+    var msg = pct >= 90 ? "とても良い判断です。この調子で、他の場面にも挑戦してみましょう。"
+      : pct >= 75 ? "良い対応ができています。○や✕がついた場面の理由を振り返ると、さらにコツがつかめます。"
+      : pct >= 55 ? "基本はできています。迷った場面を見直して、判断の基準を整理してみましょう。"
+      : "焦らず大丈夫です。下の振り返りを読んで、もう一度この場面に挑戦してみましょう。";
+
+    var html = '<div class="result">';
+    html += '<div class="result-badge"><span class="grade">'+grade+'</span></div>';
+    html += '<div class="result-score">スコア <span class="mono">'+state.score+' / '+state.maxScore+'</span>(' + pct + '%)</div>';
+    html += '<div class="result-title">'+escapeHtml(sc.title)+'・振り返り</div>';
+    html += '<div class="result-msg">'+msg+'</div>';
+
+    html += '<div class="review-list">';
+    state.review.forEach(function(r, i){
+      html += '<div class="review-item">';
+      html += '<div class="review-head"><span class="review-icon '+r.tier+'">'+tierIcon(r.tier)+'</span><span class="review-situation">場面'+(i+1)+'. '+escapeHtml(truncate(r.situation, 32))+'</span></div>';
+      html += '<div class="review-feedback">'+escapeHtml(r.feedback)+'</div>';
+      html += '</div>';
+    });
+    html += '</div>';
+
+    html += '<div class="result-actions">';
+    html += '<button class="btn-primary" data-action="retry-scenario">もう一度この場面に挑戦する</button>';
+    html += '<button class="btn-secondary" data-action="open-manual">10か条を振り返る</button>';
+    html += '<button class="btn-secondary" data-action="go-home">シナリオ一覧に戻る</button>';
+    html += '</div>';
+    html += '</div>';
+    app.innerHTML = html;
+  }
+
+  /* ---------------- events ---------------- */
+  app.addEventListener("click", function(e){
+    var btn = e.target.closest("[data-action]");
+    if(!btn) return;
+    var action = btn.getAttribute("data-action");
+    if(action === "open-scenario"){ openScenario(btn.getAttribute("data-id")); }
+    else if(action === "open-manual"){ state.screen = "manual"; render(); }
+    else if(action === "go-home"){ state.screen = "home"; render(); }
+    else if(action === "start-scenario"){ startScenario(); }
+    else if(action === "pick-choice"){ pickChoice(parseInt(btn.getAttribute("data-idx"), 10)); }
+    else if(action === "next-turn"){ nextTurn(); }
+    else if(action === "retry-scenario"){ openScenario(state.scenarioId); }
+  });
+
+  render();
+})();
+</script>
