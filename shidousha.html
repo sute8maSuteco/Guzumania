@@ -1,0 +1,1055 @@
+<title>新人指導シミュレーター</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700;900&family=Noto+Sans+JP:wght@400;500;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+  :root{
+    --bg:#EFEAE0;
+    --surface:#FBF8F2;
+    --surface-alt:#F1ECDF;
+    --ink:#26231D;
+    --ink-soft:#726C5C;
+    --border:#DCD5C4;
+    --accent:#6B4680;
+    --accent-contrast:#FFFFFF;
+    --good:#3F7D4C;
+    --good-soft:#E4EEE2;
+    --warn:#A97A1E;
+    --warn-soft:#F3EAD4;
+    --bad:#B14A3D;
+    --bad-soft:#F5E2DE;
+    --catReaction:#2B5C63;
+    --catReaction-soft:#E1EBEA;
+    --catGap:#8B5E0E;
+    --catGap-soft:#F0E8D6;
+    --catBoundary:#7A3E52;
+    --catBoundary-soft:#F0E1E6;
+    --catDistance:#3C5A78;
+    --catDistance-soft:#E2E8EE;
+    --catWorkload:#6B5233;
+    --catWorkload-soft:#EDE6D8;
+    --catIndividuality:#A14B4B;
+    --catIndividuality-soft:#F3E0DE;
+    --catSelfcare:#3F6B5E;
+    --catSelfcare-soft:#DFEBE6;
+    --cover:#211527;
+    --cover-text:#EDE2F2;
+    --shadow: 0 20px 50px -20px rgba(20,20,15,0.35);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#151217;
+      --surface:#1E1A20;
+      --surface-alt:#282329;
+      --ink:#EBE7EA;
+      --ink-soft:#A79FA6;
+      --border:#3A3439;
+      --accent:#C9A0D9;
+      --accent-contrast:#2A1836;
+      --good:#6FBF7C;
+      --good-soft:#233127;
+      --warn:#D9A94A;
+      --warn-soft:#332C1C;
+      --bad:#E1786A;
+      --bad-soft:#38221E;
+      --catReaction:#5AA3AA;
+      --catReaction-soft:#20302F;
+      --catGap:#C99A4A;
+      --catGap-soft:#332A18;
+      --catBoundary:#C98CA0;
+      --catBoundary-soft:#32222A;
+      --catDistance:#8FB0D6;
+      --catDistance-soft:#212B36;
+      --catWorkload:#C9A87A;
+      --catWorkload-soft:#332B1E;
+      --catIndividuality:#E0938C;
+      --catIndividuality-soft:#37241F;
+      --catSelfcare:#8FC4B0;
+      --catSelfcare-soft:#1E2E27;
+      --shadow: 0 20px 50px -20px rgba(0,0,0,0.6);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#151217;
+    --surface:#1E1A20;
+    --surface-alt:#282329;
+    --ink:#EBE7EA;
+    --ink-soft:#A79FA6;
+    --border:#3A3439;
+    --accent:#C9A0D9;
+    --accent-contrast:#2A1836;
+    --good:#6FBF7C;
+    --good-soft:#233127;
+    --warn:#D9A94A;
+    --warn-soft:#332C1C;
+    --bad:#E1786A;
+    --bad-soft:#38221E;
+    --catReaction:#5AA3AA;
+    --catReaction-soft:#20302F;
+    --catGap:#C99A4A;
+    --catGap-soft:#332A18;
+    --catBoundary:#C98CA0;
+    --catBoundary-soft:#32222A;
+    --catDistance:#8FB0D6;
+    --catDistance-soft:#212B36;
+    --catWorkload:#C9A87A;
+    --catWorkload-soft:#332B1E;
+    --catIndividuality:#E0938C;
+    --catIndividuality-soft:#37241F;
+    --catSelfcare:#8FC4B0;
+    --catSelfcare-soft:#1E2E27;
+    --shadow: 0 20px 50px -20px rgba(0,0,0,0.6);
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;height:100%;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:"Noto Sans JP","Hiragino Kaku Gothic ProN","Hiragino Sans",Meiryo,sans-serif;
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    padding:20px 14px;
+  }
+  h1,h2,h3,.display{ font-family:"Zen Kaku Gothic New","Noto Sans JP",sans-serif; text-wrap:balance; margin:0; }
+  .mono{ font-family:"JetBrains Mono", ui-monospace, monospace; font-variant-numeric:tabular-nums; }
+  button{font-family:inherit;}
+  button:focus-visible, a:focus-visible, [tabindex]:focus-visible{ outline:3px solid var(--accent); outline-offset:2px; }
+  @media (prefers-reduced-motion: reduce){ *{animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0.001ms !important;} }
+
+  /* ---- outer frame (cover) ---- */
+  .frame{
+    width:100%; max-width:480px; height:min(720px, calc(100vh - 40px));
+    background:var(--cover); border-radius:22px; padding:14px; box-shadow:var(--shadow);
+    display:flex; flex-direction:column;
+  }
+  .frame-label{
+    flex-shrink:0; display:flex; align-items:center; justify-content:center; gap:7px;
+    padding:2px 0 12px; color:var(--cover-text); font-size:12.5px; font-weight:700; letter-spacing:0.03em;
+  }
+  .frame-label svg{ width:14px; height:14px; }
+  .frame-label .dot{ width:6px;height:6px;border-radius:50%; background:var(--cover-text); opacity:0.55; }
+  .page{
+    background:var(--surface); border-radius:16px; flex:1; min-height:0;
+    display:flex; flex-direction:column; overflow:hidden; position:relative;
+  }
+
+  /* ---- home ---- */
+  .home{ padding:20px 20px 20px; overflow-y:auto; flex:1; min-height:0; }
+  .cover-art{ display:flex; flex-direction:column; align-items:center; padding:6px 0 14px; }
+  .cover-art svg{ width:76px; height:76px; }
+  .cover-caption{ font-size:10.5px; color:var(--ink-soft); margin-top:6px; letter-spacing:0.03em; }
+  .home-head{ padding:0 2px 18px; border-bottom:1px solid var(--border); margin-bottom:16px; }
+  .eyebrow{ font-size:11px; letter-spacing:0.12em; color:var(--accent); font-weight:700; text-transform:uppercase; text-align:center; }
+  .home-title{ font-size:21px; font-weight:900; margin-top:6px; line-height:1.35; text-align:center; }
+  .home-sub{ font-size:12.5px; color:var(--ink-soft); margin-top:8px; line-height:1.65; text-align:center; }
+  .progress-row{ display:flex; align-items:center; gap:10px; margin-top:14px; }
+  .progress-track{ flex:1; height:6px; background:var(--surface-alt); border-radius:4px; overflow:hidden; border:1px solid var(--border); }
+  .progress-fill{ height:100%; background:var(--accent); border-radius:4px; transition:width .4s ease; }
+  .progress-label{ font-size:12px; color:var(--ink-soft); white-space:nowrap; }
+  .manual-link{
+    margin-top:14px; display:flex; align-items:center; justify-content:center; gap:6px; font-size:13px; font-weight:700;
+    color:var(--accent); background:var(--surface-alt); border:1px solid var(--border); padding:9px 14px; border-radius:10px; cursor:pointer; width:100%;
+  }
+  .cat-block{ margin-bottom:20px; }
+  .cat-head{ display:flex; align-items:center; gap:8px; margin-bottom:2px; }
+  .cat-dot{ width:9px;height:9px;border-radius:50%; flex-shrink:0; }
+  .cat-name{ font-size:14px; font-weight:700; }
+  .cat-desc{ font-size:11.5px; color:var(--ink-soft); margin:2px 0 8px 17px; }
+  .card-list{ display:flex; flex-direction:column; gap:8px; }
+  .scenario-card{
+    display:flex; align-items:center; gap:12px; background:var(--surface-alt); border:1px solid var(--border);
+    border-radius:14px; padding:11px 12px; cursor:pointer; text-align:left; width:100%;
+  }
+  .scenario-card:hover{ border-color:var(--accent); }
+  .avatar{ width:38px;height:38px;border-radius:12px; display:flex;align-items:center;justify-content:center; font-size:17px; flex-shrink:0; }
+  .card-body{ flex:1; min-width:0; }
+  .card-title{ font-size:13.5px; font-weight:700; }
+  .card-meta{ font-size:11.5px; color:var(--ink-soft); margin-top:2px; line-height:1.5; }
+  .card-side{ display:flex; flex-direction:column; align-items:flex-end; gap:4px; flex-shrink:0; }
+  .stars{ font-size:11px; color:var(--warn); letter-spacing:1px; white-space:nowrap; }
+  .best-badge{ font-size:10.5px; font-weight:700; color:var(--good); background:var(--good-soft); padding:2px 7px; border-radius:20px; white-space:nowrap; }
+
+  /* ---- manual ---- */
+  .manual{ padding:20px 20px 24px; overflow-y:auto; flex:1; min-height:0; }
+  .back-row{ display:flex; align-items:center; gap:10px; margin-bottom:14px; }
+  .icon-btn{
+    width:32px;height:32px;border-radius:50%; background:var(--surface-alt); border:1px solid var(--border);
+    display:flex;align-items:center;justify-content:center; cursor:pointer; color:var(--ink); font-size:16px; flex-shrink:0;
+  }
+  .screen-title{ font-size:16.5px; font-weight:900; }
+  .tip-card{ background:var(--surface-alt); border:1px solid var(--border); border-radius:14px; padding:13px 14px; margin-bottom:10px; }
+  .tip-num{ font-size:11px; font-weight:700; color:var(--accent); }
+  .tip-desc{ font-size:12.5px; color:var(--ink); margin-top:4px; line-height:1.7; }
+
+  /* ---- scenario: intro ---- */
+  .intro{ flex:1; min-height:0; overflow-y:auto; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:34px 28px; text-align:center; gap:6px; }
+  .intro .avatar{ width:76px; height:76px; border-radius:22px; font-size:32px; margin-bottom:14px; }
+  .intro-cat{ font-size:11.5px; font-weight:700; letter-spacing:0.04em; color:var(--ink-soft); text-transform:uppercase; }
+  .intro-title{ font-size:19px; font-weight:900; margin-top:8px; line-height:1.4; }
+  .intro-lead{ font-size:12.5px; color:var(--ink-soft); margin-top:12px; line-height:1.75; max-width:320px; }
+  .intro-actions{ display:flex; flex-direction:column; gap:9px; width:100%; max-width:260px; margin-top:26px; }
+
+  /* ---- scenario: active ---- */
+  .rec-top{ display:flex; align-items:center; justify-content:space-between; gap:10px; padding:14px 18px 12px; border-bottom:1px solid var(--border); flex-shrink:0; }
+  .rec-top-title{ font-size:13.5px; font-weight:700; line-height:1.4; }
+  .rec-top-cat{ font-size:11px; color:var(--ink-soft); margin-top:2px; }
+  .rec-step{ font-size:11.5px; color:var(--accent); font-weight:700; white-space:nowrap; flex-shrink:0; }
+
+  .record{ flex:1; min-height:0; overflow-y:auto; padding:16px 16px 8px; display:flex; flex-direction:column; gap:12px; }
+  .sit-card{ background:var(--surface-alt); border:1px solid var(--border); border-left:4px solid var(--cat-color, var(--accent)); border-radius:10px; padding:11px 13px; font-size:13px; line-height:1.7; }
+  .sit-label{ font-size:10.5px; font-weight:700; color:var(--ink-soft); letter-spacing:0.04em; margin-bottom:4px; text-transform:uppercase; }
+  .act-row{ display:flex; justify-content:flex-end; }
+  .act-bubble{ max-width:86%; background:var(--accent); color:var(--accent-contrast); border-radius:12px; border-bottom-right-radius:4px; padding:9px 13px; font-size:12.5px; line-height:1.65; }
+  .act-label{ font-size:10px; color:var(--ink-soft); text-align:right; margin:0 2px 3px; }
+
+  .choices-panel{ border-top:1px solid var(--border); padding:12px 16px 16px; flex-shrink:0; background:var(--surface); max-height:46vh; overflow-y:auto; }
+  .choices-hint{ font-size:11px; color:var(--ink-soft); margin-bottom:8px; }
+  .choice-btn{
+    display:block; width:100%; text-align:left; background:var(--surface-alt); border:1px solid var(--border);
+    border-radius:12px; padding:10px 13px; margin-bottom:8px; font-size:13px; line-height:1.6; color:var(--ink); cursor:pointer;
+  }
+  .choice-btn:hover{ border-color:var(--accent); }
+  .choice-btn:last-child{ margin-bottom:0; }
+
+  .feedback-panel{ padding:4px 2px 2px; }
+  .feedback-tag{ display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:700; padding:4px 11px; border-radius:20px; margin-bottom:8px; }
+  .feedback-tag.good{ background:var(--good-soft); color:var(--good); }
+  .feedback-tag.ok{ background:var(--warn-soft); color:var(--warn); }
+  .feedback-tag.bad{ background:var(--bad-soft); color:var(--bad); }
+  .feedback-text{ font-size:13px; line-height:1.7; color:var(--ink); margin-bottom:12px; }
+  .next-btn{ width:100%; padding:11px; border-radius:12px; border:none; background:var(--accent); color:var(--accent-contrast); font-weight:700; font-size:13.5px; cursor:pointer; }
+  .ghost-btn{ width:100%; padding:11px; border-radius:12px; border:1px solid var(--border); background:var(--surface-alt); color:var(--ink); font-weight:700; font-size:13.5px; cursor:pointer; }
+
+  /* ---- result ---- */
+  .result{ padding:22px 22px 26px; overflow-y:auto; flex:1; min-height:0; display:flex; flex-direction:column;}
+  .result-badge{
+    width:92px;height:92px;border-radius:50%; margin:6px auto 14px;
+    display:flex; align-items:center; justify-content:center; border:3px solid var(--accent); color:var(--accent);
+  }
+  .result-badge .grade{ font-size:28px; font-weight:900; font-family:"Zen Kaku Gothic New",sans-serif; }
+  .result-score{ text-align:center; font-size:13px; color:var(--ink-soft); }
+  .result-score .mono{ font-size:15px; color:var(--ink); font-weight:700; }
+  .result-title{ text-align:center; font-size:15.5px; font-weight:900; margin-top:14px; }
+  .result-msg{ text-align:center; font-size:12.5px; color:var(--ink-soft); margin-top:6px; line-height:1.75;}
+  .review-list{ margin-top:20px; display:flex; flex-direction:column; gap:8px; }
+  .review-item{ background:var(--surface-alt); border:1px solid var(--border); border-radius:12px; padding:10px 12px; }
+  .review-head{ display:flex; align-items:center; gap:8px; }
+  .review-icon{ width:20px;height:20px;border-radius:50%; flex-shrink:0; display:flex;align-items:center;justify-content:center; font-size:11px; font-weight:900; color:#fff; }
+  .review-icon.good{ background:var(--good); }
+  .review-icon.ok{ background:var(--warn); }
+  .review-icon.bad{ background:var(--bad); }
+  .review-situation{ font-size:12px; font-weight:700; }
+  .review-feedback{ font-size:11.5px; color:var(--ink-soft); margin-top:5px; line-height:1.6; padding-left:28px;}
+  .result-actions{ display:flex; flex-direction:column; gap:8px; margin-top:22px; }
+  .btn-primary{ padding:12px; border-radius:12px; border:none; background:var(--accent); color:var(--accent-contrast); font-weight:700; font-size:13.5px; cursor:pointer; }
+  .btn-secondary{ padding:12px; border-radius:12px; border:1px solid var(--border); background:var(--surface-alt); color:var(--ink); font-weight:700; font-size:13.5px; cursor:pointer; }
+</style>
+
+<div class="frame">
+  <div class="frame-label">
+    <svg viewBox="0 0 120 120" aria-hidden="true"><path d="M18 34 h56 a9 9 0 0 1 9 9 v22 a9 9 0 0 1 -9 9 h-26 l-12 12 v-12 h-18 a9 9 0 0 1 -9 -9 v-22 a9 9 0 0 1 9 -9 Z" fill="#EDE2F2" opacity="0.92"/><circle cx="90" cy="30" r="14" fill="#211527"/></svg>
+    <span>指導者ノート</span><span class="dot"></span><span>育成担当向け</span>
+  </div>
+  <div class="page" id="app"></div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var BUBBLE_SVG = '<svg viewBox="0 0 120 120" aria-hidden="true">'
+    + '<path d="M16 32 h56 a10 10 0 0 1 10 10 v24 a10 10 0 0 1 -10 10 h-28 l-13 13 v-13 h-15 a10 10 0 0 1 -10 -10 v-24 a10 10 0 0 1 10 -10 Z" fill="#4C3260"/>'
+    + '<circle cx="33" cy="56" r="4" fill="#EDE2F2"/>'
+    + '<circle cx="47" cy="56" r="4" fill="#EDE2F2"/>'
+    + '<circle cx="61" cy="56" r="4" fill="#EDE2F2"/>'
+    + '<path d="M54 14 h42 a8 8 0 0 1 8 8 v20 a8 8 0 0 1 -8 8 h-6 l-10 10 v-10 h-26 a8 8 0 0 1 -8 -8 v-20 a8 8 0 0 1 8 -8 Z" fill="#F5F1EA" stroke="#C9A0D9" stroke-width="2.2" stroke-dasharray="4 3.5"/>'
+    + '<circle cx="74" cy="32" r="2.6" fill="#8A6B9E"/>'
+    + '<circle cx="84" cy="32" r="2.6" fill="#8A6B9E"/>'
+    + '<circle cx="94" cy="32" r="2.6" fill="#8A6B9E"/>'
+    + '</svg>';
+
+  var CATEGORIES = [
+    {id:"reaction", name:"反応が薄い新人への接し方", desc:"「大丈夫です」の裏側をどう見るか", varc:"--catReaction", vars:"--catReaction-soft"},
+    {id:"gap", name:"世代間ギャップとの向き合い方", desc:"働き方や価値観の違いをどう捉えるか", varc:"--catGap", vars:"--catGap-soft"},
+    {id:"boundary", name:"ハラスメントと疑われない指導のために", desc:"指摘・連絡・距離感の適切なライン", varc:"--catBoundary", vars:"--catBoundary-soft"},
+    {id:"distance", name:"距離感とモチベーションの保ち方", desc:"褒め方・見守り方・自分の心の保ち方", varc:"--catDistance", vars:"--catDistance-soft"},
+    {id:"workload", name:"本業との両立・教育環境の悩み", desc:"時間不足、教え方の言語化、体制の不備", varc:"--catWorkload", vars:"--catWorkload-soft"},
+    {id:"individuality", name:"新人の個性と向き合う悩み", desc:"質問の量、個人差、繰り返すミスへの対応", varc:"--catIndividuality", vars:"--catIndividuality-soft"},
+    {id:"selfcare", name:"指導する側の心と仕事を守る", desc:"自分の業務、リモート環境、精神的な負担", varc:"--catSelfcare", vars:"--catSelfcare-soft"}
+  ];
+
+  function T(text){ return {text:text}; }
+  function C(text, tier, feedback){
+    var pts = tier === "good" ? 10 : (tier === "ok" ? 5 : 0);
+    return {text:text, tier:tier, feedback:feedback, points:pts};
+  }
+
+  var SCENARIOS = [
+    {
+      id:"M1", cat:"reaction", difficulty:1, icon:"💬",
+      title:"説明後の反応が薄い新人", lead:"新しい業務の説明をひと通り終え、「何か分からないところはある?」と聞いたところ、新人は「大丈夫です」とだけ短く答えた。表情からは、本当に理解しているのか読み取れない。",
+      turns:[
+        { situation:T("この場面で、どうするか。"),
+          choices:[
+            C("「念のため確認だけど、〇〇の部分を自分の言葉で説明してみてもらえる?」と、理解度を具体的に確認する", "good", "「大丈夫です」という言葉だけでなく、実際に説明させてみることで、理解の有無を具体的に確認できます。"),
+            C("「分からないことがあったら、いつでも聞いてね」と伝えて終える", "ok", "声をかけること自体は良いですが、本当に理解しているかどうかまでは確認できていません。"),
+            C("「大丈夫です」という言葉をそのまま信じて、それ以上は確認せずに次の作業に移る", "bad", "反応が薄い新人の「大丈夫です」には、聞き返しづらくてそう答えている場合もあり得ます。")
+          ]},
+        { situation:T("確認してみると、実は肝心な部分を理解していなかったことが分かった。"),
+          choices:[
+            C("「聞きにくかったかもしれないけど、教えてくれてありがとう。ここはよくあるつまずきポイントだから」と伝え、責めずに説明し直す", "good", "理解していなかったことを責めず、伝えてくれたこと自体を前向きに受け止める対応です。"),
+            C("「あ、そこ分かってなかったんだ」と言いながら、特にフォローの言葉は加えずに説明し直す", "ok", "説明し直すこと自体は良いですが、一言フォローがあると、次回も聞きやすい雰囲気を保てます。"),
+            C("「さっき大丈夫って言ってたよね?」と、少し呆れたような反応をする", "bad", "「大丈夫」と言ったことを責めると、次からますます本音を言いにくくなってしまいます。")
+          ]},
+        { situation:T("反応が薄い新人との向き合い方で、大切な考え方は?"),
+          choices:[
+            C("反応が薄いことを「やる気がない」と決めつけず、聞き返しやすい雰囲気を作ることを自分の役割と捉える", "good", "反応の薄さの背景には様々な事情があり得ると理解した、良い考え方です。"),
+            C("新人自身がもっと積極的に質問するべきだと考える", "ok", "新人側の努力も大切ですが、指導する側が聞きやすい環境を作る工夫も欠かせません。"),
+            C("反応が薄いのは今どきの新人の特徴だから、仕方がないと割り切る", "bad", "世代の特徴として片付けてしまうと、個々の状況に応じた工夫の機会を逃してしまいます。")
+          ]}
+      ]
+    },
+    {
+      id:"M2", cat:"reaction", difficulty:1, icon:"🙂",
+      title:"雑談を振っても反応が薄い", lead:"休憩中、場を和ませようと新人に雑談を振ってみたが、「そうですね」「はい」といった短い返事ばかりで、会話が続かない。",
+      turns:[
+        { situation:T("この状況を、まずどう捉えるか。"),
+          choices:[
+            C("雑談が苦手なだけかもしれないと考え、無理に会話を広げようとせず、自然な間を許容する", "good", "雑談への反応の薄さを、性格や特性の一つとして捉える柔軟さは大切です。"),
+            C("何とか場を盛り上げようと、質問を重ねて会話を引き出そうとする", "ok", "気遣い自体は良いですが、質問攻めになると、かえって新人の負担になることがあります。"),
+            C("自分に懐いていない、嫌われているのかもしれないと落ち込む", "bad", "雑談への反応の薄さを、自分への評価と直結させて考える必要はありません。")
+          ]},
+        { situation:T("別の日、業務の話題を振ったところ、雑談の時より表情が明るくなり、質問も返ってきた。"),
+          choices:[
+            C("「業務の話の方が話しやすいんだな」と気づき、無理に雑談をしなくても、業務を通じたコミュニケーションを大切にする", "good", "コミュニケーションの取り方は人それぞれだと気づき、相手に合わせて調整できています。"),
+            C("雑談が苦手なだけだろうと考え、特に気にせず今まで通り雑談を続ける", "ok", "気づき自体はありますが、相手が話しやすい話題を意識的に増やすと、より関係が深まります。"),
+            C("雑談ができないのはコミュニケーション能力に問題があると判断する", "bad", "雑談と業務の会話は別の能力であり、苦手なことを能力全体の評価に結びつけるのは適切ではありません。")
+          ]},
+        { situation:T("新人とのコミュニケーションで、大切な考え方は?"),
+          choices:[
+            C("雑談が得意かどうかではなく、どんな場面ならこの人は話しやすいかを見つける意識を持つ", "good", "一律のコミュニケーションを求めず、相手に合わせた関わり方を模索する姿勢が身についています。"),
+            C("雑談ができるようになることを、新人育成の一つの目標として考える", "ok", "雑談力を育てる視点も一つですが、業務上の意思疎通ができていれば、無理に求める必要はありません。"),
+            C("雑談に応じないのは社会人としての基本ができていないと考える", "bad", "雑談への苦手意識と、社会人としての基礎力は別のものです。")
+          ]}
+      ]
+    },
+    {
+      id:"M3", cat:"reaction", difficulty:2, icon:"❓",
+      title:"質問してこない新人への対応", lead:"入社して数週間経つが、新人からの質問がほとんどない。分かっているのか、聞きづらいのか、判断がつかない。",
+      turns:[
+        { situation:T("どう対応するか。"),
+          choices:[
+            C("「困っていることがないか、5分だけ話す時間を取ろうか」と、こちらから定期的に声をかける場を作る", "good", "質問を待つだけでなく、こちらから機会を作る姿勢が、質問しにくさを補います。"),
+            C("「何かあったら聞いてね」と伝えるだけにして、様子を見る", "ok", "声かけ自体は良いですが、定期的な機会を作る方が、新人にとって声をかけやすくなります。"),
+            C("質問がないのは順調に理解できている証拠だと判断し、特に確認しない", "bad", "質問の有無だけで理解度を判断するのは危険です。聞きづらさが理由の場合もあります。")
+          ]},
+        { situation:T("声をかけたところ、「実は少し困っていることがあって」と、初めて相談してくれた。"),
+          choices:[
+            C("「話してくれてありがとう」と伝え、内容をしっかり聞く", "good", "話してくれたこと自体を肯定的に受け止める対応が、次の相談のしやすさにつながります。"),
+            C("相談内容の解決だけに集中し、話してくれたこと自体には特に触れない", "ok", "解決策を示すことも大切ですが、話してくれたこと自体への言葉があるとより安心感につながります。"),
+            C("「そういうことは早く言ってよ」と、少し責めるような言い方をする", "bad", "相談したことを責められると感じると、次から相談しにくくなってしまいます。")
+          ]},
+        { situation:T("質問が少ない新人への向き合い方で、大切な考え方は?"),
+          choices:[
+            C("質問しやすい雰囲気や機会を作ることも、指導する側の役割の一つだと理解する", "good", "待つだけでなく、環境を作る意識ができています。"),
+            C("質問するかどうかは、最終的には本人の主体性に任せるべきだと考える", "ok", "主体性を尊重する視点も大切ですが、慣れない環境では、きっかけを用意する工夫も有効です。"),
+            C("質問してこないのは本人のやる気の問題だと考える", "bad", "質問の少なさを、やる気の問題だけに帰結させると、他の要因を見落としてしまいます。")
+          ]}
+      ]
+    },
+    {
+      id:"M4", cat:"gap", difficulty:2, icon:"🕕",
+      title:"定時で帰ることへの向き合い方", lead:"新人が、自分の仕事が終わると毎日きっちり定時で退社している。周りが残業している日でも変わらない様子を見て、複雑な気持ちになった。",
+      turns:[
+        { situation:T("この状況を、まずどう受け止めるか。"),
+          choices:[
+            C("自分の仕事を終えて定時に帰ること自体は、何も悪いことではないと捉え直す", "good", "定時退社は本来当然の権利であり、それ自体を問題視しない視点が大切です。"),
+            C("少し複雑な気持ちにはなるが、特に何も言わずにそのままにしておく", "ok", "気持ちの整理はできていますが、必要であれば周囲との連携について改めて確認しておくと安心です。"),
+            C("「周りが残業してるんだから、少しは空気を読んでほしい」と、遠回しに不満を伝える", "bad", "定時退社そのものを咎めるような発言は、正当な権利の行使を否定することになりかねません。")
+          ]},
+        { situation:T("ただ、チームとしては、忙しい時期に協力し合う文化も大切にしたいと感じている。"),
+          choices:[
+            C("「今週は繁忙期で大変なんだけど、もし可能なら少し協力してもらえると助かる」と、相談の形で伝える", "good", "強制ではなく相談として伝えることで、相手の判断の余地を残した適切な伝え方です。"),
+            C("何も伝えず、自分たちだけで何とか対応する", "ok", "協力を仰ぎたい気持ちがあるなら、伝えないままにするより、相談してみる方が良い結果につながることがあります。"),
+            C("「みんな残業してるんだから、あなたも残業するのが当然でしょう」と、当然のことのように伝える", "bad", "当然視した言い方は、価値観の押し付けと受け取られる可能性があります。")
+          ]},
+        { situation:T("世代による働き方の違いに向き合ううえで、大切な考え方は?"),
+          choices:[
+            C("自分たちの世代の働き方を基準にせず、今の時代の適切な働き方を前提に考える", "good", "自分の経験を基準にしすぎない、柔軟な考え方ができています。"),
+            C("世代による違いがあることは理解しつつ、自分のやり方も変えずに続ける", "ok", "違いを理解すること自体は良い一歩ですが、自分の対応も少しずつ見直す余地があるかもしれません。"),
+            C("今の新人は昔と違って根性がないと感じ、それを指導の中でも伝えるようにする", "bad", "世代を一括りにした評価は、個々の新人の状況を正しく見る妨げになります。")
+          ]}
+      ]
+    },
+    {
+      id:"M5", cat:"gap", difficulty:1, icon:"🍱",
+      title:"飲み会・ランチに誘っても断られる", lead:"親睦を深めようとランチや飲み会に誘っているが、新人からやんわり断られることが続いている。",
+      turns:[
+        { situation:T("この状況をどう受け止めるか。"),
+          choices:[
+            C("プライベートの時間の使い方は人それぞれであり、断られること自体を問題視しない", "good", "誘いを断る自由を尊重する姿勢は、今の時代の関係づくりの基本です。"),
+            C("少し残念には思うが、それ以上は特に気にしないようにする", "ok", "気持ちの切り替えはできていますが、誘い方そのものを見直す余地もあるかもしれません。"),
+            C("何度断られても、関係を深めるためだと思い、繰り返し誘い続ける", "bad", "断られても繰り返し誘うと、相手にとって負担になってしまう可能性があります。")
+          ]},
+        { situation:T("業務中の会話は問題なくできており、特に関係が悪いわけではなさそうだと分かった。"),
+          choices:[
+            C("業務時間内でのコミュニケーションを大切にし、プライベートな誘いは今の頻度のままにしておく", "good", "業務内の関係が良好であれば、無理にプライベートの関係まで広げる必要はありません。"),
+            C("誘う頻度を減らしつつ、時々は様子を見て誘ってみる", "ok", "頻度を調整する姿勢は良いですが、業務内の関係を大切にする発想があるとより安心です。"),
+            C("プライベートでも仲良くなれないと、本当の信頼関係は築けないと思い込む", "bad", "信頼関係は、必ずしもプライベートな付き合いを通じてのみ築かれるものではありません。")
+          ]},
+        { situation:T("親睦の誘いへの向き合い方で、大切な考え方は?"),
+          choices:[
+            C("親睦を深める方法は一つではないと理解し、業務を通じた関係づくりも大切にする", "good", "関係づくりの手段を柔軟に考えられています。"),
+            C("プライベートな親睦を深めることを、引き続き重要な目標として考える", "ok", "親睦を大切にする気持ちは良いですが、それを唯一の方法と考えすぎないようにする視点も必要です。"),
+            C("誘いを断られ続けるのは、自分が信頼されていない証拠だと結論づける", "bad", "誘いを断ることと、信頼していないことは、必ずしも同じ意味ではありません。")
+          ]}
+      ]
+    },
+    {
+      id:"M6", cat:"gap", difficulty:2, icon:"🤔",
+      title:"「これって意味ありますか?」と聞かれた時", lead:"昔からのやり方で指導している業務手順について、新人から「これって、今の時代に意味あるんですか?」と聞かれた。",
+      turns:[
+        { situation:T("この質問に、どう応じるか。"),
+          choices:[
+            C("感情的にならず、「良い質問だね」と受け止め、その手順が今も必要な理由を、自分の言葉で説明してみる", "good", "質問を否定せず、理由を説明しようとする姿勢は、建設的な対応です。"),
+            C("「昔からこうやってるから」とだけ答えて、それ以上の説明はしない", "ok", "答えること自体はできていますが、理由まで説明できると、新人の納得感につながります。"),
+            C("「そんなこと言わずに、まずは言われた通りにやって」と、質問自体をやんわり否定する", "bad", "質問を否定すると、以降疑問があっても言い出しにくい雰囲気を作ってしまいます。")
+          ]},
+        { situation:T("改めて考えてみると、その手順の一部は、確かに今の時代には合っていない部分もあると気づいた。"),
+          choices:[
+            C("「言われてみると、ここは見直してもいいかもしれない」と、素直に認めて改善を検討する", "good", "指導する側も間違いを認め、改善する姿勢を見せることは、信頼関係を深めます。"),
+            C("気づいてはいるが、特に何も変えずにこれまで通りのやり方を続ける", "ok", "気づいたこと自体は良い一歩ですが、実際に見直す行動につなげられるとより良いです。"),
+            C("自分のやり方を否定されたように感じ、意固地になってそのまま押し通す", "bad", "指摘を個人への否定と捉えてしまうと、建設的な見直しの機会を逃してしまいます。")
+          ]},
+        { situation:T("従来のやり方への疑問に向き合ううえで、大切な考え方は?"),
+          choices:[
+            C("新人からの疑問は、やり方を見直す良いきっかけになり得ると捉える", "good", "新しい視点を前向きに受け止める考え方ができています。"),
+            C("疑問には答えつつも、基本的にはこれまでのやり方を維持することを優先する", "ok", "維持することが適切な場合もありますが、見直しの余地がないか都度確認する姿勢も大切です。"),
+            C("今の新人は、意味を説明しないと動いてくれないので面倒だと感じる", "bad", "理由を求めること自体は自然な姿勢であり、面倒だと捉えず、説明する機会と捉え直すと良いでしょう。")
+          ]}
+      ]
+    },
+    {
+      id:"M7", cat:"boundary", difficulty:2, icon:"📝",
+      title:"ミスを指摘する時の言い方", lead:"新人が同じミスを繰り返している。今度こそきちんと指摘したいが、きつく言ってハラスメントだと思われないか不安になる。",
+      turns:[
+        { situation:T("どう指摘するか。"),
+          choices:[
+            C("「今回のミスについて、少し話したいんだけど時間いいかな」と個別に時間を取り、人格ではなく行動・事実に焦点を当てて伝える", "good", "場を選び、人格ではなく行動に焦点を当てるのは、適切な指摘の基本です。"),
+            C("気づいたその場で、周りに人がいる中で簡潔に指摘する", "ok", "すぐに伝えること自体は悪くありませんが、他の人がいる場での指摘は、相手に恥ずかしさを感じさせることがあります。"),
+            C("「何回言ったら分かるの」と、感情的な言葉で指摘する", "bad", "感情的な言葉や人格を否定するような表現は、ハラスメントと受け取られるリスクが高くなります。")
+          ]},
+        { situation:T("指摘した後、新人が少し落ち込んでいるように見えた。"),
+          choices:[
+            C("「厳しく聞こえたかもしれないけど、期待しているからこそ伝えている」と、意図を補足する", "good", "指摘の意図を補足することで、相手が受け取りやすくなります。"),
+            C("特にフォローはせず、そのまま様子を見る", "ok", "指摘自体は適切でも、フォローがあると、相手の受け止め方がより前向きになります。"),
+            C("「落ち込むくらいなら、最初から気をつけてほしい」と、さらに追い打ちをかける", "bad", "落ち込んでいる相手にさらに言葉を重ねると、必要以上に追い詰めてしまいます。")
+          ]},
+        { situation:T("ミスを指摘するうえで、大切な考え方は?"),
+          choices:[
+            C("指摘の内容が正当であっても、伝え方や場面への配慮次第で受け取られ方が変わると理解する", "good", "内容の正しさだけでなく、伝え方への意識まで持てています。"),
+            C("正しい指摘であれば、多少厳しい言い方になっても問題ないと考える", "ok", "内容が正しくても、伝え方によっては相手を必要以上に傷つけてしまうことがあります。"),
+            C("指摘してハラスメントと言われるくらいなら、ミスを見て見ぬふりをする方が安全だと考える", "bad", "指摘を避けることは、本人の成長の機会を奪うことにもなり、根本的な解決にはなりません。")
+          ]}
+      ]
+    },
+    {
+      id:"M8", cat:"boundary", difficulty:2, icon:"📴",
+      title:"業務時間外の連絡", lead:"新人が翌日の準備で困っているようだったので、業務時間外にチャットで連絡しようか迷っている。",
+      turns:[
+        { situation:T("どうするか。"),
+          choices:[
+            C("緊急性がなければ、翌営業日の勤務時間内に連絡することにする", "good", "業務時間外の連絡を控える判断は、相手のプライベートな時間を尊重する基本的な配慮です。"),
+            C("「急ぎじゃないので、時間のある時で大丈夫です」と一言添えて、時間外にメッセージを送る", "ok", "配慮の言葉はありますが、時間外の連絡自体がプレッシャーに感じられることもあります。"),
+            C("早めに伝えた方が親切だと思い、深夜でも構わずすぐにメッセージを送る", "bad", "深夜の連絡は、緊急性がない限り、相手の負担になる可能性が高い行動です。")
+          ]},
+        { situation:T("翌日、新人から「昨日はありがとうございました」と、時間外の連絡について特にお礼を言われた。"),
+          choices:[
+            C("「たまたま気づいたから伝えただけだよ、基本は勤務時間内でのやり取りを大切にしよう」と伝える", "good", "感謝は受け止めつつ、時間外連絡を基本にしない姿勢を示すことが、今後の適切な距離感につながります。"),
+            C("お礼を受け止めるだけで、特に今後の連絡ルールについては触れない", "ok", "お礼を受け止めること自体は良いですが、今後の基本ルールを共有しておくと、双方が安心できます。"),
+            C("「これくらい大したことないよ、いつでも連絡していいからね」と、時間外の連絡を当たり前のことのように伝える", "bad", "時間外の連絡を当たり前にしてしまうと、双方にとって望ましくない習慣になりかねません。")
+          ]},
+        { situation:T("業務時間外の連絡について、大切な考え方は?"),
+          choices:[
+            C("良かれと思ってする連絡でも、相手にとっては負担やプレッシャーになり得ると理解する", "good", "善意の行動であっても、相手側の受け取り方を想像する視点が大切です。"),
+            C("緊急時に限り、時間外の連絡もやむを得ないと考える", "ok", "緊急時の判断基準を持つこと自体は良いですが、「緊急」の範囲を都度見直す意識も必要です。"),
+            C("熱心さの表れとして、時間外の連絡は多少多くても問題ないと考える", "bad", "熱心さと、相手のプライベートな時間への配慮は、別のものとして考える必要があります。")
+          ]}
+      ]
+    },
+    {
+      id:"M9", cat:"boundary", difficulty:2, icon:"🗨️",
+      title:"プライベートな話題にどこまで踏み込むか", lead:"新人との距離を縮めたいと思い、休日の過ごし方や恋愛の話など、プライベートな話題を振ろうか迷っている。",
+      turns:[
+        { situation:T("どう対応するか。"),
+          choices:[
+            C("業務に関係のない個人的な話題は、相手から自然に話してくれるまで、自分からは深く踏み込まないようにする", "good", "相手のプライベートな領域を尊重し、無理に踏み込まない姿勢が適切です。"),
+            C("軽い雑談の一環として、休日の過ごし方くらいは聞いてみる", "ok", "一般的な話題であれば問題になりにくいですが、相手の反応を見ながら加減する意識が必要です。"),
+            C("恋愛や結婚の予定など、踏み込んだ質問をして距離を縮めようとする", "bad", "恋愛や結婚といった話題は、相手によっては非常に踏み込みすぎたプライベートな領域です。")
+          ]},
+        { situation:T("何気ない会話の中で、新人の方から少しだけ休日の話をしてくれた。"),
+          choices:[
+            C("「そうなんだ、いいね」と軽く受け止め、そこから無理に話を広げすぎない", "good", "相手から話してくれた範囲を尊重し、深追いしない対応が適切です。"),
+            C("話してくれたことが嬉しく、次々と関連する質問を重ねてしまう", "ok", "関心を持つこと自体は自然ですが、質問を重ねすぎると、相手が話しすぎたと感じてしまうことがあります。"),
+            C("話してくれた内容を、後日別の同僚との雑談のネタにする", "bad", "個人的な話題を本人のいないところで話題にするのは、信頼を損なう行為です。")
+          ]},
+        { situation:T("プライベートな話題との向き合い方で、大切な考え方は?"),
+          choices:[
+            C("距離を縮めることと、プライベートに踏み込むことは、必ずしも同じではないと理解する", "good", "距離感の作り方について、適切な理解ができています。"),
+            C("仲良くなるためには、ある程度プライベートな話も必要だと考える", "ok", "関係づくりへの意識は良いですが、相手が話したい範囲を見極める姿勢がより重要です。"),
+            C("今の時代は踏み込みすぎると危ないので、業務以外の会話は一切しない方が良いと考える", "bad", "過度に距離を置きすぎると、必要な信頼関係づくりの機会まで失ってしまいます。")
+          ]}
+      ]
+    },
+    {
+      id:"M10", cat:"distance", difficulty:1, icon:"👏",
+      title:"頑張りをどう褒めるか", lead:"新人が初めて一人で任された業務を、無事にやり遂げた。褒めようと思うが、どう伝えるのが良いか迷っている。",
+      turns:[
+        { situation:T("どう褒めるか。"),
+          choices:[
+            C("「〇〇のところ、自分で工夫して進められていたね」と、具体的にどこが良かったかを伝える", "good", "具体的なポイントを挙げて褒めることで、何が評価されたのかが明確に伝わります。"),
+            C("「すごいね、よくできました」と、簡潔に褒める", "ok", "褒めること自体は良いですが、具体的な内容が伴うと、より相手の自信につながります。"),
+            C("結果だけを見て、「これくらい当然」と特に褒めずに済ませる", "bad", "初めての業務をやり遂げたことを認めずにいると、次への意欲を削いでしまう可能性があります。")
+          ]},
+        { situation:T("褒めた後、新人が少し照れくさそうにしていた。"),
+          choices:[
+            C("それ以上は褒め言葉を重ねず、自然に次の話題に移る", "good", "相手の反応を見て、褒め方の分量を調整できています。"),
+            C("照れている様子を見て、さらに褒め言葉を重ねてしまう", "ok", "気持ちは分かりますが、褒めすぎるとかえって居心地の悪さを感じさせることがあります。"),
+            C("「そんなに照れなくていいのに」と、からかうように言う", "bad", "からかうような言葉は、褒められた嬉しさを台無しにしてしまう可能性があります。")
+          ]},
+        { situation:T("新人を褒めるうえで、大切な考え方は?"),
+          choices:[
+            C("褒める目的は相手を喜ばせることだけでなく、何が良かったのかを自覚してもらうことだと理解する", "good", "褒めることの本質を理解した、良い考え方です。"),
+            C("とにかくたくさん褒めることが、新人のモチベーションにつながると考える", "ok", "褒める頻度も大切ですが、量より質、つまり具体性の方が効果的な場合があります。"),
+            C("褒めすぎると調子に乗るので、多少できても褒めずに引き締めておく方が良いと考える", "bad", "適切な評価を伝えないままでいると、新人が自分の成長を実感しにくくなってしまいます。")
+          ]}
+      ]
+    },
+    {
+      id:"M11", cat:"distance", difficulty:2, icon:"😟",
+      title:"新人が萎縮しているように見える時", lead:"最近、新人が以前より表情が硬く、質問や発言が減っているように感じる。何かにおびえているようにも見える。",
+      turns:[
+        { situation:T("どう対応するか。"),
+          choices:[
+            C("「最近少し元気がないように見えるけど、何か困っていることはある?」と、率直に気にかけていることを伝える", "good", "変化に気づき、率直に声をかけることが、状況を確認する第一歩になります。"),
+            C("気にはなるが、余計な詮索になるかもしれないと思い、特に声をかけずに様子を見る", "ok", "相手への配慮は感じられますが、変化に気づいた時点で一声かける方が、早期の対応につながります。"),
+            C("新人の様子の変化には気づいたが、忙しさを理由に特に気にかけない", "bad", "変化のサインを見過ごしてしまうと、問題が大きくなってから気づくことになりかねません。")
+          ]},
+        { situation:T("話を聞いてみると、以前自分が指摘した内容を、必要以上に重く受け止めていたことが分かった。"),
+          choices:[
+            C("「そんなに気にしなくて大丈夫、成長のための指摘だったから」と伝え、受け止め方の違いを埋める", "good", "相手の受け止め方に合わせてフォローすることで、誤解を解消できています。"),
+            C("「そんなつもりじゃなかったんだけどな」とだけ伝え、それ以上は特に触れない", "ok", "意図を伝えること自体は良いですが、もう少し丁寧にフォローすると、相手の不安がより和らぎます。"),
+            C("「そんなことを気にしていたのか」と、少し呆れたような反応をする", "bad", "相手が気にしていたことを軽く扱うと、かえって萎縮を悪化させてしまう可能性があります。")
+          ]},
+        { situation:T("新人の萎縮した様子への向き合い方で、大切な考え方は?"),
+          choices:[
+            C("自分の言葉が、意図した以上に相手に重く受け止められることがあると理解しておく", "good", "伝える側と受け取る側で、感じ方に差があり得るという理解は、指導する上で重要な視点です。"),
+            C("萎縮するのは新人自身の受け止め方の問題であり、自分の伝え方は変えなくて良いと考える", "ok", "相手の受け止め方も大切ですが、伝え方を振り返る余地がないか、都度確認する姿勢も必要です。"),
+            C("最近の新人は打たれ弱いので、腫れ物に触るように接するしかないと考える", "bad", "世代の特徴として一括りにしてしまうと、その人自身への理解が深まりません。")
+          ]}
+      ]
+    },
+    {
+      id:"M12", cat:"distance", difficulty:2, icon:"🌱",
+      title:"期待通りに育たない時、自分を責めすぎない", lead:"指導に力を入れているつもりだが、新人の成長のペースが思ったより遅く、自分の指導が悪いのではないかと悩むようになった。",
+      turns:[
+        { situation:T("この状況を、まずどう受け止めるか。"),
+          choices:[
+            C("成長のペースは人それぞれであり、自分の指導だけが原因とは限らないと捉え直す", "good", "一つの要因に決めつけず、状況を広く捉える視点は、悩みすぎを防ぐために大切です。"),
+            C("自分の指導方法に問題があるかもしれないと考え、色々な方法を試してみる", "ok", "改善しようとする姿勢は良いですが、自分を責めすぎない視点も同時に持てるとより良いです。"),
+            C("育たないのは自分の指導力が足りないせいだと、一人で抱え込んで思い詰める", "bad", "一人で抱え込みすぎると、指導する側自身の負担が大きくなりすぎてしまいます。")
+          ]},
+        { situation:T("上司に相談してみたところ、「そのペースも十分普通だよ」と言われた。"),
+          choices:[
+            C("「そうなんですね、少し安心しました」と伝え、他の人の意見も取り入れながら自分の基準を見直す", "good", "一人の視点にとらわれず、周囲の意見を取り入れる姿勢が、適切な自己評価につながります。"),
+            C("話は聞くが、それでも自分の指導に問題があると思い込み続ける", "ok", "相談したこと自体は良い行動ですが、聞いた意見を実際に自分の考えに反映できるとより良いです。"),
+            C("相談しても仕方がないと思い、上司や周囲には特に相談しない", "bad", "一人で抱え込まず相談することが、悩みを整理する助けになります。")
+          ]},
+        { situation:T("指導する側として、大切な考え方は?"),
+          choices:[
+            C("新人の成長に責任を感じつつも、その責任を一人で背負いすぎないバランスを意識する", "good", "責任感と、自分自身を追い詰めすぎないことの両立を意識できています。"),
+            C("新人が育つかどうかは、最終的にすべて指導する側の責任だと考える", "ok", "責任感は大切ですが、すべてを自分の責任と捉えすぎると、指導する側の負担が過剰になってしまいます。"),
+            C("期待通りに育たないのは、新人の資質の問題であり、自分にできることはないと考える", "bad", "指導する側にできる工夫を最初から放棄してしまうと、改善の可能性を閉ざしてしまいます。")
+          ]}
+      ]
+    },
+    {
+      id:"W1", cat:"workload", difficulty:2, icon:"⏳",
+      title:"本業と指導の両立(時間が足りない)", lead:"自分の業務量は変わらないまま、新人指導も任された。日々の指導時間をどう確保するか悩んでいる。",
+      turns:[
+        { situation:T("指導の時間をどう確保するか。"),
+          choices:[
+            C("上司に「指導に必要な時間」を具体的に伝え、自分の業務量やスケジュールを調整してもらえないか相談する", "good", "指導時間を「なんとか捻出するもの」ではなく、業務として正式に確保すべきものと位置づけ、相談する姿勢は適切です。"),
+            C("自分の休憩時間や残業を使って、何とか指導の時間を作ろうとする", "ok", "対応しようとする姿勢は良いですが、自分の時間を削り続けると、指導そのものが長続きしなくなってしまいます。"),
+            C("指導は片手間でも何とかなると考え、特に時間の確保について相談しない", "bad", "時間を確保しないまま指導を続けると、いずれ自分の業務にも新人の育成にも支障が出てしまいます。")
+          ]},
+        { situation:T("相談した結果、一部の業務を他のメンバーに振り分けてもらえることになった。"),
+          choices:[
+            C("「ありがとうございます、指導の時間を大事にします」と伝え、確保した時間を実際に指導に充てる", "good", "確保してもらった時間を、実際に指導のために使う意識が大切です。"),
+            C("業務が減って助かったと思いつつ、結局忙しさに流されて指導の時間があいまいになる", "ok", "時間を確保できたこと自体は前進ですが、実際の使い方まで意識できるとより効果的です。"),
+            C("業務が減った分、自分の他の作業を増やしてしまい、指導の時間には反映させない", "bad", "せっかく確保した時間が指導に使われないままでは、根本的な解決になりません。")
+          ]},
+        { situation:T("本業と指導の両立について、大切な考え方は?"),
+          choices:[
+            C("指導は「片手間でやるもの」ではなく、業務の一部として正式に時間を確保すべきものだと理解する", "good", "指導を業務として正当に位置づける考え方が身についています。"),
+            C("指導は自分の頑張り次第で何とかなるものだと考える", "ok", "頑張りだけに頼ると、いずれ無理が重なってしまいます。仕組みとして時間を確保する発想も必要です。"),
+            C("指導のために自分の業務時間や評価が犠牲になるのは仕方ないと諦める", "bad", "諦めてしまうと、指導する側の負担が正当に評価されないまま続いてしまいます。")
+          ]}
+      ]
+    },
+    {
+      id:"W2", cat:"workload", difficulty:2, icon:"🗂️",
+      title:"教え方をうまく言語化できない", lead:"自分では当たり前にできる作業を、新人にうまく説明できず、感覚的な教え方になってしまっていると感じている。",
+      turns:[
+        { situation:T("どう改善するか。"),
+          choices:[
+            C("自分がその作業をどんな手順で、何を確認しながら進めているかを、一度書き出してみる", "good", "感覚的にやっていることを言語化する第一歩として、書き出してみる作業は効果的です。"),
+            C("うまく説明できないのは仕方ないと思い、実際にやってみせることだけで教えようとする", "ok", "やってみせること自体は有効ですが、言葉での説明も加えると、新人が自分でも再現しやすくなります。"),
+            C("説明が苦手なことを気にせず、「見て覚えて」とだけ伝える", "bad", "「見て覚えて」だけでは、新人がどこに注目すればいいか分からず、習得に時間がかかってしまいます。")
+          ]},
+        { situation:T("手順を書き出してみると、自分でも「なぜこうしているのか」理由が曖昧な部分があると気づいた。"),
+          choices:[
+            C("曖昧な部分は正直に「実はここは慣れの部分もあって」と伝えつつ、分かる範囲の理由を一緒に考える", "good", "分からない部分を隠さず伝える誠実さが、新人との信頼関係につながります。"),
+            C("曖昧なまま、それらしい理由をとっさに作って説明する", "ok", "その場をしのぐことはできますが、誤った理解を植え付けてしまうリスクがあります。"),
+            C("理由を聞かれても「そういうものだから」とだけ答えて、それ以上は考えない", "bad", "理由を考える機会を放棄すると、教え方の改善にもつながりません。")
+          ]},
+        { situation:T("教え方を体系化するうえで、大切な考え方は?"),
+          choices:[
+            C("自分の中の「当たり前」を言葉にする作業自体が、指導する側のスキルの一つだと理解する", "good", "言語化を指導スキルの一部として捉える、良い考え方です。"),
+            C("教えるのが上手い・下手は生まれつきの才能によるものだと考える", "ok", "才能の要素もありますが、書き出す・振り返るといった工夫で、教え方は後天的に磨くことができます。"),
+            C("体系立てて教えられないのは自分に向いていないからだと、教育担当を務めること自体に自信を失う", "bad", "体系化の難しさは多くの人が感じるものであり、それだけで自信を失う必要はありません。")
+          ]}
+      ]
+    },
+    {
+      id:"W3", cat:"workload", difficulty:2, icon:"📋",
+      title:"会社の教育体制・マニュアルが整っていない中で任された時", lead:"「とりあえずお願い」と新人教育を任されたが、会社には体系立てた教育プログラムや資料がほとんどない。",
+      turns:[
+        { situation:T("この状況で、まずどうするか。"),
+          choices:[
+            C("自分なりに、最低限教える内容と順序を簡単なメモやチェックリストにまとめてから指導を始める", "good", "簡単なものでも、教える内容を整理しておくことで、指導の抜け漏れを防げます。"),
+            C("特に準備はせず、思いついた順に、その場その場で教えていく", "ok", "対応しようとする姿勢は良いですが、行き当たりばったりだと、新人にとっても分かりにくくなることがあります。"),
+            C("マニュアルがないのは会社の責任だと考え、自分では特に工夫せず、指導の質が低くても仕方ないと割り切る", "bad", "会社の体制の問題であっても、自分にできる工夫を放棄してしまうと、新人が不利益を受けてしまいます。")
+          ]},
+        { situation:T("作成したメモやチェックリストが、意外と役に立つことに気づいた。"),
+          choices:[
+            C("「これ、次の新人教育にも使えそうだから、簡単な資料として残しておこう」と考え、上司にも共有する", "good", "自分の工夫を個人の中に留めず、会社の資産として共有する発想は、教育体制の改善にもつながります。"),
+            C("役に立ったと感じるが、自分のメモのまま特に共有はしない", "ok", "自分の指導には十分ですが、共有すれば会社全体の教育体制の改善にもつながる可能性があります。"),
+            C("自分が作った資料だからと、他の人には見せずに抱え込む", "bad", "有用な工夫を抱え込んでしまうと、同じ苦労を他の指導担当も繰り返すことになります。")
+          ]},
+        { situation:T("教育体制が整っていない環境で指導するうえで、大切な考え方は?"),
+          choices:[
+            C("体制が整っていないことを嘆くだけでなく、自分にできる小さな整備から始める姿勢を持つ", "good", "状況を受け止めつつ、自分にできることから始める、建設的な考え方です。"),
+            C("体制が整うまでは、指導の質にばらつきが出るのも仕方ないと考える", "ok", "状況を理解すること自体は自然ですが、小さな工夫の積み重ねが、ばらつきを減らす助けになります。"),
+            C("教育体制が整っていないのは会社の問題であり、自分が改善に関わる必要はないと考える", "bad", "会社の体制の問題であっても、現場からの改善提案が、結果的に自分の指導の助けにもなります。")
+          ]}
+      ]
+    },
+    {
+      id:"I1", cat:"individuality", difficulty:2, icon:"🙋",
+      title:"質問が多すぎて自分の仕事が進まない時", lead:"新人からの質問が非常に多く、一つひとつ丁寧に答えていると、自分の業務がまったく進まなくなってしまっている。",
+      turns:[
+        { situation:T("どう対応するか。"),
+          choices:[
+            C("「今すぐ答えられる質問」と「後でまとめて答える質問」を分け、質問を溜めておいてもらう時間帯を決める", "good", "質問を無下にせず、対応するタイミングを整理することで、双方にとって無理のない形になります。"),
+            C("その都度、多少業務を中断してでもすべての質問に丁寧に答える", "ok", "丁寧な対応自体は良いですが、それが続くと自分の業務に大きな支障が出てしまいます。"),
+            C("質問が多いことにいら立ちを感じ、「ちょっと今忙しいから」とだけ言って取り合わない", "bad", "質問を遮り続けると、新人が本当に必要な確認までためらうようになってしまいます。")
+          ]},
+        { situation:T("質問の内容を振り返ってみると、同じような質問が何度か繰り返されていることに気づいた。"),
+          choices:[
+            C("よくある質問をまとめた簡単なメモを作り、新人にも共有して、まず自分で確認できるようにする", "good", "繰り返される質問を仕組みで減らす工夫は、双方の負担を軽くします。"),
+            C("気づいてはいるが、その都度個別に答え続ける", "ok", "丁寧な対応ですが、同じ説明を繰り返す負担は減らせる余地があります。"),
+            C("「前にも言ったよね」と、繰り返し聞くこと自体を責めるように伝える", "bad", "繰り返し聞くことを責めると、次から質問すること自体をためらわせてしまいます。")
+          ]},
+        { situation:T("質問の多さへの向き合い方で、大切な考え方は?"),
+          choices:[
+            C("質問が多いこと自体を問題視するのではなく、対応の仕方や仕組みを工夫できないか考える", "good", "質問の量ではなく、対応の仕組みに目を向ける、建設的な考え方です。"),
+            C("質問が多いのは新人の性格の問題であり、こちらが我慢するしかないと考える", "ok", "我慢し続けるのではなく、対応の仕方を工夫する余地がないか考えてみることも大切です。"),
+            C("質問が多い新人には、必要なことしか教えず、自然と質問が減るのを待つ", "bad", "意図的に距離を置くと、必要な情報まで伝わらなくなってしまうリスクがあります。")
+          ]}
+      ]
+    },
+    {
+      id:"I2", cat:"individuality", difficulty:2, icon:"🌡️",
+      title:"モチベーションや吸収力の個人差にどう向き合うか", lead:"同時期に入った新人同士でも、積極的に学ぼうとする人と、なかなかペースが上がらない人がいて、同じ教え方では通用しないと感じている。",
+      turns:[
+        { situation:T("どう対応するか。"),
+          choices:[
+            C("一人ひとりの理解のペースや興味の持ち方を観察し、教える順序や説明の仕方を、その人に合わせて調整する", "good", "一律の教え方にこだわらず、個々に合わせる姿勢は、効果的な指導の基本です。"),
+            C("基本的には同じ教え方を続けつつ、様子を見て少しずつ調整する", "ok", "調整しようとする姿勢は良いですが、早い段階から個々の違いを意識できると、より効果的です。"),
+            C("全員に同じペース・同じ教え方を貫き、ついてこられないのは本人の問題だと考える", "bad", "一律の教え方にこだわると、ペースが合わない新人が置き去りになってしまいます。")
+          ]},
+        { situation:T("ペースがゆっくりな新人が、他の新人と比較されることを気にしているように見えた。"),
+          choices:[
+            C("「人によってペースは違うから、比べる必要はないよ」と伝え、その人自身の成長に目を向けるようにする", "good", "比較ではなく、その人自身の成長に焦点を当てる伝え方は、安心感につながります。"),
+            C("特にフォローはせず、本人が気にしすぎているだけだろうと様子を見る", "ok", "様子を見ること自体は悪くありませんが、気づいた時点で一言フォローがあると、より安心感を与えられます。"),
+            C("「〇〇さんはもっと早くできてたよ」と、他の新人と比較して伝えてしまう", "bad", "他者との比較は、モチベーションを下げてしまう可能性が高い伝え方です。")
+          ]},
+        { situation:T("個人差にどう向き合うか、大切な考え方は?"),
+          choices:[
+            C("個人差があることを前提に、一人ひとりに合った関わり方を模索し続ける", "good", "個人差を前提とした指導の姿勢が身についています。"),
+            C("個人差はあるが、最終的には全員が同じ基準に追いつくべきだと考える", "ok", "基準を持つこと自体は大切ですが、そこに至る道筋やペースは人それぞれであってよいという視点も必要です。"),
+            C("吸収が早い人にだけ力を入れ、ペースの遅い人への指導は後回しにする", "bad", "特定の人にだけ力を入れると、他の新人の成長機会を狭めてしまいます。")
+          ]}
+      ]
+    },
+    {
+      id:"I3", cat:"individuality", difficulty:3, icon:"⚖️",
+      title:"同じミスを繰り返す新人への対応", lead:"何度も同じ確認漏れを起こす新人がいる。厳しく言うべきか、根気強くサポートし続けるべきか、対応に迷っている。",
+      turns:[
+        { situation:T("どう対応するか。"),
+          choices:[
+            C("なぜそのミスが繰り返されるのか、原因を一緒に確認し(手順が覚えにくい、確認する余裕がないなど)、原因に応じた対策を考える", "good", "ミスそのものより、繰り返される原因に目を向けることが、根本的な対応につながります。"),
+            C("繰り返し起きるたびに、その都度同じように注意する", "ok", "注意すること自体は必要ですが、同じ伝え方を繰り返すだけでは、状況が変わらない可能性があります。"),
+            C("「何度も言ってるのに」と、厳しさを増しながら繰り返し叱る", "bad", "厳しさを増すだけでは、新人が萎縮してかえってミスが増えることもあります。")
+          ]},
+        { situation:T("原因を確認したところ、確認する手順自体が新人にとって覚えにくいものだと分かった。"),
+          choices:[
+            C("確認手順をチェックリスト化するなど、ミスが起きにくい仕組みを一緒に作る", "good", "個人の注意力に頼らず、仕組みで防ぐ発想は、繰り返されるミスへの効果的な対応です。"),
+            C("手順が覚えにくいと分かったが、特に仕組みは変えず、本人の注意力に期待して見守る", "ok", "見守る姿勢も大切ですが、仕組みを整える方が、再発防止により確実につながります。"),
+            C("手順が覚えにくいと分かっても、「それでも覚えるのが当然」と、これまで通りの厳しさで対応する", "bad", "原因が分かっているのに対応を変えないと、同じミスが繰り返される可能性が高いままです。")
+          ]},
+        { situation:T("繰り返されるミスへの対応で、大切な考え方は?"),
+          choices:[
+            C("厳しさとサポートは対立するものではなく、原因に応じて両方を使い分けるものだと理解する", "good", "二者択一ではなく、原因に応じたバランスを考える、成熟した考え方です。"),
+            C("基本的には厳しく指導し、それでも改善しない場合だけサポートに切り替える", "ok", "一つの方針として理解できますが、最初から原因を探る視点があると、より早く改善につながることもあります。"),
+            C("優しく接する方が良い関係を築けると考え、厳しさが必要な場面でも指摘を避け続ける", "bad", "必要な指摘を避け続けると、ミスが改善されないまま新人自身も成長の機会を失ってしまいます。")
+          ]}
+      ]
+    },
+    {
+      id:"S1", cat:"selfcare", difficulty:2, icon:"📉",
+      title:"指導に時間を取られ、自分の仕事の質が落ちる不安", lead:"新人指導に時間を割くようになってから、自分本来の業務の質やスピードが落ちてきているように感じ、評価への影響が不安になっている。",
+      turns:[
+        { situation:T("この不安をどう扱うか。"),
+          choices:[
+            C("指導にかかっている時間や成果を、上司や評価者に見える形で伝え、評価の中に指導の貢献も含めてもらえないか相談する", "good", "指導の負担を見えない努力のままにせず、正当に評価に反映させようとする姿勢は大切です。"),
+            C("不安に思いつつも、特に誰にも伝えず自分の中で我慢する", "ok", "我慢する気持ちも分かりますが、伝えないままだと、負担が正当に認識されないままになってしまいます。"),
+            C("評価が下がるくらいなら指導は適当にこなせばいいと考え、指導の質を落とす", "bad", "指導の質を落とすと、新人の成長に影響が出るだけでなく、後々さらに大きな負担につながることもあります。")
+          ]},
+        { situation:T("上司に相談したところ、「指導も含めて評価しているから安心して」と言われた。"),
+          choices:[
+            C("「そうなんですね、ありがとうございます」と伝え、安心して指導と本来の業務の両方に取り組む", "good", "不安を言葉にして確認できたことで、安心して両立に取り組めるようになっています。"),
+            C("話は聞くが、本当にそうなのか半信半疑のまま、これまで通り不安を抱え続ける", "ok", "相談したこと自体は良い行動です。伝えられた言葉を、少しずつでも信じて取り組んでみる姿勢もあると安心につながります。"),
+            C("口ではそう言われても、結局は自分の成果だけで評価されると思い込み、指導への意欲を失う", "bad", "思い込みだけで意欲を失ってしまうと、実際に得られたはずの理解や支援を活かせなくなってしまいます。")
+          ]},
+        { situation:T("指導と自分の業務の両立について、大切な考え方は?"),
+          choices:[
+            C("指導にかかる負担や貢献を、自分の中だけで抱えず、周囲に見える形にしていくことを意識する", "good", "負担を可視化し、正当に扱ってもらう工夫を意識できています。"),
+            C("指導も自分の業務も、両方全力でこなすことが当然の責任だと考える", "ok", "責任感は大切ですが、無理を重ねる前に、周囲に負担や状況を共有する発想も必要です。"),
+            C("指導で自分の評価が下がるのは、教育担当になった以上仕方のないことだと諦める", "bad", "諦める前に、負担を正当に伝え、評価や役割分担を見直してもらえないか相談する余地があります。")
+          ]}
+      ]
+    },
+    {
+      id:"S2", cat:"selfcare", difficulty:2, icon:"💻",
+      title:"リモート・ハイブリッド環境での指導の難しさ", lead:"新人が週の一部を在宅勤務にしており、画面越しのやり取りでは、相手の理解度や様子が対面の時よりつかみにくいと感じている。",
+      turns:[
+        { situation:T("どう対応するか。"),
+          choices:[
+            C("短時間でも良いので、画面越しでの1対1の時間を定期的に設け、業務の話以外にも様子を確認する機会を作る", "good", "対面より意識的に機会を作ることで、リモートでも状況を把握しやすくなります。"),
+            C("何かあれば連絡してもらう前提で、特にこちらから機会を作ることはしない", "ok", "連絡を待つだけでは、リモート環境特有の「聞きにくさ」を見過ごしてしまう可能性があります。"),
+            C("画面越しでは様子が分からないのは仕方ないと諦め、特に工夫をしないまま指導を続ける", "bad", "環境のせいにして工夫を諦めると、新人の状況把握がますます難しくなってしまいます。")
+          ]},
+        { situation:T("定期的な1対1の時間を設けたところ、対面では見えなかった困りごとを話してくれるようになった。"),
+          choices:[
+            C("「話してくれてよかった、この時間を続けていこう」と伝え、継続的な機会として定着させる", "good", "うまくいった工夫を一度きりで終わらせず、継続する仕組みにする発想が大切です。"),
+            C("良かったとは思うが、忙しさを理由に、その後は不定期になってしまう", "ok", "効果を実感できたのであれば、継続できるよう意識的に時間を確保する工夫があるとより良いです。"),
+            C("話してくれたことに満足し、それ以降は特に定期的な機会を設けなくなる", "bad", "一度うまくいったからと機会を減らすと、また同じ「見えにくさ」の問題に戻ってしまいます。")
+          ]},
+        { situation:T("リモート・ハイブリッド環境での指導において、大切な考え方は?"),
+          choices:[
+            C("対面より意識的に、状況を確認する機会や仕組みを作る必要があると理解する", "good", "環境の違いを踏まえて、意識的に工夫する姿勢が身についています。"),
+            C("リモートでも対面と同じように接すれば、自然とうまくいくはずだと考える", "ok", "同じように接する姿勢は大切ですが、環境の違いに応じた追加の工夫があると、より安心です。"),
+            C("リモート環境での指導の難しさは、新人自身が出社を増やすことで解決すべき問題だと考える", "bad", "環境の課題を新人側の対応だけに委ねると、指導する側の工夫の余地を見落としてしまいます。")
+          ]}
+      ]
+    },
+    {
+      id:"S3", cat:"selfcare", difficulty:2, icon:"🍃",
+      title:"精神的な負担が重なった時のセルフケア", lead:"新人指導と本業を両立する中で、新人のメンタルケアや人間関係の調整にまで気を配るようになり、気づけば自分自身が疲れきっていることに気づいた。",
+      turns:[
+        { situation:T("この状態に気づいた時、どうするか。"),
+          choices:[
+            C("自分の疲れのサインとして受け止め、上司や周囲に状況を共有し、負担を一人で抱えないようにする", "good", "自分の状態に気づき、早めに共有することが、深刻な負担につながる前の大切な一歩です。"),
+            C("疲れは感じつつも、指導担当としての責任感から、誰にも言わずそのまま続ける", "ok", "責任感は大切ですが、誰にも共有しないままでは、負担が蓄積し続けてしまいます。"),
+            C("疲れを感じていることに気づかないふりをして、これまで通りのペースを無理に維持する", "bad", "自分の状態を見過ごし続けると、体調や指導の質そのものに影響が出てしまうことがあります。")
+          ]},
+        { situation:T("周囲に状況を共有したところ、「一人で抱え込みすぎだったね」と言われ、一部の役割を分担してもらえることになった。"),
+          choices:[
+            C("「ありがとうございます」と伝え、分担してもらった部分は素直に任せ、自分の負担を減らす", "good", "助けを素直に受け入れることも、指導を続けていくうえで大切なスキルの一つです。"),
+            C("分担はありがたいと思いつつ、結局気になって自分でも様子を見てしまう", "ok", "気にかける気持ちは自然ですが、任せた部分は本当に任せる意識があると、負担がより軽くなります。"),
+            C("分担を申し出てもらっても、「自分の担当だから」と一人で抱え続ける", "bad", "助けを断り続けると、せっかくの周囲のサポートが活かされないままになってしまいます。")
+          ]},
+        { situation:T("指導する側の心の負担と向き合ううえで、大切な考え方は?"),
+          choices:[
+            C("新人のケアをする自分自身にも、ケアが必要だと理解し、無理をしすぎる前に周囲に助けを求める", "good", "自分自身のケアの必要性を理解できているのは、指導を長く続けていくうえでとても大切な視点です。"),
+            C("新人のケアが最優先であり、自分のことは後回しにするのが指導担当の役目だと考える", "ok", "献身的な姿勢ではありますが、指導する側が疲弊してしまうと、結果的に新人へのケアの質も落ちてしまいます。"),
+            C("精神的にきついと感じるのは自分が弱いからだと捉え、誰にも相談せず一人で耐え続ける", "bad", "弱さの問題ではなく、負担の性質上、一人で抱えきれないのは自然なことです。早めに相談することが大切です。")
+          ]}
+      ]
+    }
+  ];
+
+  var TIPS = [
+    {desc:"「大丈夫です」を鵜呑みにせず、具体的に確認してみる。"},
+    {desc:"雑談が苦手な新人には、業務の会話を通じた関係づくりを大切にする。"},
+    {desc:"質問を待つだけでなく、こちらから話す機会を定期的に作る。"},
+    {desc:"定時退社や働き方の違いを、自分の世代の基準で評価しない。"},
+    {desc:"プライベートな誘いを断られても、それを信頼の有無と結びつけない。"},
+    {desc:"従来のやり方への疑問は、見直しの良いきっかけと捉える。"},
+    {desc:"ミスの指摘は、場所を選び、人格ではなく行動に焦点を当てて伝える。"},
+    {desc:"緊急性のない連絡は、勤務時間内に行うことを基本にする。"},
+    {desc:"プライベートな話題は、相手から話してくれる範囲を大切にする。"},
+    {desc:"新人の成長がゆっくりでも、自分一人の責任として抱え込みすぎない。"},
+    {desc:"指導の時間は「片手間」ではなく、業務として正式に確保できないか相談してみる。"},
+    {desc:"自分の教え方を一度書き出してみると、感覚的な部分を言語化しやすくなる。"},
+    {desc:"繰り返されるミスは、個人の注意力よりも、仕組みで防げないか考える。"},
+    {desc:"リモート環境では、対面より意識的に1対1で話す機会を作る。"},
+    {desc:"新人のケアをする自分自身にも、ケアが必要だと忘れない。"}
+  ];
+
+  /* ---------------- storage ---------------- */
+  var STORE_KEY = "mentor-sim-progress-v1";
+  function loadProgress(){ try{ var raw = localStorage.getItem(STORE_KEY); return raw ? JSON.parse(raw) : {}; }catch(e){ return {}; } }
+  function saveProgress(p){ try{ localStorage.setItem(STORE_KEY, JSON.stringify(p)); }catch(e){} }
+
+  /* ---------------- state ---------------- */
+  var state = {
+    screen:"home", scenarioId:null, phase:"intro", turnIndex:0,
+    currentChoices:null, record:[], review:[], score:0, maxScore:0
+  };
+  var progress = loadProgress();
+
+  function shuffle(arr){
+    var a = arr.slice();
+    for(var i=a.length-1;i>0;i--){ var j = Math.floor(Math.random()*(i+1)); var t=a[i]; a[i]=a[j]; a[j]=t; }
+    return a;
+  }
+  function catInfo(id){ for(var i=0;i<CATEGORIES.length;i++){ if(CATEGORIES[i].id===id) return CATEGORIES[i]; } return CATEGORIES[0]; }
+  function scenarioById(id){ for(var i=0;i<SCENARIOS.length;i++){ if(SCENARIOS[i].id===id) return SCENARIOS[i]; } return null; }
+  function escapeHtml(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+  function tierLabel(tier){ return tier==="good" ? "とても良い対応です" : (tier==="ok" ? "OKですが、改善の余地があります" : "見直しが必要です"); }
+  function tierIcon(tier){ return tier==="good" ? "◎" : (tier==="ok" ? "○" : "✕"); }
+  function truncate(s, n){ return s.length > n ? s.slice(0,n) + "…" : s; }
+
+  var app = document.getElementById("app");
+
+  function render(){
+    if(state.screen==="home") renderHome();
+    else if(state.screen==="manual") renderManual();
+    else if(state.screen==="scenario") renderScenario();
+    else if(state.screen==="result") renderResult();
+  }
+
+  /* ---------------- HOME ---------------- */
+  function renderHome(){
+    var completed = 0;
+    SCENARIOS.forEach(function(s){ if(progress[s.id]) completed++; });
+    var pct = Math.round(completed/SCENARIOS.length*100);
+
+    var html = '';
+    html += '<div class="home">';
+    html += '<div class="cover-art">'+BUBBLE_SVG+'<div class="cover-caption">MENTORSHIP & COMMUNICATION · 指導者の視点で</div></div>';
+    html += '<div class="home-head">';
+    html += '<div class="eyebrow">新人教育担当向けプログラム</div>';
+    html += '<h1 class="home-title"><span style="white-space:nowrap">新人指導</span><span style="white-space:nowrap">シミュレーター</span></h1>';
+    html += '<p class="home-sub">反応が薄い、世代間ギャップ、ハラスメントと疑われる不安、距離感の取り方に加え、時間不足や教え方の言語化、個人差への対応、自分自身のケアまで。新人指導担当が抱えがちな悩みを、選択式で整理します。</p>';
+    html += '<div class="progress-row"><div class="progress-track"><div class="progress-fill" style="width:'+pct+'%"></div></div><div class="progress-label mono">'+completed+' / '+SCENARIOS.length+'</div></div>';
+    html += '<button class="manual-link" data-action="open-manual">🧭 新人指導の基本15か条を見る</button>';
+    html += '</div>';
+
+    CATEGORIES.forEach(function(cat){
+      var list = SCENARIOS.filter(function(s){ return s.cat===cat.id; });
+      if(list.length===0) return;
+      html += '<div class="cat-block">';
+      html += '<div class="cat-head"><span class="cat-dot" style="background:var('+cat.varc+')"></span><span class="cat-name">'+cat.name+'</span></div>';
+      html += '<div class="cat-desc">'+cat.desc+'</div>';
+      html += '<div class="card-list">';
+      list.forEach(function(s){
+        var stars = "★".repeat(s.difficulty) + "☆".repeat(3-s.difficulty);
+        var best = progress[s.id];
+        html += '<button class="scenario-card" data-action="open-scenario" data-id="'+s.id+'">';
+        html += '<span class="avatar" style="background:var('+cat.vars+')">'+s.icon+'</span>';
+        html += '<span class="card-body"><span class="card-title">'+escapeHtml(s.title)+'</span><br><span class="card-meta">'+escapeHtml(truncate(s.lead, 30))+'</span></span>';
+        html += '<span class="card-side"><span class="stars">'+stars+'</span>' + (best ? '<span class="best-badge">ベスト '+best.pct+'%</span>' : '') + '</span>';
+        html += '</button>';
+      });
+      html += '</div></div>';
+    });
+
+    html += '</div>';
+    app.innerHTML = html;
+  }
+
+  /* ---------------- MANUAL ---------------- */
+  function renderManual(){
+    var html = '<div class="manual">';
+    html += '<div class="back-row"><button class="icon-btn" data-action="go-home">←</button><span class="screen-title">新人指導の基本15か条</span></div>';
+    TIPS.forEach(function(tip, i){
+      html += '<div class="tip-card"><div class="tip-num">POINT '+(i+1)+'</div><div class="tip-desc">'+escapeHtml(tip.desc)+'</div></div>';
+    });
+    html += '</div>';
+    app.innerHTML = html;
+  }
+
+  /* ---------------- SCENARIO ---------------- */
+  function openScenario(id){
+    var sc = scenarioById(id);
+    if(!sc) return;
+    state.screen = "scenario"; state.scenarioId = id; state.phase = "intro"; state.turnIndex = 0;
+    state.currentChoices = null; state.record = []; state.review = []; state.score = 0;
+    state.maxScore = sc.turns.length * 10;
+    render();
+  }
+
+  function renderScenario(){
+    var sc = scenarioById(state.scenarioId);
+    var cat = catInfo(sc.cat);
+
+    if(state.phase === "intro"){
+      var html = '<div class="intro">';
+      html += '<span class="avatar" style="background:var('+cat.vars+')">'+sc.icon+'</span>';
+      html += '<div class="intro-cat">'+escapeHtml(cat.name)+'</div>';
+      html += '<div class="intro-title">'+escapeHtml(sc.title)+'</div>';
+      html += '<div class="intro-lead">'+escapeHtml(sc.lead)+'</div>';
+      html += '<div class="intro-actions">';
+      html += '<button class="next-btn" data-action="start-scenario">この場面を始める</button>';
+      html += '<button class="ghost-btn" data-action="go-home">一覧に戻る</button>';
+      html += '</div></div>';
+      app.innerHTML = html;
+      return;
+    }
+
+    var html2 = '';
+    html2 += '<div class="rec-top">';
+    html2 += '<div><div class="rec-top-title">'+escapeHtml(sc.title)+'</div><div class="rec-top-cat">'+escapeHtml(cat.name)+'</div></div>';
+    html2 += '<div class="rec-step mono">STEP '+(state.turnIndex+1)+' / '+sc.turns.length+'</div>';
+    html2 += '</div>';
+
+    html2 += '<div class="record" id="record" style="--cat-color:var('+cat.varc+')">';
+    state.record.forEach(function(item){
+      if(item.speaker === "situation"){
+        html2 += '<div class="sit-card"><div class="sit-label">状況</div>'+escapeHtml(item.text)+'</div>';
+      } else {
+        html2 += '<div><div class="act-label">あなたの行動</div><div class="act-row"><div class="act-bubble">'+escapeHtml(item.text)+'</div></div></div>';
+      }
+    });
+    html2 += '</div>';
+
+    html2 += '<div class="choices-panel">';
+    if(state.phase === "active"){
+      html2 += '<div class="choices-hint">どう対応しますか?</div>';
+      state.currentChoices.forEach(function(choice, idx){
+        html2 += '<button class="choice-btn" data-action="pick-choice" data-idx="'+idx+'">'+escapeHtml(choice.text)+'</button>';
+      });
+    } else if(state.phase === "feedback"){
+      var last = state.review[state.review.length-1];
+      html2 += '<div class="feedback-panel">';
+      html2 += '<span class="feedback-tag '+last.tier+'">'+tierIcon(last.tier)+' '+tierLabel(last.tier)+'</span>';
+      html2 += '<div class="feedback-text">'+escapeHtml(last.feedback)+'</div>';
+      var isLast = state.turnIndex >= sc.turns.length - 1;
+      html2 += '<button class="next-btn" data-action="next-turn">'+(isLast ? "この場面を終える" : "次へ")+'</button>';
+      html2 += '</div>';
+    }
+    html2 += '</div>';
+
+    app.innerHTML = html2;
+    var rEl = document.getElementById("record");
+    if(rEl) rEl.scrollTop = rEl.scrollHeight;
+  }
+
+  function startScenario(){
+    var sc = scenarioById(state.scenarioId);
+    state.phase = "active"; state.turnIndex = 0;
+    pushSituation(sc, 0);
+    state.currentChoices = shuffle(sc.turns[0].choices);
+    render();
+  }
+
+  function pushSituation(sc, idx){ state.record.push({speaker:"situation", text: sc.turns[idx].situation.text}); }
+
+  function pickChoice(idx){
+    var sc = scenarioById(state.scenarioId);
+    var choice = state.currentChoices[idx];
+    state.record.push({speaker:"you", text: choice.text});
+    state.score += choice.points;
+    state.review.push({
+      situation: sc.turns[state.turnIndex].situation.text,
+      chosen: choice.text, tier: choice.tier, feedback: choice.feedback
+    });
+    state.phase = "feedback";
+    render();
+  }
+
+  function nextTurn(){
+    var sc = scenarioById(state.scenarioId);
+    if(state.turnIndex >= sc.turns.length - 1){ finishScenario(); return; }
+    state.turnIndex++;
+    pushSituation(sc, state.turnIndex);
+    state.currentChoices = shuffle(sc.turns[state.turnIndex].choices);
+    state.phase = "active";
+    render();
+  }
+
+  function finishScenario(){
+    var pct = Math.round(state.score / state.maxScore * 100);
+    progress[state.scenarioId] = progress[state.scenarioId] && progress[state.scenarioId].pct > pct
+      ? progress[state.scenarioId] : {pct: pct};
+    saveProgress(progress);
+    state.screen = "result";
+    render();
+  }
+
+  /* ---------------- RESULT ---------------- */
+  function renderResult(){
+    var sc = scenarioById(state.scenarioId);
+    var pct = Math.round(state.score / state.maxScore * 100);
+    var grade = pct >= 90 ? "S" : pct >= 75 ? "A" : pct >= 55 ? "B" : "C";
+    var msg = pct >= 90 ? "とても良い判断です。この調子で、他の場面にも挑戦してみましょう。"
+      : pct >= 75 ? "良い対応ができています。○や✕がついた場面の理由を振り返ると、さらにコツがつかめます。"
+      : pct >= 55 ? "基本はできています。迷った場面を見直して、判断の基準を整理してみましょう。"
+      : "焦らず大丈夫です。下の振り返りを読んで、もう一度この場面に挑戦してみましょう。";
+
+    var html = '<div class="result">';
+    html += '<div class="result-badge"><span class="grade">'+grade+'</span></div>';
+    html += '<div class="result-score">スコア <span class="mono">'+state.score+' / '+state.maxScore+'</span>(' + pct + '%)</div>';
+    html += '<div class="result-title">'+escapeHtml(sc.title)+'・振り返り</div>';
+    html += '<div class="result-msg">'+msg+'</div>';
+
+    html += '<div class="review-list">';
+    state.review.forEach(function(r, i){
+      html += '<div class="review-item">';
+      html += '<div class="review-head"><span class="review-icon '+r.tier+'">'+tierIcon(r.tier)+'</span><span class="review-situation">場面'+(i+1)+'. '+escapeHtml(truncate(r.situation, 32))+'</span></div>';
+      html += '<div class="review-feedback">'+escapeHtml(r.feedback)+'</div>';
+      html += '</div>';
+    });
+    html += '</div>';
+
+    html += '<div class="result-actions">';
+    html += '<button class="btn-primary" data-action="retry-scenario">もう一度この場面に挑戦する</button>';
+    html += '<button class="btn-secondary" data-action="open-manual">15か条を振り返る</button>';
+    html += '<button class="btn-secondary" data-action="go-home">シナリオ一覧に戻る</button>';
+    html += '</div>';
+    html += '</div>';
+    app.innerHTML = html;
+  }
+
+  /* ---------------- events ---------------- */
+  app.addEventListener("click", function(e){
+    var btn = e.target.closest("[data-action]");
+    if(!btn) return;
+    var action = btn.getAttribute("data-action");
+    if(action === "open-scenario"){ openScenario(btn.getAttribute("data-id")); }
+    else if(action === "open-manual"){ state.screen = "manual"; render(); }
+    else if(action === "go-home"){ state.screen = "home"; render(); }
+    else if(action === "start-scenario"){ startScenario(); }
+    else if(action === "pick-choice"){ pickChoice(parseInt(btn.getAttribute("data-idx"), 10)); }
+    else if(action === "next-turn"){ nextTurn(); }
+    else if(action === "retry-scenario"){ openScenario(state.scenarioId); }
+  });
+
+  render();
+})();
+</script>
