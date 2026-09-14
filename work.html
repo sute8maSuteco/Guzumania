@@ -1,0 +1,809 @@
+<title>仕事の進め方シミュレーター</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700;900&family=Noto+Sans+JP:wght@400;500;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+  :root{
+    --bg:#EFEAE0;
+    --surface:#FBF8F2;
+    --surface-alt:#F1ECDF;
+    --ink:#26231D;
+    --ink-soft:#726C5C;
+    --border:#DCD5C4;
+    --accent:#2F4157;
+    --accent-contrast:#FFFFFF;
+    --good:#3F7D4C;
+    --good-soft:#E4EEE2;
+    --warn:#A97A1E;
+    --warn-soft:#F3EAD4;
+    --bad:#B14A3D;
+    --bad-soft:#F5E2DE;
+    --catVerbalize:#2B5C63;
+    --catVerbalize-soft:#E1EBEA;
+    --catHypothesize:#8B5E0E;
+    --catHypothesize-soft:#F0E8D6;
+    --catAct:#7A3E52;
+    --catAct-soft:#F0E1E6;
+    --catRefine:#3C5A78;
+    --catRefine-soft:#E2E8EE;
+    --cover:#141B24;
+    --cover-text:#E7ECF1;
+    --shadow: 0 20px 50px -20px rgba(20,20,15,0.35);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#151217;
+      --surface:#1E1A20;
+      --surface-alt:#282329;
+      --ink:#EBE7EA;
+      --ink-soft:#A79FA6;
+      --border:#3A3439;
+      --accent:#93B3D1;
+      --accent-contrast:#12212F;
+      --good:#6FBF7C;
+      --good-soft:#233127;
+      --warn:#D9A94A;
+      --warn-soft:#332C1C;
+      --bad:#E1786A;
+      --bad-soft:#38221E;
+      --catVerbalize:#5AA3AA;
+      --catVerbalize-soft:#20302F;
+      --catHypothesize:#C99A4A;
+      --catHypothesize-soft:#332A18;
+      --catAct:#C98CA0;
+      --catAct-soft:#32222A;
+      --catRefine:#8FB0D6;
+      --catRefine-soft:#212B36;
+      --shadow: 0 20px 50px -20px rgba(0,0,0,0.6);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#151217;
+    --surface:#1E1A20;
+    --surface-alt:#282329;
+    --ink:#EBE7EA;
+    --ink-soft:#A79FA6;
+    --border:#3A3439;
+    --accent:#93B3D1;
+    --accent-contrast:#12212F;
+    --good:#6FBF7C;
+    --good-soft:#233127;
+    --warn:#D9A94A;
+    --warn-soft:#332C1C;
+    --bad:#E1786A;
+    --bad-soft:#38221E;
+    --catVerbalize:#5AA3AA;
+    --catVerbalize-soft:#20302F;
+    --catHypothesize:#C99A4A;
+    --catHypothesize-soft:#332A18;
+    --catAct:#C98CA0;
+    --catAct-soft:#32222A;
+    --catRefine:#8FB0D6;
+    --catRefine-soft:#212B36;
+    --shadow: 0 20px 50px -20px rgba(0,0,0,0.6);
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;height:100%;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:"Noto Sans JP","Hiragino Kaku Gothic ProN","Hiragino Sans",Meiryo,sans-serif;
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    padding:20px 14px;
+  }
+  h1,h2,h3,.display{ font-family:"Zen Kaku Gothic New","Noto Sans JP",sans-serif; text-wrap:balance; margin:0; }
+  .mono{ font-family:"JetBrains Mono", ui-monospace, monospace; font-variant-numeric:tabular-nums; }
+  button{font-family:inherit;}
+  button:focus-visible, a:focus-visible, [tabindex]:focus-visible{ outline:3px solid var(--accent); outline-offset:2px; }
+  @media (prefers-reduced-motion: reduce){ *{animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0.001ms !important;} }
+
+  /* ---- outer frame (cover) ---- */
+  .frame{
+    width:100%; max-width:480px; height:min(720px, calc(100vh - 40px));
+    background:var(--cover); border-radius:22px; padding:14px; box-shadow:var(--shadow);
+    display:flex; flex-direction:column;
+  }
+  .frame-label{
+    flex-shrink:0; display:flex; align-items:center; justify-content:center; gap:7px;
+    padding:2px 0 12px; color:var(--cover-text); font-size:12.5px; font-weight:700; letter-spacing:0.03em;
+  }
+  .frame-label svg{ width:14px; height:14px; }
+  .frame-label .dot{ width:6px;height:6px;border-radius:50%; background:var(--cover-text); opacity:0.55; }
+  .page{
+    background:var(--surface); border-radius:16px; flex:1; min-height:0;
+    display:flex; flex-direction:column; overflow:hidden; position:relative;
+  }
+
+  /* ---- home ---- */
+  .home{ padding:20px 20px 20px; overflow-y:auto; flex:1; min-height:0; }
+  .cover-art{ display:flex; flex-direction:column; align-items:center; padding:6px 0 14px; }
+  .cover-art svg{ width:76px; height:76px; }
+  .cover-caption{ font-size:10.5px; color:var(--ink-soft); margin-top:6px; letter-spacing:0.03em; }
+  .home-head{ padding:0 2px 18px; border-bottom:1px solid var(--border); margin-bottom:16px; }
+  .eyebrow{ font-size:11px; letter-spacing:0.12em; color:var(--accent); font-weight:700; text-transform:uppercase; text-align:center; }
+  .home-title{ font-size:21px; font-weight:900; margin-top:6px; line-height:1.35; text-align:center; }
+  .home-sub{ font-size:12.5px; color:var(--ink-soft); margin-top:8px; line-height:1.65; text-align:center; }
+  .progress-row{ display:flex; align-items:center; gap:10px; margin-top:14px; }
+  .progress-track{ flex:1; height:6px; background:var(--surface-alt); border-radius:4px; overflow:hidden; border:1px solid var(--border); }
+  .progress-fill{ height:100%; background:var(--accent); border-radius:4px; transition:width .4s ease; }
+  .progress-label{ font-size:12px; color:var(--ink-soft); white-space:nowrap; }
+  .manual-link{
+    margin-top:14px; display:flex; align-items:center; justify-content:center; gap:6px; font-size:13px; font-weight:700;
+    color:var(--accent); background:var(--surface-alt); border:1px solid var(--border); padding:9px 14px; border-radius:10px; cursor:pointer; width:100%;
+  }
+  .cat-block{ margin-bottom:20px; }
+  .cat-head{ display:flex; align-items:center; gap:8px; margin-bottom:2px; }
+  .cat-dot{ width:9px;height:9px;border-radius:50%; flex-shrink:0; }
+  .cat-name{ font-size:14px; font-weight:700; }
+  .cat-desc{ font-size:11.5px; color:var(--ink-soft); margin:2px 0 8px 17px; }
+  .card-list{ display:flex; flex-direction:column; gap:8px; }
+  .scenario-card{
+    display:flex; align-items:center; gap:12px; background:var(--surface-alt); border:1px solid var(--border);
+    border-radius:14px; padding:11px 12px; cursor:pointer; text-align:left; width:100%;
+  }
+  .scenario-card:hover{ border-color:var(--accent); }
+  .avatar{ width:38px;height:38px;border-radius:12px; display:flex;align-items:center;justify-content:center; font-size:17px; flex-shrink:0; }
+  .card-body{ flex:1; min-width:0; }
+  .card-title{ font-size:13.5px; font-weight:700; }
+  .card-meta{ font-size:11.5px; color:var(--ink-soft); margin-top:2px; line-height:1.5; }
+  .card-side{ display:flex; flex-direction:column; align-items:flex-end; gap:4px; flex-shrink:0; }
+  .stars{ font-size:11px; color:var(--warn); letter-spacing:1px; white-space:nowrap; }
+  .best-badge{ font-size:10.5px; font-weight:700; color:var(--good); background:var(--good-soft); padding:2px 7px; border-radius:20px; white-space:nowrap; }
+
+  /* ---- manual ---- */
+  .manual{ padding:20px 20px 24px; overflow-y:auto; flex:1; min-height:0; }
+  .back-row{ display:flex; align-items:center; gap:10px; margin-bottom:14px; }
+  .icon-btn{
+    width:32px;height:32px;border-radius:50%; background:var(--surface-alt); border:1px solid var(--border);
+    display:flex;align-items:center;justify-content:center; cursor:pointer; color:var(--ink); font-size:16px; flex-shrink:0;
+  }
+  .screen-title{ font-size:16.5px; font-weight:900; }
+  .tip-card{ background:var(--surface-alt); border:1px solid var(--border); border-radius:14px; padding:13px 14px; margin-bottom:10px; }
+  .tip-num{ font-size:11px; font-weight:700; color:var(--accent); }
+  .tip-desc{ font-size:12.5px; color:var(--ink); margin-top:4px; line-height:1.7; }
+
+  /* ---- scenario: intro ---- */
+  .intro{ flex:1; min-height:0; overflow-y:auto; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:34px 28px; text-align:center; gap:6px; }
+  .intro .avatar{ width:76px; height:76px; border-radius:22px; font-size:32px; margin-bottom:14px; }
+  .intro-cat{ font-size:11.5px; font-weight:700; letter-spacing:0.04em; color:var(--ink-soft); text-transform:uppercase; }
+  .intro-title{ font-size:19px; font-weight:900; margin-top:8px; line-height:1.4; }
+  .intro-lead{ font-size:12.5px; color:var(--ink-soft); margin-top:12px; line-height:1.75; max-width:320px; }
+  .intro-actions{ display:flex; flex-direction:column; gap:9px; width:100%; max-width:260px; margin-top:26px; }
+
+  /* ---- scenario: active ---- */
+  .rec-top{ display:flex; align-items:center; justify-content:space-between; gap:10px; padding:14px 18px 12px; border-bottom:1px solid var(--border); flex-shrink:0; }
+  .rec-top-title{ font-size:13.5px; font-weight:700; line-height:1.4; }
+  .rec-top-cat{ font-size:11px; color:var(--ink-soft); margin-top:2px; }
+  .rec-step{ font-size:11.5px; color:var(--accent); font-weight:700; white-space:nowrap; flex-shrink:0; }
+
+  .record{ flex:1; min-height:0; overflow-y:auto; padding:16px 16px 8px; display:flex; flex-direction:column; gap:12px; }
+  .sit-card{ background:var(--surface-alt); border:1px solid var(--border); border-left:4px solid var(--cat-color, var(--accent)); border-radius:10px; padding:11px 13px; font-size:13px; line-height:1.7; }
+  .sit-label{ font-size:10.5px; font-weight:700; color:var(--ink-soft); letter-spacing:0.04em; margin-bottom:4px; text-transform:uppercase; }
+  .act-row{ display:flex; justify-content:flex-end; }
+  .act-bubble{ max-width:86%; background:var(--accent); color:var(--accent-contrast); border-radius:12px; border-bottom-right-radius:4px; padding:9px 13px; font-size:12.5px; line-height:1.65; }
+  .act-label{ font-size:10px; color:var(--ink-soft); text-align:right; margin:0 2px 3px; }
+
+  .choices-panel{ border-top:1px solid var(--border); padding:12px 16px 16px; flex-shrink:0; background:var(--surface); max-height:46vh; overflow-y:auto; }
+  .choices-hint{ font-size:11px; color:var(--ink-soft); margin-bottom:8px; }
+  .choice-btn{
+    display:block; width:100%; text-align:left; background:var(--surface-alt); border:1px solid var(--border);
+    border-radius:12px; padding:10px 13px; margin-bottom:8px; font-size:13px; line-height:1.6; color:var(--ink); cursor:pointer;
+  }
+  .choice-btn:hover{ border-color:var(--accent); }
+  .choice-btn:last-child{ margin-bottom:0; }
+
+  .feedback-panel{ padding:4px 2px 2px; }
+  .feedback-tag{ display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:700; padding:4px 11px; border-radius:20px; margin-bottom:8px; }
+  .feedback-tag.good{ background:var(--good-soft); color:var(--good); }
+  .feedback-tag.ok{ background:var(--warn-soft); color:var(--warn); }
+  .feedback-tag.bad{ background:var(--bad-soft); color:var(--bad); }
+  .feedback-text{ font-size:13px; line-height:1.7; color:var(--ink); margin-bottom:12px; }
+  .next-btn{ width:100%; padding:11px; border-radius:12px; border:none; background:var(--accent); color:var(--accent-contrast); font-weight:700; font-size:13.5px; cursor:pointer; }
+  .ghost-btn{ width:100%; padding:11px; border-radius:12px; border:1px solid var(--border); background:var(--surface-alt); color:var(--ink); font-weight:700; font-size:13.5px; cursor:pointer; }
+
+  /* ---- result ---- */
+  .result{ padding:22px 22px 26px; overflow-y:auto; flex:1; min-height:0; display:flex; flex-direction:column;}
+  .result-badge{
+    width:92px;height:92px;border-radius:50%; margin:6px auto 14px;
+    display:flex; align-items:center; justify-content:center; border:3px solid var(--accent); color:var(--accent);
+  }
+  .result-badge .grade{ font-size:28px; font-weight:900; font-family:"Zen Kaku Gothic New",sans-serif; }
+  .result-score{ text-align:center; font-size:13px; color:var(--ink-soft); }
+  .result-score .mono{ font-size:15px; color:var(--ink); font-weight:700; }
+  .result-title{ text-align:center; font-size:15.5px; font-weight:900; margin-top:14px; }
+  .result-msg{ text-align:center; font-size:12.5px; color:var(--ink-soft); margin-top:6px; line-height:1.75;}
+  .review-list{ margin-top:20px; display:flex; flex-direction:column; gap:8px; }
+  .review-item{ background:var(--surface-alt); border:1px solid var(--border); border-radius:12px; padding:10px 12px; }
+  .review-head{ display:flex; align-items:center; gap:8px; }
+  .review-icon{ width:20px;height:20px;border-radius:50%; flex-shrink:0; display:flex;align-items:center;justify-content:center; font-size:11px; font-weight:900; color:#fff; }
+  .review-icon.good{ background:var(--good); }
+  .review-icon.ok{ background:var(--warn); }
+  .review-icon.bad{ background:var(--bad); }
+  .review-situation{ font-size:12px; font-weight:700; }
+  .review-feedback{ font-size:11.5px; color:var(--ink-soft); margin-top:5px; line-height:1.6; padding-left:28px;}
+  .result-actions{ display:flex; flex-direction:column; gap:8px; margin-top:22px; }
+  .btn-primary{ padding:12px; border-radius:12px; border:none; background:var(--accent); color:var(--accent-contrast); font-weight:700; font-size:13.5px; cursor:pointer; }
+  .btn-secondary{ padding:12px; border-radius:12px; border:1px solid var(--border); background:var(--surface-alt); color:var(--ink); font-weight:700; font-size:13.5px; cursor:pointer; }
+</style>
+
+<div class="frame">
+  <div class="frame-label">
+    <svg viewBox="0 0 120 120" aria-hidden="true"><rect x="22" y="24" width="40" height="40" rx="10" fill="#E7ECF1" opacity="0.92"/><path d="M42 24 L36 44 L50 50 L38 96" stroke="#141B24" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none" stroke-dasharray="1 7"/><circle cx="88" cy="34" r="13" fill="#E7ECF1" opacity="0.92"/></svg>
+    <span>進め方ノート</span><span class="dot"></span><span>全社員向け</span>
+  </div>
+  <div class="page" id="app"></div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var BLOCK_SVG = '<svg viewBox="0 0 120 120" aria-hidden="true">'
+    + '<rect x="20" y="26" width="64" height="64" rx="16" fill="#2F4157"/>'
+    + '<path d="M54 26 L46 50 L62 58 L50 92" stroke="#F5F1EA" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none" stroke-dasharray="1.5 8"/>'
+    + '<rect x="78" y="16" width="30" height="30" rx="9" fill="#F5F1EA" transform="rotate(10 93 31)"/>'
+    + '<path d="M93 22 L95.5 28 L101.5 30.5 L95.5 33 L93 39 L90.5 33 L84.5 30.5 L90.5 28 Z" fill="#2F4157" transform="rotate(10 93 31)"/>'
+    + '</svg>';
+
+  var CATEGORIES = [
+    {id:"verbalize", name:"分からないを言語化する", desc:"不明の中身を分解し、埋めるべきタスクに変える", varc:"--catVerbalize", vars:"--catVerbalize-soft"},
+    {id:"hypothesize", name:"分かる範囲で仮説化する", desc:"情報が揃うのを待たず、仮の答えを置く", varc:"--catHypothesize", vars:"--catHypothesize-soft"},
+    {id:"act", name:"仮説を起点に自ら動く", desc:"答えをもらうのではなく、検証しに行く", varc:"--catAct", vars:"--catAct-soft"},
+    {id:"refine", name:"動きながら精度を上げる", desc:"たたき台を出し、差分を埋めて精度を上げる", varc:"--catRefine", vars:"--catRefine-soft"}
+  ];
+
+  function T(text){ return {text:text}; }
+  function C(text, tier, feedback){
+    var pts = tier === "good" ? 10 : (tier === "ok" ? 5 : 0);
+    return {text:text, tier:tier, feedback:feedback, points:pts};
+  }
+
+  var SCENARIOS = [
+    {
+      id:"V1", cat:"verbalize", difficulty:1, icon:"🧩",
+      title:"会議の終わり際に、ふわっとした依頼をされた", lead:"会議が終わる直前、上司から「他社の事例、来週までに調べておいて」とだけ言われた。会議はそのまま終わり、詳しく聞く時間はなかった。",
+      turns:[
+        { situation:T("会議室を出た後、何から手をつけるか考えている。"),
+          choices:[
+            C("「目的」「調べる範囲」「アウトプットの形」のうち何が分からないのかを、その場でメモに書き出してみる", "good", "「全部分からない」を、具体的な不明点に分解することが最初の一歩です。埋めるべき項目が見えると、不安の大きさが変わります。"),
+            C("「他社事例」というキーワードだけを頼りに、とりあえず検索を始める", "ok", "動き出すこと自体は悪くありませんが、何を明らかにしたいかが曖昧なままだと、調べても手応えのある資料になりにくいです。"),
+            C("「全部よく分からない」と感じたまま、何から手をつければいいか分からず時間だけが過ぎる", "bad", "「全部わからない」は思考停止のサインです。分からない中身は、必ず分解できます。")
+          ]},
+        { situation:T("書き出してみると、「目的」が一番曖昧だと気づいた。コスト削減の話だったか、新規参入の話だったか、はっきり思い出せない。"),
+          choices:[
+            C("手元の記憶から「恐らくコスト削減の文脈だろう」と仮の目的を置き、その前提で動き出す", "good", "情報が揃うのを待たず、仮の答えを置いて動き出す姿勢です。完璧に前提が揃うのを待つと、いつまでも始まりません。"),
+            C("目的がはっきりしないので、確認が取れるまで作業には手をつけないでおく", "ok", "慎重な姿勢自体は悪くありませんが、確認を待つ間、手が止まってしまいます。仮説を立てて先に動く方法もあります。"),
+            C("目的が分からないのは自分のせいだと落ち込み、上司に聞くのも気まずくて動けなくなる", "bad", "目的の記憶があいまいなのはよくあることです。落ち込む前に、仮説を立てて動き出す方法があります。")
+          ]},
+        { situation:T("上司に一言だけ確認を取りたい。どう聞くか。"),
+          choices:[
+            C("「恐らくコスト削減の観点で他社事例をお探しかと思うので、その前提で進めます。違っていたら教えてください」と、仮説を添えて確認する", "good", "「どう動けばいいですか」ではなく「恐らくこうなので、こう動きます」に変えることで、指示待ちではなく検証の動きになります。"),
+            C("「他社事例って、具体的に何を知りたいんでしたっけ」と、ゼロから聞き直す", "ok", "確認すること自体は良いですが、仮説を持たずに聞くと、指示待ちの印象を与えてしまうことがあります。"),
+            C("聞くと分かっていないと思われそうで、確認せずになんとなくのイメージで進めてしまう", "bad", "分かったふりで進めると、後で大きく手戻りするリスクがあります。仮説を添えて確認する方が、結果的に早く進みます。")
+          ]}
+      ]
+    },
+    {
+      id:"V2", cat:"verbalize", difficulty:2, icon:"📦",
+      title:"専門外のテーマをいきなり任された", lead:"これまで関わったことのない業界のレポート作成を任された。何から調べればいいのか、見当もつかない。",
+      turns:[
+        { situation:T("任された直後、頭の中は「分からない」の塊でいっぱいになっている。"),
+          choices:[
+            C("「業界の基礎知識がないのか」「レポートの目的が分からないのか」「アウトプットの形式が分からないのか」を、それぞれ別の不明点として切り分けてみる", "good", "大きな塊のままだと重く感じますが、割ってみると一つひとつは小さなタスクの集まりだと分かります。"),
+            C("とにかく手広く、業界に関する情報を片っ端から検索してみる", "ok", "情報収集自体は必要ですが、何が不明かを整理する前に手を広げすぎると、時間がかかる割に的を絞れません。"),
+            C("専門外なので自分には無理だと判断し、対応できないと早々に伝える", "bad", "専門外だからといって最初から動けないと決めつけると、機会を自ら手放すことになってしまいます。")
+          ]},
+        { situation:T("切り分けてみると、「業界の基礎知識」が一番大きな不明点だと分かった。"),
+          choices:[
+            C("社内に詳しい人がいないか探しつつ、AIツールや業界レポートなど複数の情報源を組み合わせて基礎を押さえにいく", "good", "人に聞く、情報ソースを当たる、一次情報を見る、構造化して考えるという複数の方向を掛け合わせるのがコツです。"),
+            C("ひとまずインターネット検索だけで、業界の全体像を把握しようとする", "ok", "検索も有効な手段の一つですが、一つの方法に偏ると、情報の偏りや抜け漏れが出やすくなります。"),
+            C("基礎知識がないと何も始められないと考え、完全に理解できるまで動き出さない", "bad", "理解してから動くのが正しいとは限りません。動きながら理解を深める順番もあります。")
+          ]},
+        { situation:T("大まかな全体像がつかめてきた。"),
+          choices:[
+            C("「恐らくこういう構造の業界だ」という仮説を一枚にまとめ、上司に「この理解で合っているか」を確認してみる", "good", "たたき台を早めに見せることで、差分を教えてもらいやすくなり、結果的に精度が早く上がります。"),
+            C("理解が完璧ではない気がして、もう少し調べてから見せようと先延ばしにする", "ok", "完璧を待つ気持ちは分かりますが、未完成のうちに見せる方が、早く軌道修正できます。"),
+            C("間違っていたら恥ずかしいので、確認はせず自分の理解のまま最後まで進めてしまう", "bad", "確認せずに進めると、間違った前提のまま作業が進み、後で大きな手戻りになるリスクがあります。")
+          ]}
+      ]
+    },
+    {
+      id:"V3", cat:"verbalize", difficulty:1, icon:"🗒️",
+      title:"「いい感じにまとめておいて」と言われた時", lead:"資料について「いい感じにまとめておいて」とだけ言われた。何をもって「いい感じ」なのか、判断基準が全く分からない。",
+      turns:[
+        { situation:T("この依頼を、まずどう受け止めるか。"),
+          choices:[
+            C("「いい感じ」の中身を、「誰が読むのか」「何を伝えたいのか」「どんな形式か」といった具体的な問いに分解してみる", "good", "曖昧な言葉をそのまま受け取らず、具体的な問いに分解することが、言語化の第一歩です。"),
+            C("「いい感じ」という言葉から自分なりにイメージを膨らませ、そのイメージで作業を進める", "ok", "イメージを持つこと自体は良いですが、それが相手の意図と合っているかは分からないままです。"),
+            C("「いい感じ」なんて分かるわけがないと不満に思いながら、とりあえず自己流でまとめる", "bad", "不満を抱えたまま自己流で進めると、相手の意図とずれたまま完成してしまうことがあります。")
+          ]},
+        { situation:T("分解してみると、「誰が読むのか」が一番の不明点だと気づいた。"),
+          choices:[
+            C("「恐らく部長向けの資料なので、要点を絞った形にしてみます」と、仮説を持って動き出す", "good", "分かる範囲で仮の答えを置き、そこを起点に動き出す姿勢です。"),
+            C("誰が読むか分からないまま、無難に情報を詰め込んだ資料を作る", "ok", "無難を狙う気持ちは分かりますが、読み手が分からないまま作ると、結局的を外した資料になりがちです。"),
+            C("誰が読むか気にせず、自分が作りやすい形式でまとめてしまう", "bad", "読み手を意識しないまま作ると、相手にとって使いにくい資料になってしまう可能性があります。")
+          ]},
+        { situation:T("「いい感じ」の指示と向き合ってきて、大切な考え方は?"),
+          choices:[
+            C("曖昧な指示は、悪意があるのではなく、依頼した側もイメージが固まっていないだけのことが多いと理解する", "good", "曖昧さの背景を理解した上で、自分から具体化しにいく姿勢が、進め方の基本になります。"),
+            C("曖昧な指示をする側に、もっと具体的に指示してほしいと感じる", "ok", "気持ちは分かりますが、指示する側が具体化しきれていないことは実際によくあります。自分から埋めにいく方が早く進みます。"),
+            C("曖昧な指示は信用できないと考え、確認や相談を避けるようになる", "bad", "曖昧さを人間関係の問題と捉えてしまうと、次に同じような依頼が来た時にも動けなくなってしまいます。")
+          ]}
+      ]
+    },
+    {
+      id:"H1", cat:"hypothesize", difficulty:2, icon:"💭",
+      title:"情報が揃うまで、手が止まってしまう", lead:"任された仕事について、情報がほとんど手元にない。もっと情報が集まってから動き出そうと考えている。",
+      turns:[
+        { situation:T("どう動くか。"),
+          choices:[
+            C("今ある材料だけで「現状はこう、目指す姿はこのあたりだろう」という仮の答えを、一旦置いてみる", "good", "情報が完璧に揃うのを待つと、いつまでも始まりません。仮説を先に置くことが、動き出す鍵になります。"),
+            C("もう少しだけ情報を集めてから、仮の答えを考えることにする", "ok", "情報収集自体は大切ですが、「もう少し」を繰り返していると、いつまでも仮説を置けないままになりがちです。"),
+            C("情報が十分に揃うまでは、判断も行動も保留にしておく", "bad", "情報が揃うのを待つ姿勢は、慎重に見えて、実際には思考停止に近い状態です。")
+          ]},
+        { situation:T("仮の答えを置いてみたものの、この仮説が正しいのか不安になってきた。"),
+          choices:[
+            C("不安はあるものの、まずはこの仮説を起点に動いてみて、違っていたら直せばいいと考える", "good", "仮説は外れることを前提に置くものです。動きながら精度を上げていく発想が大切です。"),
+            C("仮説には自信が持てないまま、念のため複数の仮説を並行して検討し続ける", "ok", "複数の可能性を考えること自体は悪くありませんが、検討ばかりが続くと、動き出すタイミングを逃してしまいます。"),
+            C("仮説が外れるのが怖くて、結局また情報収集に戻ってしまう", "bad", "仮説を外すことを恐れすぎると、いつまでも仮説を立てられなくなってしまいます。")
+          ]},
+        { situation:T("情報が少ない中で仮説を立てて動くことについて、大切な考え方は?"),
+          choices:[
+            C("仮説は完璧な答えではなく、あくまで動き出すための「仮の地図」だと理解する", "good", "仮説を「仮の地図」と捉えることで、外れることへの恐れが和らぎ、動き出しやすくなります。"),
+            C("仮説はできるだけ精度高く立ててから使うべきだと考える", "ok", "精度を求める気持ちは分かりますが、最初から高い精度を求めすぎると、仮説を置くこと自体が難しくなります。"),
+            C("仮説というのは、確信が持てる時にだけ使うものだと考える", "bad", "確信が持てる状態はほとんど訪れません。確信がない中で仮の答えを置くことにこそ、仮説の価値があります。")
+          ]}
+      ]
+    },
+    {
+      id:"H2", cat:"hypothesize", difficulty:2, icon:"🔍",
+      title:"調べ方が、いつも同じパターンに偏ってしまう", lead:"分からないことがあると、いつもインターネット検索だけで済ませようとしてしまい、それ以上情報が深まらないことが多い。",
+      turns:[
+        { situation:T("どう改善するか。"),
+          choices:[
+            C("検索だけでなく、詳しい人に聞く、社内の過去資料を探す、現場を実際に見るなど、複数の調べ方を組み合わせることを意識する", "good", "人・情報ソース・一次情報・構造化という複数の方向を掛け合わせることが、調べ方の引き出しを増やすコツです。"),
+            C("検索の質を上げようと、検索キーワードの工夫にさらに力を入れる", "ok", "検索の工夫も一つの方法ですが、他の調べ方も組み合わせないと、得られる情報の幅が広がりません。"),
+            C("検索で見つからない情報は、そもそも調べようがないと諦める", "bad", "検索以外にも、人に聞く、現場を見るといった調べ方があります。諦める前に、他の引き出しを試す余地があります。")
+          ]},
+        { situation:T("社内の詳しい人に聞いてみようと思ったが、忙しそうで声をかけづらい。"),
+          choices:[
+            C("「ここまでは自分で調べたのですが、ここだけ確認させてください」と、仮説を持った状態で短く相談する", "good", "主導権は自分に置いたまま、ピンポイントで聞くことで、相手の負担も減り、聞きやすくなります。"),
+            C("忙しそうなので、聞くのはやめて自分だけで何とかしようとする", "ok", "遠慮する気持ちは分かりますが、一人で抱え込みすぎると、かえって時間がかかってしまうことがあります。"),
+            C("「詳しく教えてください」とだけ伝え、丸ごと相手に説明してもらおうとする", "bad", "丸投げに近い聞き方は、相手の負担が大きく、指示待ちのように受け取られることがあります。")
+          ]},
+        { situation:T("調べ方の引き出しを増やすうえで、大切な考え方は?"),
+          choices:[
+            C("一つの方法に偏らず、人・情報ソース・一次情報・構造化を掛け合わせることを普段から意識しておく", "good", "複数の引き出しを持っておくことで、専門外のテーマでも詰まりにくくなります。"),
+            C("検索がうまくなれば、たいていのことは調べられるようになると考える", "ok", "検索スキルも大切な引き出しの一つですが、それだけに頼らない姿勢も必要です。"),
+            C("調べ方は人それぞれで、自分に合ったやり方を一つ極めればいいと考える", "bad", "一つのやり方を極めることも大切ですが、テーマによって有効な調べ方は変わります。複数の引き出しを持っておく方が柔軟に対応できます。")
+          ]}
+      ]
+    },
+    {
+      id:"H3", cat:"hypothesize", difficulty:2, icon:"🗣️",
+      title:"「どう動けばいいですか」と聞きそうになる時", lead:"任された仕事の進め方に迷い、上司に「どう動けばいいですか」とだけ聞こうとしている。",
+      turns:[
+        { situation:T("聞く前に、どうするか。"),
+          choices:[
+            C("聞く前に一度立ち止まり、「恐らくこう動くのが良さそうだ」という自分なりの仮説を考えてみる", "good", "「どう動けばいいですか」ではなく「恐らくこうなので、こう動きます」に変えることが、指示待ちと検証の分かれ目です。"),
+            C("仮説を考える時間がもったいないので、そのまま「どう動けばいいですか」と聞いてしまう", "ok", "早く聞くこと自体は悪くありませんが、仮説なしで聞くと、指示待ちの印象を与えてしまいます。"),
+            C("聞くと頼りないと思われそうで、聞かずに自己流で進めてしまう", "bad", "聞かずに進めることと、仮説を持って自分で動くことは違います。仮説なしで進めると、見当違いの方向に進むリスクがあります。")
+          ]},
+        { situation:T("仮説を考えてみたが、これで合っているか自信が持てない。"),
+          choices:[
+            C("自信がないなりに「恐らくこうなので、こう動こうと思います。ここだけ確認させてください」と、仮説を添えて確認する", "good", "自信がなくても、仮説を示した上で確認を取ることで、指示待ちではなく検証の動きとして受け取られます。"),
+            C("自信がないので、仮説には触れずに「これで合っていますか」とだけ聞く", "ok", "確認すること自体は良いですが、仮説の中身を示さないと、何を確認したいのかが相手に伝わりにくくなります。"),
+            C("自信が持てないまま、確認もせずに仮説通りに進めてしまう", "bad", "確認せずに進めると、仮説が外れていた場合に、大きく手戻りしてしまう可能性があります。")
+          ]},
+        { situation:T("「どう動けばいいですか」を卒業するうえで、大切な考え方は?"),
+          choices:[
+            C("答えをもらいに行くのではなく、仮説を検証しに行くという意識に切り替える", "good", "答えをもらう受け身の姿勢から、仮説を確かめに行く能動的な姿勢への転換が、進め方の核心です。"),
+            C("できるだけ自分だけで判断し、人に聞くこと自体を減らそうとする", "ok", "自分で考える姿勢は大切ですが、人に聞くこと自体を避けすぎると、誤った仮説のまま進んでしまうことがあります。"),
+            C("「どう動けばいいですか」と聞く方が、責任を問われなくて安全だと考える", "bad", "指示を待つ姿勢は、一見安全に見えて、自分で考える機会や評価される機会を手放すことにもなります。")
+          ]}
+      ]
+    },
+    {
+      id:"A1", cat:"act", difficulty:2, icon:"❔",
+      title:"質問すると無知がばれそうで、切り出せない", lead:"仮説はあるものの、それを人に確認しようとすると、「そんなことも分からないのか」と思われそうで、聞くのをためらってしまう。",
+      turns:[
+        { situation:T("どうするか。"),
+          choices:[
+            C("「知らないのを隠す」のではなく「仮説を検証しに行く」という体裁で、自分の考えを添えて質問する", "good", "仮説を持って質問することで、無知をさらす質問ではなく、検証のための質問になります。"),
+            C("聞きたいことを最小限に絞り、遠慮がちに一言だけ聞いてみる", "ok", "聞くこと自体はできていますが、仮説を添えないと、相手にとって何を確認したいのか分かりにくいことがあります。"),
+            C("無知だと思われるのが怖くて、結局聞かずに自己判断で進めてしまう", "bad", "質問は、仮説なしで聞くと無知がばれそうで切り出せない、という恐れの罠です。恐れの問題であり、能力の問題ではありません。")
+          ]},
+        { situation:T("思い切って仮説を添えて質問したところ、「そこまで考えているなら大丈夫」と好意的な反応が返ってきた。"),
+          choices:[
+            C("この経験を踏まえ、次回以降も仮説を持ってから質問する習慣を続ける", "good", "うまくいった経験を一度きりで終わらせず、習慣として定着させることが、次の場面での恐れを減らします。"),
+            C("今回はうまくいったが、次も同じようにできるか自信が持てないままでいる", "ok", "自信が持てなくても、同じやり方を繰り返すうちに、少しずつ抵抗が減っていきます。"),
+            C("たまたまうまくいっただけで、次はまた違う反応をされるかもしれないと身構え続ける", "bad", "身構えすぎると、せっかくの成功体験を次に活かせなくなってしまいます。")
+          ]},
+        { situation:T("質問することへの恐れと向き合ううえで、大切な考え方は?"),
+          choices:[
+            C("仮説を外すことも、質問することも、恐れの問題であって能力の問題ではないと理解しておく", "good", "この理解があると、恐れを感じた時に「自分の能力が低いからだ」と誤解せずに済みます。"),
+            C("質問が得意な人と苦手な人がいるのは、生まれ持った性格の違いだと考える", "ok", "性格の要素もありますが、仮説を添えるという工夫によって、誰でも聞きやすさを高めることができます。"),
+            C("質問して恥をかくくらいなら、多少遠回りでも自分だけで解決する方が良いと考える", "bad", "一人で抱え込みすぎると、かえって遠回りになったり、間違った方向に進んでしまうことがあります。")
+          ]}
+      ]
+    },
+    {
+      id:"A2", cat:"act", difficulty:2, icon:"🎯",
+      title:"「人に聞く」が、いつの間にか丸投げになっている", lead:"詳しい人に相談しようとしたが、気づけば「どうすればいいですか」と、答えをまるごと求めるような聞き方になっていた。",
+      turns:[
+        { situation:T("どう聞き方を見直すか。"),
+          choices:[
+            C("相談する前に、自分なりの仮説を整理し、「ここまでは考えたのですが」という形で相談する", "good", "人・知見を借りるときも、あくまで主は自分です。仮説を持って聞きに行く姿勢が、丸投げとの違いになります。"),
+            C("相手に丁寧に頼めば、答えを教えてもらえるだろうと考え、詳しい事情を一から説明する", "ok", "丁寧に頼むこと自体は良いですが、事情の説明ばかりで自分の考えが示されないと、相談ではなく依頼になってしまいます。"),
+            C("詳しい人に全部任せてしまえば、自分で悩む必要がなくなって楽だと考える", "bad", "「人に丸投げして指示待ち」は、人・知見を借りる際に気をつけるべき点として挙げられています。")
+          ]},
+        { situation:T("相談した相手から、「まず自分ではどう考えているの?」と逆に聞き返された。"),
+          choices:[
+            C("「実はこう考えていて、ここが判断できずに困っています」と、自分の仮説を正直に伝える", "good", "逆に聞き返されたことを、自分の考えを整理し直す良い機会として受け止められています。"),
+            C("とっさに答えられず、「特に考えてはいないのですが」と正直に伝える", "ok", "正直であること自体は良いですが、次回からは相談前に自分なりの仮説を用意しておくと、より建設的なやり取りになります。"),
+            C("聞き返されたことに戸惑い、それ以上相談するのをやめてしまう", "bad", "聞き返されたのは、丸投げではなく主体的な相談を促すためのことが多いです。ここで引かずに自分の考えを伝える方が良い結果につながります。")
+          ]},
+        { situation:T("人に聞く・頼るうえで、大切な考え方は?"),
+          choices:[
+            C("人の知見を借りることは、自分で考えることを放棄することとは違うと理解する", "good", "借りるのは知見であって、思考そのものを手放すわけではない、という理解が大切です。"),
+            C("人に頼るのはできるだけ避け、自分だけで解決する方が評価されると考える", "ok", "自分で考える姿勢は大切ですが、適切に人の知見を借りることも、効率よく進めるための有効な手段です。"),
+            C("詳しい人が近くにいるなら、その人に頼るのが一番効率的だと考え、積極的に頼る", "bad", "効率を求める気持ちは分かりますが、「主は自分」という意識がないと、丸投げの相談になってしまいます。")
+          ]}
+      ]
+    },
+    {
+      id:"A3", cat:"act", difficulty:2, icon:"🚶",
+      title:"情報が来るのを、受け身で待ってしまう", lead:"必要な情報がなかなか集まらないまま、誰かが教えてくれるのを待つような状態が続いている。",
+      turns:[
+        { situation:T("どう動くか。"),
+          choices:[
+            C("AIツールでの調査、詳しそうな人への相談、過去資料の検索など、自分から複数のルートで情報を取りに行く", "good", "情報を「取りにいく」動きそのものが、仮説を起点に自ら動くということです。"),
+            C("誰かが情報をくれるまで、目の前の作業だけを進めながら待つ", "ok", "目の前の作業を進めること自体は悪くありませんが、必要な情報を自分から取りに行く動きも並行して必要です。"),
+            C("情報が来ないのは周囲の協力が足りないせいだと考え、特に自分からは動かない", "bad", "情報を待つ姿勢のままだと、いつまでも前に進みません。自分から取りに行く発想への転換が必要です。")
+          ]},
+        { situation:T("自分から情報を取りに行った結果、思っていたよりも早く手がかりが見つかった。"),
+          choices:[
+            C("この経験を踏まえ、次に分からないことが出てきた時も、まず自分から動く習慣を続ける", "good", "自ら動くことで次の情報が見つかるという経験は、以降の動き方の自信につながります。"),
+            C("今回はたまたまうまくいったと捉え、次も同じように動けるかは分からないと感じる", "ok", "たまたまではなく、自分から取りに行ったからこそ見つかった、という捉え方をすると、次にも活かしやすくなります。"),
+            C("早く見つかったのは運が良かっただけで、普段は待つ方が確実だと考え直す", "bad", "待つことを「確実」と捉え直してしまうと、せっかくの成功体験が次に活きません。")
+          ]},
+        { situation:T("情報を自分から取りに行くことについて、大切な考え方は?"),
+          choices:[
+            C("答えをもらうのを待つのではなく、仮説を検証しに行く動きそのものが、情報を取りに行くということだと理解する", "good", "AIで調べるのも、人に聞くのも、現場に足を運ぶのも、すべて同じ「仮説を埋めにいく動き」です。"),
+            C("情報は基本的に与えられるものであり、自分から探すのは最終手段だと考える", "ok", "最終手段と捉えるのではなく、最初の選択肢として自分から情報を取りに行く発想があると、動き出しが早くなります。"),
+            C("情報を自分から取りに行くのは、周囲を頼れない人がすることだと感じる", "bad", "自分から情報を取りに行くことは、周囲を頼れないからではなく、主体的に進めるための基本的な動き方です。")
+          ]}
+      ]
+    },
+    {
+      id:"R1", cat:"refine", difficulty:2, icon:"📝",
+      title:"未完成のまま見せるのが、怖くて抱え込んでしまう", lead:"たたき台がほぼ完成に近づいているが、細部が気になって、なかなか人に見せる決心がつかない。",
+      turns:[
+        { situation:T("どうするか。"),
+          choices:[
+            C("完璧でなくても、今の時点のたたき台を早めに見せて、方向性が合っているか確認する", "good", "完璧を待たず、小さく動いて直すという発想です。出せば、差分が返ってきて精度が上がります。"),
+            C("もう少しだけ細部を詰めてから見せようと、少し先延ばしにする", "ok", "気持ちは分かりますが、「もう少しだけ」を繰り返すと、見せるタイミングをどんどん逃してしまいます。"),
+            C("未完成のものを見せるのは恥ずかしいので、完璧になるまで誰にも見せない", "bad", "未完成を見せたくない恐れは、多くの人が持つ罠の一つです。能力の問題ではなく、恐れの問題です。")
+          ]},
+        { situation:T("思い切ってたたき台を見せたところ、「方向性はいいけど、ここは違う」という具体的な指摘をもらえた。"),
+          choices:[
+            C("もらった指摘を「ここは違う」という差分として受け止め、素直にその部分を直す", "good", "たたき台を出せば、相手から差分が返ってきます。その差分を埋めれば、精度は勝手に上がります。"),
+            C("指摘はありがたいと思いつつ、直すべきかどうか少し迷ってしまう", "ok", "迷う気持ちも分かりますが、もらった差分は基本的に精度を上げるための材料として受け止める方が、前に進みやすくなります。"),
+            C("指摘されたことに落ち込み、たたき台を見せたこと自体を後悔する", "bad", "指摘は、たたき台の質の低さではなく、精度を上げるための当然のプロセスとして受け止める方が建設的です。")
+          ]},
+        { situation:T("未完成のものを見せることについて、大切な考え方は?"),
+          choices:[
+            C("完成度を高めてから見せるより、早めに見せて差分を埋める方が、結果的に早く・正確に仕上がると理解する", "good", "動いて、理解する。この順番への切り替えが、未完成を見せる勇気につながります。"),
+            C("できれば完成度の高いものを見せたいが、時間の都合上、仕方なく早めに見せることもあると考える", "ok", "仕方なくではなく、早めに見せること自体に意味があるという理解に変わると、抱え込みにくくなります。"),
+            C("未完成のものを見せると評価が下がると思い、多少遅れても完成してから見せる方針を貫く", "bad", "完成を待ちすぎると、方向性がずれたまま進み、結果的に大きな手戻りにつながるリスクがあります。")
+          ]}
+      ]
+    },
+    {
+      id:"R2", cat:"refine", difficulty:2, icon:"🧭",
+      title:"どうしても取れない情報が出てきた時", lead:"仮説を検証しながら進めていたが、どうしても入手できないデータがあることが分かった。",
+      turns:[
+        { situation:T("どうするか。"),
+          choices:[
+            C("「このデータは取れないので、近い性質のデータで代替して進める」と、取れないなりの進め方を決めて軌道修正する", "good", "取れない情報が出てきたら、止まる代わりに別ルートに乗り換えることが大切です。"),
+            C("データが取れるまで、他の作業を止めて探し続ける", "ok", "粘る姿勢は大切ですが、探し続けることに時間を使いすぎると、他の部分の進行が止まってしまいます。"),
+            C("データが取れないので、その部分は諦めて全体の作業自体を止めてしまう", "bad", "一つのデータが取れないだけで全体を止めてしまうと、進められる部分まで止まってしまいます。")
+          ]},
+        { situation:T("代替データを使って進めることにしたが、この判断が正しいか少し不安になっている。"),
+          choices:[
+            C("「製造業のデータがないので、構造の近い業種のデータで代替しています」と、判断の理由を添えて共有する", "good", "代替した理由を明示して共有することで、後から見た人にも判断の妥当性が伝わりやすくなります。"),
+            C("不安なまま、特に理由は説明せずに代替データのまま進めてしまう", "ok", "進めること自体は良いですが、理由を共有しないと、後で「なぜこのデータを使ったのか」と疑問を持たれることがあります。"),
+            C("判断に自信が持てず、代替データを使うこと自体をやめて、また止まってしまう", "bad", "一度決めた軌道修正を撤回してしまうと、せっかく進んでいた分が止まってしまいます。")
+          ]},
+        { situation:T("取れない情報への向き合い方で、大切な考え方は?"),
+          choices:[
+            C("すべての情報が完璧に揃うことは少なく、取れないなりの進め方を都度判断していく必要があると理解する", "good", "止まらずに軌道修正するという判断そのものが、進め方の重要なスキルです。"),
+            C("情報が取れないのは自分の調べ方が悪いからだと考え、調べ方をひたすら見直し続ける", "ok", "調べ方を見直すこと自体は大切ですが、それだけに時間をかけすぎず、代替案に切り替える判断も必要です。"),
+            C("完璧な情報が揃わない限り、正確な成果は出せないと考える", "bad", "完璧な情報を求めすぎると、多くの仕事がいつまでも前に進まなくなってしまいます。")
+          ]}
+      ]
+    },
+    {
+      id:"R3", cat:"refine", difficulty:1, icon:"🔁",
+      title:"フィードバックをもらった後、どう動くか", lead:"たたき台を提出したところ、思っていたよりも多くの修正点を指摘された。",
+      turns:[
+        { situation:T("どう受け止めるか。"),
+          choices:[
+            C("指摘された点を一つずつ「差分」として整理し、埋められるものから順に直していく", "good", "その差分を埋めれば、精度は勝手に上がります。修正点の多さは、たたき台の悪さではなく、精度を上げるための材料です。"),
+            C("指摘の多さに少し落ち込みながらも、時間をかけて一通り直す", "ok", "直すこと自体はできていますが、落ち込みすぎず、差分として淡々と受け止められるとより動きやすくなります。"),
+            C("これだけ直されるなら自分のたたき台は失敗だったと感じ、やる気を失ってしまう", "bad", "修正点が多いことは、失敗ではなく、精度を上げるプロセスが順調に進んでいる証拠でもあります。")
+          ]},
+        { situation:T("修正点の中に、自分の意図とは違う指摘が一つあった。"),
+          choices:[
+            C("「ここは実はこういう意図だったのですが」と、自分の考えも伝えたうえで、すり合わせをする", "good", "差分を一方的に受け入れるだけでなく、自分の意図も伝えてすり合わせることで、より精度の高い成果になります。"),
+            C("納得はいかないが、指摘された通りにそのまま直しておく", "ok", "指摘に従うこと自体は悪くありませんが、意図が違う場合は、一言伝えておく方が、次回以降の認識のずれを防げます。"),
+            C("意図が違うと感じたことに腹を立て、その指摘だけは無視して直さない", "bad", "意図の違いをすり合わせずに無視してしまうと、同じずれが次回も繰り返されてしまいます。")
+          ]},
+        { situation:T("フィードバックを受けて動くうえで、大切な考え方は?"),
+          choices:[
+            C("フィードバックは、たたき台を出したからこそ得られる、精度を上げるための材料だと理解する", "good", "行動が、次の情報を連れてくる。フィードバックはその代表的な形です。"),
+            C("フィードバックは受け止めるべきものだが、できれば少ない方がありがたいと感じる", "ok", "気持ちは分かりますが、フィードバックの多さを避けようとするより、早めにたたき台を出して数多く受け取る方が、結果的に早く仕上がります。"),
+            C("フィードバックが多いのは、自分の実力不足の証拠だと捉える", "bad", "フィードバックの量は実力不足の証明ではなく、たたき台を出して検証を重ねた結果です。")
+          ]}
+      ]
+    }
+  ];
+
+  var TIPS = [
+    {desc:"「全部わからない」は思考停止のサイン。不明の中身は必ず分解できる。"},
+    {desc:"情報が揃うのを待たず、手元の材料で「恐らくこうだ」という仮説を先に置く。"},
+    {desc:"調べ方は「人に聞く」「情報ソースを当たる」「一次情報を捉える」「構造化して考える」の4方向を掛け合わせる。"},
+    {desc:"「どう動けばいいですか」ではなく「恐らくこうなので、こう動きます」に変える。"},
+    {desc:"人に聞くときも、主導権は自分。丸投げして指示待ちにしない。"},
+    {desc:"完璧を待たず、小さく動いて直す。行動が次の情報を連れてくる。"},
+    {desc:"取れない情報が出たら、取れないなりの進め方に軌道修正する。"},
+    {desc:"分からない塊は、割る前は大きく見えるだけ。割れば小さなタスクの集まりになる。"},
+    {desc:"「理解してから動く」が正しいとは限らない。動いて理解する、という順番もある。"},
+    {desc:"未完成のたたき台を見せる勇気を持つ。差分が返ってくることで精度は上がる。"}
+  ];
+
+  /* ---------------- storage ---------------- */
+  var STORE_KEY = "susumekata-sim-progress-v1";
+  function loadProgress(){ try{ var raw = localStorage.getItem(STORE_KEY); return raw ? JSON.parse(raw) : {}; }catch(e){ return {}; } }
+  function saveProgress(p){ try{ localStorage.setItem(STORE_KEY, JSON.stringify(p)); }catch(e){} }
+
+  /* ---------------- state ---------------- */
+  var state = {
+    screen:"home", scenarioId:null, phase:"intro", turnIndex:0,
+    currentChoices:null, record:[], review:[], score:0, maxScore:0
+  };
+  var progress = loadProgress();
+
+  function shuffle(arr){
+    var a = arr.slice();
+    for(var i=a.length-1;i>0;i--){ var j = Math.floor(Math.random()*(i+1)); var t=a[i]; a[i]=a[j]; a[j]=t; }
+    return a;
+  }
+  function catInfo(id){ for(var i=0;i<CATEGORIES.length;i++){ if(CATEGORIES[i].id===id) return CATEGORIES[i]; } return CATEGORIES[0]; }
+  function scenarioById(id){ for(var i=0;i<SCENARIOS.length;i++){ if(SCENARIOS[i].id===id) return SCENARIOS[i]; } return null; }
+  function escapeHtml(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+  function tierLabel(tier){ return tier==="good" ? "とても良い対応です" : (tier==="ok" ? "OKですが、改善の余地があります" : "見直しが必要です"); }
+  function tierIcon(tier){ return tier==="good" ? "◎" : (tier==="ok" ? "○" : "✕"); }
+  function truncate(s, n){ return s.length > n ? s.slice(0,n) + "…" : s; }
+
+  var app = document.getElementById("app");
+
+  function render(){
+    if(state.screen==="home") renderHome();
+    else if(state.screen==="manual") renderManual();
+    else if(state.screen==="scenario") renderScenario();
+    else if(state.screen==="result") renderResult();
+  }
+
+  /* ---------------- HOME ---------------- */
+  function renderHome(){
+    var completed = 0;
+    SCENARIOS.forEach(function(s){ if(progress[s.id]) completed++; });
+    var pct = Math.round(completed/SCENARIOS.length*100);
+
+    var html = '';
+    html += '<div class="home">';
+    html += '<div class="cover-art">'+BLOCK_SVG+'<div class="cover-caption">WORK APPROACH · 分からないから、進めるへ</div></div>';
+    html += '<div class="home-head">';
+    html += '<div class="eyebrow">全ビジネスパーソン向けプログラム</div>';
+    html += '<h1 class="home-title"><span style="white-space:nowrap">仕事の進め方</span><span style="white-space:nowrap">シミュレーター</span></h1>';
+    html += '<p class="home-sub">目的や手順がはっきりしない仕事を任された時、どう動けば前に進むか。分からないを言語化し、仮説を立てて動き、精度を上げていく4つのステップを、選択式で身につけます。</p>';
+    html += '<div class="progress-row"><div class="progress-track"><div class="progress-fill" style="width:'+pct+'%"></div></div><div class="progress-label mono">'+completed+' / '+SCENARIOS.length+'</div></div>';
+    html += '<button class="manual-link" data-action="open-manual">🧭 進め方の基本10か条を見る</button>';
+    html += '</div>';
+
+    CATEGORIES.forEach(function(cat){
+      var list = SCENARIOS.filter(function(s){ return s.cat===cat.id; });
+      if(list.length===0) return;
+      html += '<div class="cat-block">';
+      html += '<div class="cat-head"><span class="cat-dot" style="background:var('+cat.varc+')"></span><span class="cat-name">'+cat.name+'</span></div>';
+      html += '<div class="cat-desc">'+cat.desc+'</div>';
+      html += '<div class="card-list">';
+      list.forEach(function(s){
+        var stars = "★".repeat(s.difficulty) + "☆".repeat(3-s.difficulty);
+        var best = progress[s.id];
+        html += '<button class="scenario-card" data-action="open-scenario" data-id="'+s.id+'">';
+        html += '<span class="avatar" style="background:var('+cat.vars+')">'+s.icon+'</span>';
+        html += '<span class="card-body"><span class="card-title">'+escapeHtml(s.title)+'</span><br><span class="card-meta">'+escapeHtml(truncate(s.lead, 30))+'</span></span>';
+        html += '<span class="card-side"><span class="stars">'+stars+'</span>' + (best ? '<span class="best-badge">ベスト '+best.pct+'%</span>' : '') + '</span>';
+        html += '</button>';
+      });
+      html += '</div></div>';
+    });
+
+    html += '</div>';
+    app.innerHTML = html;
+  }
+
+  /* ---------------- MANUAL ---------------- */
+  function renderManual(){
+    var html = '<div class="manual">';
+    html += '<div class="back-row"><button class="icon-btn" data-action="go-home">←</button><span class="screen-title">進め方の基本10か条</span></div>';
+    TIPS.forEach(function(tip, i){
+      html += '<div class="tip-card"><div class="tip-num">POINT '+(i+1)+'</div><div class="tip-desc">'+escapeHtml(tip.desc)+'</div></div>';
+    });
+    html += '</div>';
+    app.innerHTML = html;
+  }
+
+  /* ---------------- SCENARIO ---------------- */
+  function openScenario(id){
+    var sc = scenarioById(id);
+    if(!sc) return;
+    state.screen = "scenario"; state.scenarioId = id; state.phase = "intro"; state.turnIndex = 0;
+    state.currentChoices = null; state.record = []; state.review = []; state.score = 0;
+    state.maxScore = sc.turns.length * 10;
+    render();
+  }
+
+  function renderScenario(){
+    var sc = scenarioById(state.scenarioId);
+    var cat = catInfo(sc.cat);
+
+    if(state.phase === "intro"){
+      var html = '<div class="intro">';
+      html += '<span class="avatar" style="background:var('+cat.vars+')">'+sc.icon+'</span>';
+      html += '<div class="intro-cat">'+escapeHtml(cat.name)+'</div>';
+      html += '<div class="intro-title">'+escapeHtml(sc.title)+'</div>';
+      html += '<div class="intro-lead">'+escapeHtml(sc.lead)+'</div>';
+      html += '<div class="intro-actions">';
+      html += '<button class="next-btn" data-action="start-scenario">この場面を始める</button>';
+      html += '<button class="ghost-btn" data-action="go-home">一覧に戻る</button>';
+      html += '</div></div>';
+      app.innerHTML = html;
+      return;
+    }
+
+    var html2 = '';
+    html2 += '<div class="rec-top">';
+    html2 += '<div><div class="rec-top-title">'+escapeHtml(sc.title)+'</div><div class="rec-top-cat">'+escapeHtml(cat.name)+'</div></div>';
+    html2 += '<div class="rec-step mono">STEP '+(state.turnIndex+1)+' / '+sc.turns.length+'</div>';
+    html2 += '</div>';
+
+    html2 += '<div class="record" id="record" style="--cat-color:var('+cat.varc+')">';
+    state.record.forEach(function(item){
+      if(item.speaker === "situation"){
+        html2 += '<div class="sit-card"><div class="sit-label">状況</div>'+escapeHtml(item.text)+'</div>';
+      } else {
+        html2 += '<div><div class="act-label">あなたの行動</div><div class="act-row"><div class="act-bubble">'+escapeHtml(item.text)+'</div></div></div>';
+      }
+    });
+    html2 += '</div>';
+
+    html2 += '<div class="choices-panel">';
+    if(state.phase === "active"){
+      html2 += '<div class="choices-hint">どう対応しますか?</div>';
+      state.currentChoices.forEach(function(choice, idx){
+        html2 += '<button class="choice-btn" data-action="pick-choice" data-idx="'+idx+'">'+escapeHtml(choice.text)+'</button>';
+      });
+    } else if(state.phase === "feedback"){
+      var last = state.review[state.review.length-1];
+      html2 += '<div class="feedback-panel">';
+      html2 += '<span class="feedback-tag '+last.tier+'">'+tierIcon(last.tier)+' '+tierLabel(last.tier)+'</span>';
+      html2 += '<div class="feedback-text">'+escapeHtml(last.feedback)+'</div>';
+      var isLast = state.turnIndex >= sc.turns.length - 1;
+      html2 += '<button class="next-btn" data-action="next-turn">'+(isLast ? "この場面を終える" : "次へ")+'</button>';
+      html2 += '</div>';
+    }
+    html2 += '</div>';
+
+    app.innerHTML = html2;
+    var rEl = document.getElementById("record");
+    if(rEl) rEl.scrollTop = rEl.scrollHeight;
+  }
+
+  function startScenario(){
+    var sc = scenarioById(state.scenarioId);
+    state.phase = "active"; state.turnIndex = 0;
+    pushSituation(sc, 0);
+    state.currentChoices = shuffle(sc.turns[0].choices);
+    render();
+  }
+
+  function pushSituation(sc, idx){ state.record.push({speaker:"situation", text: sc.turns[idx].situation.text}); }
+
+  function pickChoice(idx){
+    var sc = scenarioById(state.scenarioId);
+    var choice = state.currentChoices[idx];
+    state.record.push({speaker:"you", text: choice.text});
+    state.score += choice.points;
+    state.review.push({
+      situation: sc.turns[state.turnIndex].situation.text,
+      chosen: choice.text, tier: choice.tier, feedback: choice.feedback
+    });
+    state.phase = "feedback";
+    render();
+  }
+
+  function nextTurn(){
+    var sc = scenarioById(state.scenarioId);
+    if(state.turnIndex >= sc.turns.length - 1){ finishScenario(); return; }
+    state.turnIndex++;
+    pushSituation(sc, state.turnIndex);
+    state.currentChoices = shuffle(sc.turns[state.turnIndex].choices);
+    state.phase = "active";
+    render();
+  }
+
+  function finishScenario(){
+    var pct = Math.round(state.score / state.maxScore * 100);
+    progress[state.scenarioId] = progress[state.scenarioId] && progress[state.scenarioId].pct > pct
+      ? progress[state.scenarioId] : {pct: pct};
+    saveProgress(progress);
+    state.screen = "result";
+    render();
+  }
+
+  /* ---------------- RESULT ---------------- */
+  function renderResult(){
+    var sc = scenarioById(state.scenarioId);
+    var pct = Math.round(state.score / state.maxScore * 100);
+    var grade = pct >= 90 ? "S" : pct >= 75 ? "A" : pct >= 55 ? "B" : "C";
+    var msg = pct >= 90 ? "とても良い判断です。この調子で、他の場面にも挑戦してみましょう。"
+      : pct >= 75 ? "良い対応ができています。○や✕がついた場面の理由を振り返ると、さらにコツがつかめます。"
+      : pct >= 55 ? "基本はできています。迷った場面を見直して、判断の基準を整理してみましょう。"
+      : "焦らず大丈夫です。下の振り返りを読んで、もう一度この場面に挑戦してみましょう。";
+
+    var html = '<div class="result">';
+    html += '<div class="result-badge"><span class="grade">'+grade+'</span></div>';
+    html += '<div class="result-score">スコア <span class="mono">'+state.score+' / '+state.maxScore+'</span>(' + pct + '%)</div>';
+    html += '<div class="result-title">'+escapeHtml(sc.title)+'・振り返り</div>';
+    html += '<div class="result-msg">'+msg+'</div>';
+
+    html += '<div class="review-list">';
+    state.review.forEach(function(r, i){
+      html += '<div class="review-item">';
+      html += '<div class="review-head"><span class="review-icon '+r.tier+'">'+tierIcon(r.tier)+'</span><span class="review-situation">場面'+(i+1)+'. '+escapeHtml(truncate(r.situation, 32))+'</span></div>';
+      html += '<div class="review-feedback">'+escapeHtml(r.feedback)+'</div>';
+      html += '</div>';
+    });
+    html += '</div>';
+
+    html += '<div class="result-actions">';
+    html += '<button class="btn-primary" data-action="retry-scenario">もう一度この場面に挑戦する</button>';
+    html += '<button class="btn-secondary" data-action="open-manual">10か条を振り返る</button>';
+    html += '<button class="btn-secondary" data-action="go-home">シナリオ一覧に戻る</button>';
+    html += '</div>';
+    html += '</div>';
+    app.innerHTML = html;
+  }
+
+  /* ---------------- events ---------------- */
+  app.addEventListener("click", function(e){
+    var btn = e.target.closest("[data-action]");
+    if(!btn) return;
+    var action = btn.getAttribute("data-action");
+    if(action === "open-scenario"){ openScenario(btn.getAttribute("data-id")); }
+    else if(action === "open-manual"){ state.screen = "manual"; render(); }
+    else if(action === "go-home"){ state.screen = "home"; render(); }
+    else if(action === "start-scenario"){ startScenario(); }
+    else if(action === "pick-choice"){ pickChoice(parseInt(btn.getAttribute("data-idx"), 10)); }
+    else if(action === "next-turn"){ nextTurn(); }
+    else if(action === "retry-scenario"){ openScenario(state.scenarioId); }
+  });
+
+  render();
+})();
+</script>
