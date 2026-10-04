@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>小さなオジサンのまともな判断トレーニング</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  --bg: #E8EEF1;
+  --panel: #FFFFFF;
+  --ink: #22303C;
+  --sub: #5A6B78;
+  --line: #C5D1D8;
+  --suit: #3F5262;
+  --skin: #F1CBA6;
+  --hair: #C9D0D6;
+  --tie: #E2AB2E;
+  --marker: #F4D35E;
+  --ok: #2B8A66;
+  --ok-bg: #E1F3EA;
+  --ng: #C2433B;
+  --ng-bg: #FBE8E6;
+  --ruler: #F6E7A8;
+  --ruler-tick: #8B7B3A;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #131E27; --panel: #1C2A35; --ink: #E7EEF3; --sub: #9DB0BD; --line: #35495A;
+    --suit: #6F889B; --skin: #E9BE98; --hair: #AAB5BE; --tie: #E2AB2E; --marker: #D9B93F;
+    --ok: #5CC49A; --ok-bg: #173A2E; --ng: #EE7B72; --ng-bg: #40221F;
+    --ruler: #5B5326; --ruler-tick: #D9C873;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #131E27; --panel: #1C2A35; --ink: #E7EEF3; --sub: #9DB0BD; --line: #35495A;
+  --suit: #6F889B; --skin: #E9BE98; --hair: #AAB5BE; --tie: #E2AB2E; --marker: #D9B93F;
+  --ok: #5CC49A; --ok-bg: #173A2E; --ng: #EE7B72; --ng-bg: #40221F;
+  --ruler: #5B5326; --ruler-tick: #D9C873;
+}
+html { scroll-padding-top: env(safe-area-inset-top, 0px); background: var(--bg); }
+*, *::before, *::after { box-sizing: inherit; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: "Zen Maru Gothic", "Hiragino Maru Gothic ProN", "Hiragino Sans", "Yu Gothic", "Meiryo", sans-serif;
+  font-weight: 500;
+  line-height: 1.75;
+  -webkit-text-size-adjust: 100%;
+}
+#app { max-width: 540px; margin: 0 auto; padding: 16px 16px 48px; }
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 3px solid var(--marker); outline-offset: 2px; }
+
+/* ruler progress */
+.ruler-wrap { margin: 4px 0 18px; }
+.ruler-meta { display: flex; justify-content: space-between; font-size: 13px; color: var(--sub); margin-bottom: 4px; font-weight: 700; }
+.ruler {
+  position: relative; height: 22px; border-radius: 3px; background: var(--ruler);
+  border: 1px solid var(--ruler-tick); overflow: hidden;
+}
+.ruler::after {
+  content: ""; position: absolute; inset: 0;
+  background:
+    repeating-linear-gradient(90deg, var(--ruler-tick) 0 1px, transparent 1px 8px) bottom/100% 7px no-repeat,
+    repeating-linear-gradient(90deg, var(--ruler-tick) 0 1px, transparent 1px 40px) bottom/100% 13px no-repeat;
+  pointer-events: none;
+}
+.ruler .fill { position: absolute; inset: 0 auto 0 0; background: var(--marker); width: 0; transition: width .4s ease; opacity: .9; }
+
+/* stage */
+.stage { display: flex; gap: 12px; align-items: flex-end; margin-bottom: 16px; }
+.man-col { flex: 0 0 96px; text-align: center; }
+.man { width: 96px; height: auto; display: block; }
+.man .suit { fill: var(--suit); }
+.man .skin { fill: var(--skin); }
+.man .hair { fill: var(--hair); }
+.man .tie { fill: var(--tie); }
+.man .shoe { fill: #1b242c; }
+.man .shirt { fill: #fff; }
+.man .ink { stroke: var(--ink); fill: none; stroke-linecap: round; stroke-width: 2.4; }
+.man .eye { fill: var(--ink); }
+.man .brow { stroke: var(--hair); fill: none; stroke-width: 3.4; stroke-linecap: round; }
+.man .shadow { fill: rgba(0,0,0,.12); }
+.man .m-h, .man .m-s { display: none; }
+.man.mood-happy .m-n, .man.mood-sad .m-n { display: none; }
+.man.mood-happy .m-h { display: inline; }
+.man.mood-sad .m-s { display: inline; }
+.height-tag { font-size: 11px; color: var(--sub); margin-top: 2px; font-weight: 700; }
+@media (prefers-reduced-motion: no-preference) {
+  .man.bump { animation: bump .45s ease; transform-origin: 50% 100%; }
+  @keyframes bump { 0%{transform:scale(1)} 35%{transform:scale(1.06) translateY(-4px)} 100%{transform:scale(1)} }
+}
+
+.bubble {
+  position: relative; flex: 1; background: var(--panel); border: 2px solid var(--ink);
+  border-radius: 14px; padding: 12px 14px; font-size: 15.5px; min-height: 64px;
+}
+.bubble::before {
+  content: ""; position: absolute; left: -11px; bottom: 22px; width: 18px; height: 18px;
+  background: var(--panel); border-left: 2px solid var(--ink); border-bottom: 2px solid var(--ink);
+  transform: rotate(45deg);
+}
+.bubble .scene-cat { display: inline-block; font-size: 12px; font-weight: 700; background: var(--marker); color: #2b2606; border-radius: 4px; padding: 0 8px; margin-bottom: 6px; line-height: 1.7; }
+.bubble p { margin: 0; }
+.bubble p + p { margin-top: 8px; }
+.bubble strong { font-weight: 900; }
+
+/* choices */
+.choices { display: flex; flex-direction: column; gap: 10px; }
+.choice {
+  text-align: left; background: var(--panel); border: 2px solid var(--line); border-radius: 12px;
+  padding: 12px 14px; cursor: pointer; line-height: 1.65; width: 100%;
+}
+.choice:hover:not(:disabled) { border-color: var(--ink); }
+.choice:disabled { cursor: default; }
+.choice .ctext { display: block; font-size: 15px; }
+.choice .chip {
+  display: inline-block; margin-top: 8px; font-size: 12px; font-weight: 700; border-radius: 999px;
+  padding: 0 10px; line-height: 1.8;
+}
+.choice .why { display: block; margin-top: 6px; font-size: 14px; color: var(--sub); }
+.choice.is-ok { border-color: var(--ok); background: var(--ok-bg); }
+.choice.is-ok .chip { background: var(--ok); color: #fff; }
+.choice.is-ng .chip { background: var(--line); color: var(--ink); }
+.choice.picked-ng { border-color: var(--ng); background: var(--ng-bg); }
+.choice.picked-ng .chip { background: var(--ng); color: #fff; }
+.picked-mark { font-size: 12px; font-weight: 700; color: var(--sub); margin-left: 6px; }
+
+.actions { margin-top: 18px; display: flex; justify-content: center; }
+.btn {
+  background: var(--ink); color: var(--bg); border: none; border-radius: 999px;
+  padding: 12px 32px; font-weight: 900; font-size: 16px; cursor: pointer;
+}
+.btn.ghost { background: transparent; color: var(--ink); border: 2px solid var(--ink); }
+
+/* start & result */
+h1 { font-size: 24px; line-height: 1.4; margin: 6px 0 14px; font-weight: 900; }
+.lead { color: var(--sub); font-size: 14.5px; margin: 0 0 18px; }
+.note { font-size: 13px; color: var(--sub); border-top: 1px dashed var(--line); margin-top: 26px; padding-top: 12px; }
+.score-box { text-align: center; margin: 4px 0 18px; }
+.score-box .big { font-size: 52px; font-weight: 900; line-height: 1.1; }
+.score-box .big small { font-size: 20px; color: var(--sub); }
+.score-box .rank { display: inline-block; margin-top: 6px; font-size: 16px; font-weight: 900; background: var(--marker); color: #2b2606; padding: 2px 16px; border-radius: 6px; }
+h2 { font-size: 17px; margin: 26px 0 10px; font-weight: 900; }
+.tcard { background: var(--panel); border: 2px solid var(--line); border-radius: 12px; padding: 12px 14px; margin-bottom: 10px; }
+.tcard .th { display: flex; justify-content: space-between; gap: 10px; font-weight: 900; font-size: 15.5px; }
+.tcard .cnt { color: var(--sub); font-size: 13px; white-space: nowrap; font-weight: 700; }
+.tcard p { margin: 4px 0 0; font-size: 14px; color: var(--sub); }
+.tcard .fix { color: var(--ink); }
+details.rv { background: var(--panel); border: 2px solid var(--line); border-radius: 12px; padding: 8px 14px; margin-bottom: 8px; }
+details.rv summary { cursor: pointer; font-weight: 700; font-size: 14.5px; padding: 4px 0; }
+details.rv .rvbody { font-size: 14px; padding: 6px 0 8px; color: var(--sub); }
+details.rv .rvbody b { color: var(--ink); }
+.mk-ok { color: var(--ok); font-weight: 900; }
+.mk-ng { color: var(--ng); font-weight: 900; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+(function () {
+  "use strict";
+
+  var TAGS = {
+    "見積り": { name: "時間や自分の力の見積りが甘い", fix: "所要時間は「いつもの実績×1.5」で考える。予定は頭でなくカレンダーに預ける。" },
+    "切替": { name: "切り替えが苦手・集中すると周りが見えない", fix: "終わりの時刻を先に決め、タイマーや通知を「切り替えの合図」にする。" },
+    "確認不足": { name: "確認せずに進めてしまう", fix: "着手前に「期限・目的・形式」の3点を聞く。復唱とメモを癖にする。" },
+    "完璧": { name: "完璧に作り込みすぎる", fix: "6割の段階で一度見せて、方向が合っているか確認する。" },
+    "抱込": { name: "ひとりで抱え込む・隠す", fix: "悪い報告ほど早く。「事実+影響+案」の3点セットで伝える。" },
+    "回避": { name: "不安・面倒なことを後回しにする", fix: "最初の一歩を1分で終わる大きさにして、作業の枠をカレンダーに入れる。" },
+    "衝動": { name: "思いつきですぐ動く・口に出す", fix: "まずメモ。口に出す・動くのは、一呼吸おいてから。" },
+    "散乱": { name: "管理や作業が散らかる", fix: "置き場所は1つ。作業は1つ終えてから次へ。" },
+    "感情": { name: "気持ちに飲まれて動けなくなる", fix: "固まったときの定型句を用意する(「確認して戻ります」など)。落ち込むのは対応のあとで。" },
+    "伝え方": { name: "意図と違う伝わり方をしやすい", fix: "「あとで」と「いつ」をセットで言う。反論の前にまず受け止める一言を。" }
+  };
+
+  var Q = [
+    { cat: "時間管理", title: "朝の支度",
+      s: "9時始業。8時に家を出れば間に合う。7時半に起きて「まだ余裕じゃな」と動画を見始めた。さて、どうする?",
+      tip: "アラームは「出発」ではなく「準備を始める時刻」にも付ける。",
+      o: [
+        { ok: 1, t: "出発から逆算して「身支度完了7:45」「出発8:00」のアラームを2つ付ける。動画は見ない(見るなら終了時刻を決める)", why: "「いつ終わるか」を外に出しておけば、時間の感覚に頼らずに済む。" },
+        { tag: "見積り", t: "動画は1本だけ。支度は15分もあれば終わるだろう、とそのまま見続ける", why: "支度の所要時間を短く見積もりがち。靴下を探す、忘れ物に気づく…といった余白が計算に入っていない。" },
+        { tag: "切替", t: "アラームは出発時刻だけ。気づけば次の動画、また次の動画…", why: "面白いことの最中は時間が溶ける。「準備開始」の合図がないと、切り替えのきっかけが来ない。" }
+      ] },
+    { cat: "仕事の進め方", title: "あいまいな指示",
+      s: "上司「例の資料、いい感じにまとめといて」。期限も用途も聞いておらん。どうする?",
+      tip: "聞き返しは迷惑ではなく、仕事の一部。",
+      o: [
+        { ok: 1, t: "期限・使う場面・分量・形式をその場で聞き、メモして復唱する", why: "あいまいな指示は聞き返して当然。5分の確認が、数時間のやり直しを防ぐ。" },
+        { tag: "確認不足", t: "「いい感じ」はたぶんこういうことだろう、と自分の解釈で作り始める", why: "自分なりの解釈で進めるほど、ズレたときのダメージが大きくなる。" },
+        { tag: "完璧", t: "聞き返すのは迷惑かと思い、とにかく完璧に作り込んで提出する", why: "聞かずに作り込むと、方向違いなら全部やり直し。6割の段階で見せる方が結局早い。" }
+      ] },
+    { cat: "仕事の進め方", title: "納期に間に合わない",
+      s: "納期は明日。今日の時点で進捗は7割。どう見ても間に合わん。どうする?",
+      tip: "報告は「早さ」が命。うまく話そうとしなくていい。",
+      o: [
+        { ok: 1, t: "今日のうちに上司へ「現状・見込み・選択肢(延長や応援)」を伝えて相談する", why: "周りが動ける時間を残すのが一番の対策。早く言うほど、選べる手が増える。" },
+        { tag: "抱込", t: "徹夜でなんとかする。ギリギリまで誰にも言わない", why: "間に合っても、周りが準備できない。次も同じやり方になり、いつか破綻する。" },
+        { tag: "回避", t: "怒られそうで連絡しづらく、気づけば得意な別の作業に手をつけている", why: "不安なことから目を逸らすのは自然な反応だが、報告が遅れるほど傷は深くなる。" }
+      ] },
+    { cat: "仕事の進め方", title: "優先順位",
+      s: "朝イチ、未対応が3つ。顧客からの急ぎの質問、部長の依頼(期限は今週中)、自分が気になっていた資料の整理。どれから?",
+      tip: "優先順位は「気分」ではなく「期限と影響」で決める。",
+      o: [
+        { ok: 1, t: "期限と影響の大きさで並べる。顧客対応→部長の依頼→整理。迷えば上司に確認する", why: "外側の基準で決めれば、気分に左右されない。迷ったら聞くのも正解。" },
+        { tag: "衝動", t: "資料の整理から。やり始めたら乗ってきて、気づけば昼", why: "興味のある作業には手が伸びやすい。急ぎの対応が後ろに押し出されてしまう。" },
+        { tag: "散乱", t: "全部気になるので3つ同時に開き、行ったり来たりしながら進める", why: "切り替えのたびに頭のエネルギーを使い、全部が中途半端になる。1つ終えてから次へ。" }
+      ] },
+    { cat: "コミュニケーション", title: "会議での発言",
+      s: "会議中、他の人が話している最中に「それは違うな」と意見が浮かんだ。どうする?",
+      tip: "忘れたくないなら、口ではなくメモに出す。",
+      o: [
+        { ok: 1, t: "メモに一言書いておき、話の切れ目で「一点よろしいですか」と入る", why: "メモすれば忘れる心配がなく、相手の話も遮らずに済む。" },
+        { tag: "衝動", t: "忘れそうなので、その場ですぐ口を挟む", why: "思いついたらすぐ言いたくなるのは自然だが、遮られた相手には印象が残る。" },
+        { tag: "感情", t: "言いそびれて黙る。会議のあと、同僚に不満だけ話す", why: "溜め込むと不満だけが膨らむ。言えなかったら、会議後に本人か上司へ短く確認する形がよい。" }
+      ] },
+    { cat: "仕事の進め方", title: "自分のミスを発見",
+      s: "提出済みの書類に、自分のミスを見つけた。まだ誰も気づいていない。どうする?",
+      tip: "落ち込むのは、報告のあとで十分。",
+      o: [
+        { ok: 1, t: "すぐ上司に「何が・どこまで影響するか・直し方の案」を伝える", why: "ミスそのものより、その後の動きが信用をつくる。" },
+        { tag: "抱込", t: "気づかれる前にこっそり直しておく", why: "隠すと、あとで見つかったとき「ミス」より「隠したこと」の方が信用を落とす。" },
+        { tag: "感情", t: "自分を責めて落ち込み、報告が翌日になる", why: "落ち込む気持ちは分かるが、報告が遅れるほど傷が大きくなる。" }
+      ] },
+    { cat: "時間管理", title: "予定の管理",
+      s: "来週火曜14時、取引先への訪問が決まった。どう管理する?",
+      tip: "予定は「覚える」のでなく「忘れても大丈夫な場所」に預ける。",
+      o: [
+        { ok: 1, t: "その場でカレンダーに入れ、前日と2時間前に通知を付ける。持ち物もそこにメモする", why: "入力はその場で、通知は2回。持ち物まで同じ場所に書けば、探す手間もない。" },
+        { tag: "見積り", t: "大事な予定だから覚えておける、と頭の中に入れておく", why: "自分の記憶を過信しがち。忙しい日ほど、頭の中の予定は真っ先に消える。" },
+        { tag: "散乱", t: "付箋、ノート、スマホのメモなど、思いついた場所に書いておく", why: "書いた場所が散らばると、見返すときに見つからない。置き場所は1つに決める。" }
+      ] },
+    { cat: "コミュニケーション", title: "聞き取れなかった電話",
+      s: "取引先からの電話。早口で、用件の一部が聞き取れなかった。どうする?",
+      tip: "聞き直しは失礼ではない。分かったふりの方がずっと高くつく。",
+      o: [
+        { ok: 1, t: "「恐れ入ります、もう一度お願いできますか」と聞き直し、最後に用件・期限・折り返し先を復唱する", why: "復唱すれば、お互いの認識のズレをその場で潰せる。" },
+        { tag: "確認不足", t: "だいたい分かったのでそのまま電話を切り、あとは推測で動く", why: "「だいたい」は危ない。肝心の部分が抜けていると、やり直しになる。" },
+        { tag: "回避", t: "聞き返しにくくて「はい」と答えて切ってしまう", why: "分かったふりは、あとで困るのが自分になる。聞き直しは失礼ではない。" }
+      ] },
+    { cat: "コミュニケーション", title: "話しかけられた",
+      s: "集中して作業中、隣の同僚が困った顔で「ちょっといい?」と声をかけてきた。",
+      tip: "断るときは「いつならできる」をセットで。",
+      o: [
+        { ok: 1, t: "手を止めて顔を向け、「ここまで終わらせたいので、5分後でいい?」と時間を決めて対応する", why: "相手を無視せず、自分の作業も守れる言い方。" },
+        { tag: "切替", t: "声は聞こえているが、集中していて反応が遅れる(または気づかない)", why: "集中は悪いことではない。ただ反応が遅いと「無視された」と受け取られやすい。" },
+        { tag: "伝え方", t: "「今忙しいので」とだけ返して作業に戻る", why: "事実はその通りでも、短い言い方は冷たく伝わる。「あとで」と「いつ」をセットで。" }
+      ] },
+    { cat: "時間管理", title: "事務手続きの締切",
+      s: "会社に出す書類の締切は1週間後。面倒じゃが、30分もあれば終わる作業じゃ。どうする?",
+      tip: "やる気は、動いたあとから湧いてくるもの。",
+      o: [
+        { ok: 1, t: "今日、最初の一歩(書類を机に出す・1項目だけ書く)をやり、カレンダーに「30分」の枠を確保する", why: "最初の一歩は小さいほどよい。作業日を決めておけば、直前に慌てずに済む。" },
+        { tag: "見積り", t: "締切の前日にまとめてやる。30分で終わる作業だし、と考える", why: "当日になると、予定外の用事や、足りない書類が出てくる。余白のない見積もりは外れやすい。" },
+        { tag: "回避", t: "やる気が出たらやる、と待つ", why: "やる気は待っても来にくい。まず1分だけ手をつけると、あとから付いてくる。" }
+      ] },
+    { cat: "コミュニケーション", title: "みんなの前で指摘された",
+      s: "皆の前で上司に「ここ、数字が間違ってるよ」と指摘された。どうする?",
+      tip: "経緯の説明は、直したあとでも遅くない。",
+      o: [
+        { ok: 1, t: "「ありがとうございます、確認して直します」と受け止め、詳しい点はあとで個別に確認する", why: "その場では受け止めるだけ。確認は落ち着いてからでよい。" },
+        { tag: "伝え方", t: "「でも、最初はこう聞いていました」とその場で説明・反論する", why: "経緯を伝えたい気持ちは分かるが、その場では言い訳に聞こえやすい。" },
+        { tag: "感情", t: "頭が真っ白になって固まり、そのあともずっと引きずる", why: "驚くと固まるのは自然なこと。定型句を1つ決めておけば、頭が真っ白でも口が動く。" }
+      ] },
+    { cat: "時間管理", title: "所要時間を聞かれた",
+      s: "上司に「この資料、どれくらいでできる?」と聞かれた。他の仕事も抱えている。",
+      tip: "引き受ける前に、今の仕事量を伝えるのは「断り」でなく「調整」。",
+      o: [
+        { ok: 1, t: "作業を分けて考え、過去の実績に余裕(1.5倍ほど)を足して答える。途中経過も共有すると伝える", why: "分解して実績で見積もれば、外れにくい。途中経過を出せば、ズレにも早く気づける。" },
+        { tag: "見積り", t: "調子のいい日の速さで考え、「2時間でできます」と即答する", why: "好調な日のスピードで見積もると、ほぼ外れる。会議や割り込みの時間も入れておく。" },
+        { tag: "抱込", t: "忙しいと言い出せず「大丈夫です」と引き受け、あとでひとり抱え込む", why: "引き受ける前に「今これを抱えています」と伝えて相談する。それは断りではなく調整。" }
+      ] }
+  ];
+
+  var RANKS = [
+    { min: 12, name: "まともな判断マスター", say: "全問正解とは恐れ入った。ワシが教えることはもうない…と言いたいが、実際の場面で同じ判断ができるかが本番じゃぞ。" },
+    { min: 10, name: "ほぼ一人前", say: "なかなかのもんじゃ。間違えた問題だけ見直せば、もう十分じゃよ。" },
+    { min: 7, name: "伸びしろ十分", say: "半分以上は押さえておる。間違えたところは「ありがち」な判断じゃ。仕組みで防げるから安心せい。" },
+    { min: 4, name: "仕組みで化けるタイプ", say: "気合いでなんとかしようとせず、アラームやメモなど「仕組み」に任せるのが近道じゃ。" },
+    { min: 0, name: "ここからが本番", say: "気にするでない。ワシだって失敗だらけじゃ。まずは下の「コツ」を1つだけ試してみい。" }
+  ];
+
+  var app = document.getElementById("app");
+  var idx = 0, answers = [], current = null;
+
+  function manSVG(mood) {
+    return '<svg class="man mood-' + mood + '" id="man" viewBox="0 0 100 152" role="img" aria-label="小さなオジサン">' +
+      '<ellipse class="shadow" cx="50" cy="146" rx="30" ry="4"/>' +
+      '<ellipse class="shoe" cx="39" cy="142" rx="10" ry="5"/><ellipse class="shoe" cx="61" cy="142" rx="10" ry="5"/>' +
+      '<rect class="suit" x="33" y="108" width="14" height="33" rx="3"/><rect class="suit" x="53" y="108" width="14" height="33" rx="3"/>' +
+      '<rect class="suit" x="17" y="72" width="11" height="36" rx="5.5"/><rect class="suit" x="72" y="72" width="11" height="36" rx="5.5"/>' +
+      '<circle class="skin" cx="22.5" cy="110" r="5.5"/><circle class="skin" cx="77.5" cy="110" r="5.5"/>' +
+      '<path class="suit" d="M26 76 Q26 64 38 64 L62 64 Q74 64 74 76 L74 116 Q74 120 70 120 L30 120 Q26 120 26 116 Z"/>' +
+      '<polygon class="shirt" points="42,64 58,64 50,86"/>' +
+      '<polygon class="tie" points="48,68 52,68 54,92 50,98 46,92"/>' +
+      '<ellipse class="hair" cx="27" cy="44" rx="5" ry="9"/><ellipse class="hair" cx="73" cy="44" rx="5" ry="9"/>' +
+      '<circle class="skin" cx="50" cy="40" r="24"/>' +
+      '<circle class="skin" cx="26.5" cy="43" r="4"/><circle class="skin" cx="73.5" cy="43" r="4"/>' +
+      '<circle class="ink" cx="42" cy="41" r="7.5" style="stroke-width:1.8"/><circle class="ink" cx="58" cy="41" r="7.5" style="stroke-width:1.8"/>' +
+      '<path class="ink" d="M49.5 41 L50.5 41" style="stroke-width:1.8"/>' +
+      '<circle class="eye" cx="42" cy="41" r="2"/><circle class="eye" cx="58" cy="41" r="2"/>' +
+      '<g class="m-n"><path class="brow" d="M35 31 L48 31"/><path class="brow" d="M52 31 L65 31"/></g>' +
+      '<g class="m-h"><path class="brow" d="M35 32 Q41 26 48 31"/><path class="brow" d="M52 31 Q59 26 65 32"/></g>' +
+      '<g class="m-s"><path class="brow" d="M35 33 L48 28"/><path class="brow" d="M52 28 L65 33"/></g>' +
+      '<circle cx="50" cy="48" r="3" fill="#D9A47F"/>' +
+      '<path class="hair" d="M39 54 Q44 49 50 52 Q56 49 61 54 Q56 58 50 56 Q44 58 39 54 Z"/>' +
+      '<path class="ink m-n" d="M45 62 L55 62"/>' +
+      '<path class="ink m-h" d="M43 60 Q50 68 57 60"/>' +
+      '<path class="ink m-s" d="M45 64 Q50 58 55 64"/>' +
+      '</svg>';
+  }
+
+  function ruler(done, total) {
+    var pct = Math.round(done / total * 100);
+    return '<div class="ruler-wrap"><div class="ruler-meta"><span>' + (done < total ? '第' + (done + 1) + '問' : 'おしまい') + '</span><span>全' + total + '問</span></div>' +
+      '<div class="ruler" role="progressbar" aria-valuemin="0" aria-valuemax="' + total + '" aria-valuenow="' + done + '"><div class="fill" style="width:' + pct + '%"></div></div></div>';
+  }
+
+  function shuffle(a) {
+    a = a.slice();
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    return a;
+  }
+
+  function setMood(m) {
+    var el = document.getElementById("man");
+    if (!el) return;
+    el.setAttribute("class", "man mood-" + m);
+  }
+  function bump() {
+    var el = document.getElementById("man");
+    if (!el) return;
+    el.classList.remove("bump"); void el.getBoundingClientRect(); el.classList.add("bump");
+  }
+
+  function showStart() {
+    idx = 0; answers = [];
+    app.innerHTML =
+      '<div class="stage"><div class="man-col">' + manSVG("normal") + '<div class="height-tag">身長 約15cm</div></div>' +
+      '<div class="bubble"><p>ワシは身長15センチの小さなオジサン。社会人歴だけは長くてな。</p><p>仕事の場面で「まともな判断」とは何か、いっしょに見ていこうかの。</p></div></div>' +
+      '<h1>小さなオジサンの<br>まともな判断トレーニング</h1>' +
+      '<p class="lead">全' + Q.length + '問・3択。時間管理や報連相など、仕事でありがちな場面で、あなたならどうするかを選んでください。選ぶと、3つの選択肢それぞれの解説が出ます。</p>' +
+      '<div class="actions"><button class="btn" id="go">はじめる</button></div>' +
+      '<p class="note">これは診断ではありません。「ありがちな判断」は、忙しいときや疲れているときに、多くの人がやってしまいがちなものです。結果は、自分の癖に気づいて「仕組み」で対策するための目安として使ってください。</p>';
+    document.getElementById("go").addEventListener("click", showQuestion);
+    window.scrollTo(0, 0);
+  }
+
+  function showQuestion() {
+    var q = Q[idx];
+    var opts = shuffle(q.o.map(function (o, i) { return { o: o, i: i }; }));
+    current = { q: q, opts: opts, done: false };
+    var html = ruler(idx, Q.length) +
+      '<div class="stage"><div class="man-col">' + manSVG("normal") + '</div>' +
+      '<div class="bubble" id="bubble" aria-live="polite"><span class="scene-cat">' + q.cat + '・' + q.title + '</span><p>' + q.s + '</p></div></div>' +
+      '<div class="choices" id="choices">';
+    opts.forEach(function (x, k) {
+      html += '<button class="choice" data-k="' + k + '"><span class="ctext">' + x.o.t + '</span></button>';
+    });
+    html += '</div><div class="actions" id="actions"></div>';
+    app.innerHTML = html;
+    var btns = app.querySelectorAll(".choice");
+    for (var b = 0; b < btns.length; b++) {
+      btns[b].addEventListener("click", function (e) { choose(parseInt(e.currentTarget.getAttribute("data-k"), 10)); });
+    }
+    window.scrollTo(0, 0);
+  }
+
+  function choose(k) {
+    if (current.done) return;
+    current.done = true;
+    var q = current.q, picked = current.opts[k].o;
+    var isOk = !!picked.ok;
+    answers.push({ qi: idx, ok: isOk, tag: picked.tag || null, picked: picked.t });
+
+    var btns = app.querySelectorAll(".choice");
+    current.opts.forEach(function (x, n) {
+      var el = btns[n];
+      el.disabled = true;
+      var chipText, cls;
+      if (x.o.ok) { cls = "is-ok"; chipText = "まともな判断"; }
+      else { cls = "is-ng"; chipText = "ありがちな判断:" + TAGS[x.o.tag].name; if (n === k) cls += " picked-ng"; }
+      el.className = "choice " + cls;
+      if (!x.o.ok && n !== k) { el.style.display = "none"; return; }
+      el.innerHTML = '<span class="ctext">' + x.o.t + '</span>' +
+        '<span class="chip">' + chipText + '</span>' +
+        (n === k ? '<span class="picked-mark">あなたの選択</span>' : '') +
+        '<span class="why">' + x.o.why + '</span>';
+    });
+
+    var bubble = document.getElementById("bubble");
+    bubble.innerHTML = '<p><strong>' + (isOk ? "ほう、それが「まともな判断」じゃ。" : "それはよくある判断じゃ。責めんでええ。") + '</strong></p>' +
+      '<p>コツ:' + q.tip + '</p>';
+    setMood(isOk ? "happy" : "sad");
+    bump();
+
+    var last = idx === Q.length - 1;
+    var act = document.getElementById("actions");
+    act.innerHTML = '<button class="btn" id="next">' + (last ? "結果を見る" : "次の問題へ") + '</button>';
+    var nb = document.getElementById("next");
+    nb.addEventListener("click", function () {
+      if (last) { showResult(); } else { idx++; showQuestion(); }
+    });
+    nb.focus({ preventScroll: true });
+    var bar = document.querySelector(".ruler .fill");
+    if (bar) bar.style.width = Math.round((idx + 1) / Q.length * 100) + "%";
+    setTimeout(function () { bubble.scrollIntoView({ behavior: "smooth", block: "start" }); }, 60);
+  }
+
+  function showResult() {
+    var score = answers.filter(function (a) { return a.ok; }).length;
+    var rank = RANKS.filter(function (r) { return score >= r.min; })[0];
+    var counts = {};
+    answers.forEach(function (a) { if (a.tag) counts[a.tag] = (counts[a.tag] || 0) + 1; });
+    var keys = Object.keys(counts).sort(function (a, b) { return counts[b] - counts[a]; });
+
+    var html = ruler(Q.length, Q.length) +
+      '<div class="stage"><div class="man-col">' + manSVG(score >= 7 ? "happy" : "normal") + '</div>' +
+      '<div class="bubble"><p>' + rank.say + '</p></div></div>' +
+      '<div class="score-box"><div class="big">' + score + '<small> / ' + Q.length + '</small></div><div class="rank">' + rank.name + '</div></div>';
+
+    html += '<h2>つい選びがちだった判断</h2>';
+    if (!keys.length) {
+      html += '<div class="tcard"><div class="th"><span>ありがちな判断は選ばなかった</span></div><p>全問「まともな判断」じゃった。実際の場面でも、この調子でいこう。</p></div>';
+    } else {
+      keys.slice(0, 3).forEach(function (t) {
+        html += '<div class="tcard"><div class="th"><span>' + TAGS[t].name + '</span><span class="cnt">' + counts[t] + '回</span></div>' +
+          '<p class="fix">対策:' + TAGS[t].fix + '</p></div>';
+      });
+      if (keys.length > 3) {
+        html += '<p class="lead">ほかにも:' + keys.slice(3).map(function (t) { return TAGS[t].name + '(' + counts[t] + '回)'; }).join('、') + '</p>';
+      }
+    }
+
+    html += '<h2>全問の振り返り</h2>';
+    answers.forEach(function (a) {
+      var q = Q[a.qi];
+      var correct = q.o.filter(function (o) { return o.ok; })[0];
+      html += '<details class="rv"><summary><span class="' + (a.ok ? 'mk-ok' : 'mk-ng') + '">' + (a.ok ? '○' : '×') + '</span> ' + q.cat + '・' + q.title + '</summary>' +
+        '<div class="rvbody"><p>' + q.s + '</p>' +
+        (a.ok ? '' : '<p><b>あなたの選択:</b>' + a.picked + '</p>') +
+        '<p><b>まともな判断:</b>' + correct.t + '</p><p>' + correct.why + '</p></div></details>';
+    });
+
+    html += '<div class="actions"><button class="btn ghost" id="again">もう一度やる</button></div>' +
+      '<p class="note">これは診断ではありません。「ありがちな判断」は誰にでも起こりうるものです。日常生活や仕事で困りごとが続く場合は、職場の相談窓口や専門機関に相談することもできます。</p>';
+    app.innerHTML = html;
+    document.getElementById("again").addEventListener("click", showStart);
+    window.scrollTo(0, 0);
+  }
+
+  showStart();
+})();
+</script>
+</body>
+</html>

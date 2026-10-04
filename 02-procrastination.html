@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>小さなオジサンの先送りグセ直しトレーニング</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  --bg: #E8EEF1;
+  --panel: #FFFFFF;
+  --ink: #22303C;
+  --sub: #5A6B78;
+  --line: #C5D1D8;
+  --suit: #3F5262;
+  --skin: #F1CBA6;
+  --hair: #C9D0D6;
+  --tie: #E2AB2E;
+  --marker: #F4D35E;
+  --ok: #2B8A66;
+  --ok-bg: #E1F3EA;
+  --ng: #C2433B;
+  --ng-bg: #FBE8E6;
+  --ruler: #F6E7A8;
+  --ruler-tick: #8B7B3A;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #131E27; --panel: #1C2A35; --ink: #E7EEF3; --sub: #9DB0BD; --line: #35495A;
+    --suit: #6F889B; --skin: #E9BE98; --hair: #AAB5BE; --tie: #E2AB2E; --marker: #D9B93F;
+    --ok: #5CC49A; --ok-bg: #173A2E; --ng: #EE7B72; --ng-bg: #40221F;
+    --ruler: #5B5326; --ruler-tick: #D9C873;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #131E27; --panel: #1C2A35; --ink: #E7EEF3; --sub: #9DB0BD; --line: #35495A;
+  --suit: #6F889B; --skin: #E9BE98; --hair: #AAB5BE; --tie: #E2AB2E; --marker: #D9B93F;
+  --ok: #5CC49A; --ok-bg: #173A2E; --ng: #EE7B72; --ng-bg: #40221F;
+  --ruler: #5B5326; --ruler-tick: #D9C873;
+}
+html { scroll-padding-top: env(safe-area-inset-top, 0px); background: var(--bg); }
+*, *::before, *::after { box-sizing: inherit; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: "Zen Maru Gothic", "Hiragino Maru Gothic ProN", "Hiragino Sans", "Yu Gothic", "Meiryo", sans-serif;
+  font-weight: 500;
+  line-height: 1.75;
+  -webkit-text-size-adjust: 100%;
+}
+#app { max-width: 540px; margin: 0 auto; padding: 16px 16px 48px; }
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 3px solid var(--marker); outline-offset: 2px; }
+
+/* ruler progress */
+.ruler-wrap { margin: 4px 0 18px; }
+.ruler-meta { display: flex; justify-content: space-between; font-size: 13px; color: var(--sub); margin-bottom: 4px; font-weight: 700; }
+.ruler {
+  position: relative; height: 22px; border-radius: 3px; background: var(--ruler);
+  border: 1px solid var(--ruler-tick); overflow: hidden;
+}
+.ruler::after {
+  content: ""; position: absolute; inset: 0;
+  background:
+    repeating-linear-gradient(90deg, var(--ruler-tick) 0 1px, transparent 1px 8px) bottom/100% 7px no-repeat,
+    repeating-linear-gradient(90deg, var(--ruler-tick) 0 1px, transparent 1px 40px) bottom/100% 13px no-repeat;
+  pointer-events: none;
+}
+.ruler .fill { position: absolute; inset: 0 auto 0 0; background: var(--marker); width: 0; transition: width .4s ease; opacity: .9; }
+
+/* stage */
+.stage { display: flex; gap: 12px; align-items: flex-end; margin-bottom: 16px; }
+.man-col { flex: 0 0 96px; text-align: center; }
+.man { width: 96px; height: auto; display: block; }
+.man .suit { fill: var(--suit); }
+.man .skin { fill: var(--skin); }
+.man .hair { fill: var(--hair); }
+.man .tie { fill: var(--tie); }
+.man .shoe { fill: #1b242c; }
+.man .shirt { fill: #fff; }
+.man .ink { stroke: var(--ink); fill: none; stroke-linecap: round; stroke-width: 2.4; }
+.man .eye { fill: var(--ink); }
+.man .brow { stroke: var(--hair); fill: none; stroke-width: 3.4; stroke-linecap: round; }
+.man .shadow { fill: rgba(0,0,0,.12); }
+.man .m-h, .man .m-s { display: none; }
+.man.mood-happy .m-n, .man.mood-sad .m-n { display: none; }
+.man.mood-happy .m-h { display: inline; }
+.man.mood-sad .m-s { display: inline; }
+.height-tag { font-size: 11px; color: var(--sub); margin-top: 2px; font-weight: 700; }
+@media (prefers-reduced-motion: no-preference) {
+  .man.bump { animation: bump .45s ease; transform-origin: 50% 100%; }
+  @keyframes bump { 0%{transform:scale(1)} 35%{transform:scale(1.06) translateY(-4px)} 100%{transform:scale(1)} }
+}
+
+.bubble {
+  position: relative; flex: 1; background: var(--panel); border: 2px solid var(--ink);
+  border-radius: 14px; padding: 12px 14px; font-size: 15.5px; min-height: 64px;
+}
+.bubble::before {
+  content: ""; position: absolute; left: -11px; bottom: 22px; width: 18px; height: 18px;
+  background: var(--panel); border-left: 2px solid var(--ink); border-bottom: 2px solid var(--ink);
+  transform: rotate(45deg);
+}
+.bubble .scene-cat { display: inline-block; font-size: 12px; font-weight: 700; background: var(--marker); color: #2b2606; border-radius: 4px; padding: 0 8px; margin-bottom: 6px; line-height: 1.7; }
+.bubble p { margin: 0; }
+.bubble p + p { margin-top: 8px; }
+.bubble strong { font-weight: 900; }
+
+/* choices */
+.choices { display: flex; flex-direction: column; gap: 10px; }
+.choice {
+  text-align: left; background: var(--panel); border: 2px solid var(--line); border-radius: 12px;
+  padding: 12px 14px; cursor: pointer; line-height: 1.65; width: 100%;
+}
+.choice:hover:not(:disabled) { border-color: var(--ink); }
+.choice:disabled { cursor: default; }
+.choice .ctext { display: block; font-size: 15px; }
+.choice .chip {
+  display: inline-block; margin-top: 8px; font-size: 12px; font-weight: 700; border-radius: 999px;
+  padding: 0 10px; line-height: 1.8;
+}
+.choice .why { display: block; margin-top: 6px; font-size: 14px; color: var(--sub); }
+.choice.is-ok { border-color: var(--ok); background: var(--ok-bg); }
+.choice.is-ok .chip { background: var(--ok); color: #fff; }
+.choice.is-ng .chip { background: var(--line); color: var(--ink); }
+.choice.picked-ng { border-color: var(--ng); background: var(--ng-bg); }
+.choice.picked-ng .chip { background: var(--ng); color: #fff; }
+.picked-mark { font-size: 12px; font-weight: 700; color: var(--sub); margin-left: 6px; }
+
+.actions { margin-top: 18px; display: flex; justify-content: center; }
+.btn {
+  background: var(--ink); color: var(--bg); border: none; border-radius: 999px;
+  padding: 12px 32px; font-weight: 900; font-size: 16px; cursor: pointer;
+}
+.btn.ghost { background: transparent; color: var(--ink); border: 2px solid var(--ink); }
+
+/* start & result */
+h1 { font-size: 24px; line-height: 1.4; margin: 6px 0 14px; font-weight: 900; }
+.lead { color: var(--sub); font-size: 14.5px; margin: 0 0 18px; }
+.note { font-size: 13px; color: var(--sub); border-top: 1px dashed var(--line); margin-top: 26px; padding-top: 12px; }
+.score-box { text-align: center; margin: 4px 0 18px; }
+.score-box .big { font-size: 52px; font-weight: 900; line-height: 1.1; }
+.score-box .big small { font-size: 20px; color: var(--sub); }
+.score-box .rank { display: inline-block; margin-top: 6px; font-size: 16px; font-weight: 900; background: var(--marker); color: #2b2606; padding: 2px 16px; border-radius: 6px; }
+h2 { font-size: 17px; margin: 26px 0 10px; font-weight: 900; }
+.tcard { background: var(--panel); border: 2px solid var(--line); border-radius: 12px; padding: 12px 14px; margin-bottom: 10px; }
+.tcard .th { display: flex; justify-content: space-between; gap: 10px; font-weight: 900; font-size: 15.5px; }
+.tcard .cnt { color: var(--sub); font-size: 13px; white-space: nowrap; font-weight: 700; }
+.tcard p { margin: 4px 0 0; font-size: 14px; color: var(--sub); }
+.tcard .fix { color: var(--ink); }
+details.rv { background: var(--panel); border: 2px solid var(--line); border-radius: 12px; padding: 8px 14px; margin-bottom: 8px; }
+details.rv summary { cursor: pointer; font-weight: 700; font-size: 14.5px; padding: 4px 0; }
+details.rv .rvbody { font-size: 14px; padding: 6px 0 8px; color: var(--sub); }
+details.rv .rvbody b { color: var(--ink); }
+.mk-ok { color: var(--ok); font-weight: 900; }
+.mk-ng { color: var(--ng); font-weight: 900; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+(function () {
+  "use strict";
+
+  var TAGS = {
+    "気分待ち": { name: "やる気や調子のいい時を待つ", fix: "気分ではなく時刻で決める。「5分だけやる」と決めて始める。" },
+    "小事優先": { name: "簡単な作業を先に片付けてしまう", fix: "重要な作業を一日の最初の30分に置く。雑務はそのあと。" },
+    "準備沼": { name: "準備や調べものが終わらず本番に入れない", fix: "準備の時間に上限を付ける。粗くてもまず一度動かしてみる。" },
+    "大きすぎ": { name: "作業が大きいまま動けない", fix: "最初の一歩が1分で終わる大きさになるまで分ける。" },
+    "見積り": { name: "未来の自分を過信する", fix: "「あとで」には必ず日時を付ける。所要時間は実績の1.5倍で見る。" },
+    "逃避": { name: "嫌なことから別の作業やスマホへ逃げる", fix: "誘惑を手元から離す。始める前に終わりの時刻を決める。" },
+    "言い出せず": { name: "連絡や相談を後回しにする", fix: "15分悩んだら聞く。結論だけ先に送って、詳細はあとで補う。" },
+    "自己嫌悪": { name: "自分を責めて余計に動けなくなる", fix: "責める代わりに、先送りした理由を事実だけメモする。" },
+    "完璧待ち": { name: "完璧な出来や言い回しを求めて始められない", fix: "まず雑に作る。6割の出来で一度見せる。" },
+    "締切頼み": { name: "締切の圧がないと動けない", fix: "自分用の仮締切を本当の締切より前に置く。" }
+  };
+
+  var Q = [
+    { cat: "仕事の進め方", title: "朝イチの重い仕事",
+      s: "今日中に出す企画書がある。ファイルを開くと気が重い。さて、どうする?",
+      tip: "重い仕事は、最初の5分だけ決めて始める。",
+      o: [
+        { ok: 1, t: "「最初の5分だけ」と決めて、タイトルと見出しだけ書く", why: "始めてしまえば、続きは意外と進む。最初の一歩を極小にするのがコツ。" },
+        { tag: "小事優先", t: "まずメールとチャットを全部片付けてから、と先にそちらを開く", why: "簡単な作業は達成感が早く得られるが、その間に頭の元気が減り、重い仕事がそのまま残る。" },
+        { tag: "気分待ち", t: "頭が冴える午後に取りかかろうと決める", why: "調子のいい時間を待つほど、その時間が来ても別の理由が出てくる。時刻だけ決めて始める方がよい。" }
+      ] },
+    { cat: "仕事の進め方", title: "大きな資料づくり",
+      s: "来月の報告会に向けた資料を作ることになった。何から手をつける?",
+      tip: "「資料作成」は作業ではなく、作業のかたまり。",
+      o: [
+        { ok: 1, t: "「構成案→データ集め→本文→見直し」に分け、最初の小さな1つの日付を決める", why: "分けた最初の1つが小さいほど、動き出しやすい。日付があれば、あとで迷わない。" },
+        { tag: "大きすぎ", t: "とりあえず予定表に「資料作成」とだけ入れる。毎日目にするが、手がつかない", why: "大きいままの作業は、どこから始めるかが分からず、見るたびに気が重くなる。" },
+        { tag: "見積り", t: "来月だし、まだ時間はあると考えて、しばらく放っておく", why: "「まだある」は、終盤に一気に押し寄せる。早い段階で最初の一歩だけでも置いておく。" }
+      ] },
+    { cat: "仕事の進め方", title: "新しいツールの導入",
+      s: "仕事で新しい管理ツールを使うことになった。どう始める?",
+      tip: "準備は「最低限」でやめて、小さく動かしてみる。",
+      o: [
+        { ok: 1, t: "最低限の使い方だけ調べて、小さなデータで試しに1回動かしてみる", why: "実際に動かすと、本当に必要な知識が分かる。調べるのはそのあとでもよい。" },
+        { tag: "準備沼", t: "マニュアルや解説動画を全部見て、完全に理解してから使い始めようとする", why: "準備は終わりが見えにくい。「理解してから」を待つと、いつまでも本番が来ない。" },
+        { tag: "完璧待ち", t: "使いこなせないと失敗しそうなので、周りが慣れるまで様子を見る", why: "最初から使いこなせる人はいない。失敗が小さいうちに試す方が、結局は早い。" }
+      ] },
+    { cat: "連絡・相談", title: "断りのメール",
+      s: "お断りの返信が必要なメールが届いた。内容が少し言いにくい。どうする?",
+      tip: "言い回しより、返信の早さ。",
+      o: [
+        { ok: 1, t: "結論と謝意だけの短い文を、今すぐ書いて送る", why: "丁寧さより早さが大事なことは多い。短くても誠実に伝われば十分。" },
+        { tag: "完璧待ち", t: "いい言い回しを思いつくまで寝かせる。気づけば3日たっている", why: "完璧な言い回しは待っても出てこない。返信が遅れる方が、相手にとっては失礼になる。" },
+        { tag: "逃避", t: "未読のままにして、見なかったことにする", why: "見ないふりをしても、気がかりは消えない。頭の片隅で、ずっとエネルギーを使い続ける。" }
+      ] },
+    { cat: "仕事の進め方", title: "2週間後の締切",
+      s: "締切は2週間後。まだ余裕がある。どう動く?",
+      tip: "本当の締切の前に、自分用の締切を置く。",
+      o: [
+        { ok: 1, t: "締切の2日前に仮の締切を自分で置き、そこから逆算して途中の期日を決める", why: "仮の締切があれば、本当の締切の前に余白が生まれる。途中の期日で、ズレにも早く気づける。" },
+        { tag: "締切頼み", t: "締切が近づけば焦って集中できるから、直前にやる", why: "直前型は、割り込みや体調不良が入ると一気に崩れる。毎回ギリギリになり、疲れも大きい。" },
+        { tag: "見積り", t: "「1日あれば終わる」と考えて、前日にまとめてやる予定にする", why: "実際には、確認や手戻りで予定の1.5倍かかることが多い。余白のない見積もりは外れやすい。" }
+      ] },
+    { cat: "暮らし", title: "また先送りした日",
+      s: "先週やるはずだった作業を、また先送りしてしまった。今日、どうする?",
+      tip: "責めるより、理由を事実で書き出す。",
+      o: [
+        { ok: 1, t: "先送りした理由を事実だけメモし(重かった、始め方が不明、など)、今日の最初の一歩を決める", why: "理由が分かれば、対策が打てる。責める気持ちより、事実の方が次に役立つ。" },
+        { tag: "自己嫌悪", t: "「自分はダメだ」と責めて、反省に時間を使い、今日も手がつかない", why: "責めるほど、その作業が嫌な記憶と結びつき、さらに避けたくなる。" },
+        { tag: "逃避", t: "気分転換に、まず映画を1本見てから始めようとする", why: "気分転換は必要だが、始める前だと終わりが決まらず、そのまま一日が終わりやすい。" }
+      ] },
+    { cat: "仕事の進め方", title: "今日の予定づくり",
+      s: "今日は、重要だが面倒な仕事Aと、簡単な雑務が10個ある。どう進める?",
+      tip: "重要な作業は、元気がある最初の30分に。",
+      o: [
+        { ok: 1, t: "先にAに30分だけ取り組み、そのあとで雑務を片付ける", why: "頭が元気なうちに重要な仕事に触れておくと、そのあとの雑務も気が楽になる。" },
+        { tag: "小事優先", t: "雑務を全部片付けて、達成感を得てからAに入ろうとする", why: "雑務が終わる頃には夕方になり、Aに使える元気が残っていない。" },
+        { tag: "逃避", t: "雑務の合間にSNSを見ながら、だらだら進める", why: "合間のSNSは、戻るのに時間がかかる。雑務も終わらず、Aにも着手できない。" }
+      ] },
+    { cat: "連絡・相談", title: "分からなくて進まない",
+      s: "作業で分からない点があり、手が止まった。周りは忙しそうにしている。どうする?",
+      tip: "悩んでいい時間に、上限を付ける。",
+      o: [
+        { ok: 1, t: "15分調べて分からなければ、質問をメモにまとめて聞きに行く", why: "上限を決めておけば、悩み続けずに済む。質問をまとめておけば、相手の手間も少ない。" },
+        { tag: "言い出せず", t: "忙しそうなので声をかけるのをやめ、ひとりで調べ続ける", why: "遠慮して悩む時間は、相手の数分より高くつく。聞くのは迷惑とは限らない。" },
+        { tag: "逃避", t: "とりあえず別の作業に移り、分からない件は置いておく", why: "別の作業で進んだ気になるが、止まった件は期限が近づくほど重くなる。" }
+      ] },
+    { cat: "暮らし", title: "健康診断の予約",
+      s: "会社から「今月中に健康診断を予約して」と言われている。どうする?",
+      tip: "予約は「思い出した今」がいちばん早い。",
+      o: [
+        { ok: 1, t: "今すぐ予約サイトを開き、仮でも日程を押さえる", why: "予約は数分で終わる。あとで変更できるなら、まず押さえるのが先。" },
+        { tag: "見積り", t: "来週あたり時間がありそうだから、そのときにやる", why: "「時間がありそう」な来週は、たいてい別の予定で埋まる。「あとで」には日時を付ける。" },
+        { tag: "気分待ち", t: "気持ちに余裕のある日にやろうと待つ", why: "気持ちの余裕は、待っても増えない。気分に関係なく数分で終わる作業は、すぐやる。" }
+      ] },
+    { cat: "仕事の進め方", title: "書き出しが決まらない",
+      s: "報告文を書き始めたが、冒頭の一文が決まらず手が止まった。どうする?",
+      tip: "冒頭は、最後に書くくらいでちょうどいい。",
+      o: [
+        { ok: 1, t: "冒頭は空けておき、箇条書きで雑に中身を書いてから、最後に冒頭を整える", why: "中身ができてから書く方が、冒頭の一文は決まりやすい。順番を変えるだけで進む。" },
+        { tag: "完璧待ち", t: "いい書き出しが浮かぶまで、冒頭をずっと考え続ける", why: "最初の一文を完璧にしようとすると、その先に進めない。直すのは後でできる。" },
+        { tag: "準備沼", t: "関連資料をもっと集めてから書き始めようとする", why: "資料集めは終わりがなく、書かない言い訳になりやすい。今ある材料で一度書いてみる。" }
+      ] },
+    { cat: "仕事の進め方", title: "作業を始める前の環境",
+      s: "作業に取りかかろうとしたら、机の上が散らかっていた。どうする?",
+      tip: "整えるのは「今の作業に必要な分」だけ。",
+      o: [
+        { ok: 1, t: "片付けは5分までと決め、今の作業に使う分だけ空けて始める", why: "環境づくりに上限を付ければ、始めるハードルを下げながら、片付けに時間を奪われない。" },
+        { tag: "準備沼", t: "完全に片付けて、環境を整えてから始めようとする", why: "片付けは終わりが見えにくい。きれいになった頃には、作業する元気が残っていない。" },
+        { tag: "逃避", t: "スマホは手元に置いたまま、とりあえず始める", why: "通知や気になった情報に、すぐ手が伸びる。誘惑は、物理的に離すのが確実。" }
+      ] },
+    { cat: "連絡・相談", title: "すでに遅れている",
+      s: "提出物がすでに2日遅れている。連絡もまだしていない。どうする?",
+      tip: "遅れの連絡は、早いほど傷が浅い。",
+      o: [
+        { ok: 1, t: "今日中に、遅れている事実と新しい完了の見込みを連絡し、そのあと最初の一歩に取りかかる", why: "状況が分かれば、相手も対応できる。連絡が早いほど、信頼を守りやすい。" },
+        { tag: "言い出せず", t: "気まずくて連絡できず、終わらせてから謝ろうと考える", why: "連絡がないまま時間が過ぎるほど、相手の不安が増える。連絡が遅れたこと自体が、次の問題になる。" },
+        { tag: "見積り", t: "明日一気にやれば取り戻せる、と考えて今日は動かない", why: "「一気にやる」は、割り込みが入ると崩れる。今日のうちに少しでも進めておく方が確実。" }
+      ] }
+  ];
+
+  var RANKS = [
+    { min: 12, name: "先送り撃退マスター", say: "全問正解とは恐れ入った。あとは、実際の場面でも「今やる」を選べるかどうかじゃな。" },
+    { min: 10, name: "ほぼ先送り知らず", say: "なかなかのもんじゃ。間違えた問題のコツだけ、押さえておけば十分じゃよ。" },
+    { min: 7, name: "あと一歩", say: "半分以上は押さえておる。間違えたところは、誰でもやりがちな先送りじゃ。仕組みで防げるから安心せい。" },
+    { min: 4, name: "仕組みで変わるタイプ", say: "気合いで始めようとせず、「5分だけ」「仮の締切」といった仕組みに任せるのが近道じゃ。" },
+    { min: 0, name: "ここから変わる", say: "気にするでない。ワシも昔は先送りの達人じゃった。まずは下の対策を1つだけ試してみい。" }
+  ];
+
+  var app = document.getElementById("app");
+  var idx = 0, answers = [], current = null;
+
+  function manSVG(mood) {
+    return '<svg class="man mood-' + mood + '" id="man" viewBox="0 0 100 152" role="img" aria-label="小さなオジサン">' +
+      '<ellipse class="shadow" cx="50" cy="146" rx="30" ry="4"/>' +
+      '<ellipse class="shoe" cx="39" cy="142" rx="10" ry="5"/><ellipse class="shoe" cx="61" cy="142" rx="10" ry="5"/>' +
+      '<rect class="suit" x="33" y="108" width="14" height="33" rx="3"/><rect class="suit" x="53" y="108" width="14" height="33" rx="3"/>' +
+      '<rect class="suit" x="17" y="72" width="11" height="36" rx="5.5"/><rect class="suit" x="72" y="72" width="11" height="36" rx="5.5"/>' +
+      '<circle class="skin" cx="22.5" cy="110" r="5.5"/><circle class="skin" cx="77.5" cy="110" r="5.5"/>' +
+      '<path class="suit" d="M26 76 Q26 64 38 64 L62 64 Q74 64 74 76 L74 116 Q74 120 70 120 L30 120 Q26 120 26 116 Z"/>' +
+      '<polygon class="shirt" points="42,64 58,64 50,86"/>' +
+      '<polygon class="tie" points="48,68 52,68 54,92 50,98 46,92"/>' +
+      '<ellipse class="hair" cx="27" cy="44" rx="5" ry="9"/><ellipse class="hair" cx="73" cy="44" rx="5" ry="9"/>' +
+      '<circle class="skin" cx="50" cy="40" r="24"/>' +
+      '<circle class="skin" cx="26.5" cy="43" r="4"/><circle class="skin" cx="73.5" cy="43" r="4"/>' +
+      '<circle class="ink" cx="42" cy="41" r="7.5" style="stroke-width:1.8"/><circle class="ink" cx="58" cy="41" r="7.5" style="stroke-width:1.8"/>' +
+      '<path class="ink" d="M49.5 41 L50.5 41" style="stroke-width:1.8"/>' +
+      '<circle class="eye" cx="42" cy="41" r="2"/><circle class="eye" cx="58" cy="41" r="2"/>' +
+      '<g class="m-n"><path class="brow" d="M35 31 L48 31"/><path class="brow" d="M52 31 L65 31"/></g>' +
+      '<g class="m-h"><path class="brow" d="M35 32 Q41 26 48 31"/><path class="brow" d="M52 31 Q59 26 65 32"/></g>' +
+      '<g class="m-s"><path class="brow" d="M35 33 L48 28"/><path class="brow" d="M52 28 L65 33"/></g>' +
+      '<circle cx="50" cy="48" r="3" fill="#D9A47F"/>' +
+      '<path class="hair" d="M39 54 Q44 49 50 52 Q56 49 61 54 Q56 58 50 56 Q44 58 39 54 Z"/>' +
+      '<path class="ink m-n" d="M45 62 L55 62"/>' +
+      '<path class="ink m-h" d="M43 60 Q50 68 57 60"/>' +
+      '<path class="ink m-s" d="M45 64 Q50 58 55 64"/>' +
+      '</svg>';
+  }
+
+  function ruler(done, total) {
+    var pct = Math.round(done / total * 100);
+    return '<div class="ruler-wrap"><div class="ruler-meta"><span>' + (done < total ? '第' + (done + 1) + '問' : 'おしまい') + '</span><span>全' + total + '問</span></div>' +
+      '<div class="ruler" role="progressbar" aria-valuemin="0" aria-valuemax="' + total + '" aria-valuenow="' + done + '"><div class="fill" style="width:' + pct + '%"></div></div></div>';
+  }
+
+  function shuffle(a) {
+    a = a.slice();
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    return a;
+  }
+
+  function setMood(m) {
+    var el = document.getElementById("man");
+    if (!el) return;
+    el.setAttribute("class", "man mood-" + m);
+  }
+  function bump() {
+    var el = document.getElementById("man");
+    if (!el) return;
+    el.classList.remove("bump"); void el.getBoundingClientRect(); el.classList.add("bump");
+  }
+
+  function showStart() {
+    idx = 0; answers = [];
+    app.innerHTML =
+      '<div class="stage"><div class="man-col">' + manSVG("normal") + '<div class="height-tag">身長 約15cm</div></div>' +
+      '<div class="bubble"><p>ワシは身長15センチの小さなオジサン。先送りにかけては、昔はちょっとしたもんじゃった。</p><p>「あとでやろう」をどう乗り越えるか、いっしょに見ていこうかの。</p></div></div>' +
+      '<h1>小さなオジサンの<br>先送りグセ直しトレーニング</h1>' +
+      '<p class="lead">全' + Q.length + '問・3択。「あとでやろう」が出やすい場面で、あなたならどうするかを選んでください。選ぶと、選んだものの解説と、まともな判断の解説が出ます。</p>' +
+      '<div class="actions"><button class="btn" id="go">はじめる</button></div>' +
+      '<p class="note">これは診断ではありません。先送りは、忙しいときや疲れているときに、多くの人がやってしまいがちなものです。結果は、自分の癖に気づいて「仕組み」で対策するための目安として使ってください。</p>';
+    document.getElementById("go").addEventListener("click", showQuestion);
+    window.scrollTo(0, 0);
+  }
+
+  function showQuestion() {
+    var q = Q[idx];
+    var opts = shuffle(q.o.map(function (o, i) { return { o: o, i: i }; }));
+    current = { q: q, opts: opts, done: false };
+    var html = ruler(idx, Q.length) +
+      '<div class="stage"><div class="man-col">' + manSVG("normal") + '</div>' +
+      '<div class="bubble" id="bubble" aria-live="polite"><span class="scene-cat">' + q.cat + '・' + q.title + '</span><p>' + q.s + '</p></div></div>' +
+      '<div class="choices" id="choices">';
+    opts.forEach(function (x, k) {
+      html += '<button class="choice" data-k="' + k + '"><span class="ctext">' + x.o.t + '</span></button>';
+    });
+    html += '</div><div class="actions" id="actions"></div>';
+    app.innerHTML = html;
+    var btns = app.querySelectorAll(".choice");
+    for (var b = 0; b < btns.length; b++) {
+      btns[b].addEventListener("click", function (e) { choose(parseInt(e.currentTarget.getAttribute("data-k"), 10)); });
+    }
+    window.scrollTo(0, 0);
+  }
+
+  function choose(k) {
+    if (current.done) return;
+    current.done = true;
+    var q = current.q, picked = current.opts[k].o;
+    var isOk = !!picked.ok;
+    answers.push({ qi: idx, ok: isOk, tag: picked.tag || null, picked: picked.t });
+
+    var btns = app.querySelectorAll(".choice");
+    current.opts.forEach(function (x, n) {
+      var el = btns[n];
+      el.disabled = true;
+      var chipText, cls;
+      if (x.o.ok) { cls = "is-ok"; chipText = "まともな判断"; }
+      else { cls = "is-ng"; chipText = "ありがちな判断:" + TAGS[x.o.tag].name; if (n === k) cls += " picked-ng"; }
+      el.className = "choice " + cls;
+      if (!x.o.ok && n !== k) { el.style.display = "none"; return; }
+      el.innerHTML = '<span class="ctext">' + x.o.t + '</span>' +
+        '<span class="chip">' + chipText + '</span>' +
+        (n === k ? '<span class="picked-mark">あなたの選択</span>' : '') +
+        '<span class="why">' + x.o.why + '</span>';
+    });
+
+    var bubble = document.getElementById("bubble");
+    bubble.innerHTML = '<p><strong>' + (isOk ? "ほう、それが「まともな判断」じゃ。" : "それはよくある判断じゃ。責めんでええ。") + '</strong></p>' +
+      '<p>コツ:' + q.tip + '</p>';
+    setMood(isOk ? "happy" : "sad");
+    bump();
+
+    var last = idx === Q.length - 1;
+    var act = document.getElementById("actions");
+    act.innerHTML = '<button class="btn" id="next">' + (last ? "結果を見る" : "次の問題へ") + '</button>';
+    var nb = document.getElementById("next");
+    nb.addEventListener("click", function () {
+      if (last) { showResult(); } else { idx++; showQuestion(); }
+    });
+    nb.focus({ preventScroll: true });
+    var bar = document.querySelector(".ruler .fill");
+    if (bar) bar.style.width = Math.round((idx + 1) / Q.length * 100) + "%";
+    setTimeout(function () { bubble.scrollIntoView({ behavior: "smooth", block: "start" }); }, 60);
+  }
+
+  function showResult() {
+    var score = answers.filter(function (a) { return a.ok; }).length;
+    var rank = RANKS.filter(function (r) { return score >= r.min; })[0];
+    var counts = {};
+    answers.forEach(function (a) { if (a.tag) counts[a.tag] = (counts[a.tag] || 0) + 1; });
+    var keys = Object.keys(counts).sort(function (a, b) { return counts[b] - counts[a]; });
+
+    var html = ruler(Q.length, Q.length) +
+      '<div class="stage"><div class="man-col">' + manSVG(score >= 7 ? "happy" : "normal") + '</div>' +
+      '<div class="bubble"><p>' + rank.say + '</p></div></div>' +
+      '<div class="score-box"><div class="big">' + score + '<small> / ' + Q.length + '</small></div><div class="rank">' + rank.name + '</div></div>';
+
+    html += '<h2>つい選びがちだった先送りパターン</h2>';
+    if (!keys.length) {
+      html += '<div class="tcard"><div class="th"><span>先送りの選択肢は選ばなかった</span></div><p>全問「まともな判断」だった。実際の場面でも、この調子でいこう。</p></div>';
+    } else {
+      keys.slice(0, 3).forEach(function (t) {
+        html += '<div class="tcard"><div class="th"><span>' + TAGS[t].name + '</span><span class="cnt">' + counts[t] + '回</span></div>' +
+          '<p class="fix">対策:' + TAGS[t].fix + '</p></div>';
+      });
+      if (keys.length > 3) {
+        html += '<p class="lead">ほかにも:' + keys.slice(3).map(function (t) { return TAGS[t].name + '(' + counts[t] + '回)'; }).join('、') + '</p>';
+      }
+    }
+
+    html += '<h2>全問の振り返り</h2>';
+    answers.forEach(function (a) {
+      var q = Q[a.qi];
+      var correct = q.o.filter(function (o) { return o.ok; })[0];
+      html += '<details class="rv"><summary><span class="' + (a.ok ? 'mk-ok' : 'mk-ng') + '">' + (a.ok ? '○' : '×') + '</span> ' + q.cat + '・' + q.title + '</summary>' +
+        '<div class="rvbody"><p>' + q.s + '</p>' +
+        (a.ok ? '' : '<p><b>あなたの選択:</b>' + a.picked + '</p>') +
+        '<p><b>まともな判断:</b>' + correct.t + '</p><p>' + correct.why + '</p></div></details>';
+    });
+
+    html += '<div class="actions"><button class="btn ghost" id="again">もう一度やる</button></div>' +
+      '<p class="note">これは診断ではありません。「ありがちな判断」は誰にでも起こりうるものです。日常生活や仕事で困りごとが続く場合は、職場の相談窓口や専門機関に相談することもできます。</p>';
+    app.innerHTML = html;
+    document.getElementById("again").addEventListener("click", showStart);
+    window.scrollTo(0, 0);
+  }
+
+  showStart();
+})();
+</script>
+</body>
+</html>
