@@ -1,0 +1,545 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>おじさん専用ハラスメント診断クイズ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&family=Shippori+Mincho+B1:wght@700;800&display=swap">
+<style>
+/* 判定票: 研修チェックシート風の縦1カラム。文字は大きめ(読みやすさ優先)、見出しだけ明朝、判定は角印で見せる。 */
+:root {
+  --bg: #E8ECF0;
+  --paper: #FBFCFD;
+  --ink: #1B2530;
+  --muted: #53606D;
+  --line: #C5CED7;
+  --accent: #1F4E79;
+  --accent-ink: #FFFFFF;
+  --ok: #17754F;
+  --ok-bg: #DCF1E6;
+  --ng: #A8431A;
+  --ng-bg: #FBE7DD;
+  --f-display: "Shippori Mincho B1", "Hiragino Mincho ProN", "Yu Mincho", serif;
+  --f-body: "BIZ UDPGothic", "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #11171D;
+    --paper: #1A222A;
+    --ink: #E8EDF1;
+    --muted: #9CA9B5;
+    --line: #2F3B46;
+    --accent: #86B6E8;
+    --accent-ink: #0E1A26;
+    --ok: #5FCFA0;
+    --ok-bg: #173B2D;
+    --ng: #F29A72;
+    --ng-bg: #3B2418;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #11171D;
+  --paper: #1A222A;
+  --ink: #E8EDF1;
+  --muted: #9CA9B5;
+  --line: #2F3B46;
+  --accent: #86B6E8;
+  --accent-ink: #0E1A26;
+  --ok: #5FCFA0;
+  --ok-bg: #173B2D;
+  --ng: #F29A72;
+  --ng-bg: #3B2418;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html, body { min-height: 100%; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--f-body);
+  font-size: 17px;
+  line-height: 1.75;
+  padding-inline: 16px;
+  padding-block: 24px 48px;
+  margin: 0;
+}
+main { max-width: 640px; margin-inline: auto; display: flex; flex-direction: column; gap: 20px; }
+h1, h2, h3, p { margin: 0; }
+h1, h2 { font-family: var(--f-display); text-wrap: balance; line-height: 1.35; }
+
+.sheet {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 24px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0;
+}
+.eyebrow { font-size: 14px; letter-spacing: .12em; color: var(--muted); }
+.title { font-size: clamp(28px, 7.4vw, 38px); font-weight: 800; }
+.lead { color: var(--ink); }
+.facts { display: grid; grid-template-columns: repeat(3, 1fr); border-block: 1px solid var(--line); }
+.facts div { padding: 12px 8px; text-align: center; min-width: 0; }
+.facts div + div { border-left: 1px solid var(--line); }
+.facts dt { font-size: 13px; color: var(--muted); letter-spacing: .08em; }
+.facts dd { margin: 0; font-family: var(--f-display); font-weight: 800; font-size: 24px; font-variant-numeric: tabular-nums; }
+.note { font-size: 14px; color: var(--muted); line-height: 1.7; }
+.best { font-size: 15px; color: var(--muted); }
+
+.btn {
+  appearance: none;
+  border: 0;
+  border-radius: 6px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font: 700 18px/1.4 var(--f-body);
+  padding: 16px 20px;
+  min-height: 56px;
+  cursor: pointer;
+  width: 100%;
+}
+.btn.sub { background: transparent; color: var(--accent); border: 2px solid var(--accent); }
+.btn:hover { filter: brightness(1.08); }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+
+.progress { display: flex; flex-direction: column; gap: 8px; }
+.progress-head { display: flex; justify-content: space-between; align-items: baseline; font-size: 15px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.progress-head strong { font-family: var(--f-display); font-size: 22px; color: var(--ink); }
+.cells { display: flex; gap: 4px; }
+.cells i { flex: 1; height: 8px; border-radius: 2px; background: var(--line); min-width: 0; }
+.cells i.now { background: var(--accent); }
+.cells i.ok { background: var(--ok); }
+.cells i.ng { background: var(--ng); }
+
+.scene { font-size: 20px; font-weight: 700; line-height: 1.7; text-wrap: pretty; }
+.choices { display: flex; flex-direction: column; gap: 12px; padding: 0; margin: 0; list-style: none; }
+.choice {
+  appearance: none;
+  display: grid;
+  grid-template-columns: 2.4em minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+  width: 100%;
+  text-align: left;
+  font: 400 17px/1.7 var(--f-body);
+  color: var(--ink);
+  background: var(--paper);
+  border: 2px solid var(--line);
+  border-radius: 6px;
+  padding: 14px 14px;
+  min-height: 56px;
+  cursor: pointer;
+}
+.choice:hover:not(:disabled) { border-color: var(--accent); }
+.choice .mark {
+  display: grid; place-items: center;
+  width: 2.2em; height: 2.2em;
+  border: 2px solid var(--muted);
+  border-radius: 4px;
+  font-weight: 700; font-size: 15px; color: var(--muted);
+}
+.choice:disabled { cursor: default; }
+.choice.picked-ok { background: var(--ok-bg); border-color: var(--ok); }
+.choice.picked-ok .mark { background: var(--ok); border-color: var(--ok); color: var(--paper); }
+.choice.picked-ng { background: var(--ng-bg); border-color: var(--ng); }
+.choice.picked-ng .mark { background: var(--ng); border-color: var(--ng); color: var(--paper); }
+.choice.key { border-color: var(--ok); }
+.choice.key .mark { border-color: var(--ok); color: var(--ok); }
+.choice.dim { opacity: .55; }
+
+.feedback { display: flex; flex-direction: column; gap: 14px; }
+.fb { border-radius: 6px; padding: 16px; display: flex; flex-direction: column; gap: 8px; }
+.fb h3 { font-family: var(--f-body); font-size: 15px; letter-spacing: .1em; }
+.fb p { text-wrap: pretty; }
+.fb .ans { font-weight: 700; }
+.fb.ok { background: var(--ok-bg); }
+.fb.ok h3 { color: var(--ok); }
+.fb.ng { background: var(--ng-bg); }
+.fb.ng h3 { color: var(--ng); }
+.tagline { font-size: 14px; color: var(--muted); }
+
+.stamp-row { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+.score { font-family: var(--f-display); font-weight: 800; font-size: 56px; line-height: 1; font-variant-numeric: tabular-nums; }
+.score small { font-size: 22px; color: var(--muted); margin-left: 4px; }
+.stamp {
+  border: 4px double var(--accent);
+  color: var(--accent);
+  font-family: var(--f-display);
+  font-weight: 800;
+  font-size: 24px;
+  line-height: 1.3;
+  padding: 10px 16px;
+  border-radius: 4px;
+  transform: rotate(-3deg);
+  text-align: center;
+  text-wrap: balance;
+}
+.log { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; border-top: 1px solid var(--line); }
+.log li { display: grid; grid-template-columns: 2em minmax(0, 1fr); gap: 8px; padding: 10px 0; border-bottom: 1px solid var(--line); align-items: baseline; }
+.log .r { font-weight: 700; font-size: 20px; text-align: center; }
+.log .r.ok { color: var(--ok); }
+.log .r.ng { color: var(--ng); }
+.log .t { font-size: 16px; }
+.log .g { display: block; font-size: 13px; color: var(--muted); }
+.actions { display: flex; flex-direction: column; gap: 12px; }
+@media (prefers-reduced-motion: no-preference) {
+  .choice, .btn { transition: background-color .15s, border-color .15s, filter .15s; }
+}
+</style>
+
+<main id="app">
+  <section id="start" class="sheet" aria-labelledby="t-start">
+    <p class="eyebrow">社内研修チェックシート</p>
+    <h1 id="t-start" class="title">おじさん専用<br>ハラスメント診断クイズ</h1>
+    <p class="lead">職場でよくある12の場面です。自分ならどう動くかを、3つの中から選んでください。答えたあとに、理由が表示されます。</p>
+    <dl class="facts">
+      <div><dt>場面</dt><dd>12問</dd></div>
+      <div><dt>選択肢</dt><dd>3択</dd></div>
+      <div><dt>目安</dt><dd>5分</dd></div>
+    </dl>
+    <p class="best" id="best" hidden></p>
+    <button class="btn" id="go" type="button">診断をはじめる</button>
+    <p class="note">一般的な目安です。実際の判断は、会社の規程や社内の相談窓口で確認してください。</p>
+  </section>
+
+  <section id="quiz" hidden>
+    <div class="sheet">
+      <div class="progress">
+        <div class="progress-head"><strong id="qno"></strong><span id="qscore"></span></div>
+        <div class="cells" id="cells" aria-hidden="true"></div>
+      </div>
+      <p class="scene" id="scene"></p>
+      <ul class="choices" id="choices"></ul>
+      <div class="feedback" id="feedback" aria-live="polite"></div>
+      <button class="btn" id="next" type="button" hidden>次の場面へ</button>
+    </div>
+  </section>
+
+  <section id="result" class="sheet" hidden aria-labelledby="t-result">
+    <p class="eyebrow">診断結果</p>
+    <h2 id="t-result" class="title" style="font-size:26px">判定票</h2>
+    <div class="stamp-row">
+      <div class="score" id="rscore"></div>
+      <div class="stamp" id="rrank"></div>
+    </div>
+    <p class="lead" id="rcomment"></p>
+    <p class="best" id="rbest"></p>
+    <ul class="log" id="log"></ul>
+    <div class="actions">
+      <button class="btn" id="again" type="button">もう一度、全問に挑戦する</button>
+      <button class="btn sub" id="redo" type="button" hidden>間違えた場面だけやり直す</button>
+    </div>
+  </section>
+</main>
+
+<script>
+var Q = [
+  {
+    tag: "パワハラ(精神的な攻撃)", short: "同じミスを繰り返す部下",
+    scene: "部下が同じミスを3回続けた。他のメンバーがいる打ち合わせの最中に気づいた。",
+    c: [
+      { ok: true, t: "会議のあとで一対一の時間をとり、ミスの事実と直し方を具体的に伝える。本人の事情も聞く。",
+        e: "指導は一対一で、事実と改善策を具体的に伝えるのが基本です。人前を避けるだけで、同じ内容でも受け取り方が大きく変わります。" },
+      { t: "周りにも聞こえるように、強い口調でその場で注意する。",
+        e: "人前で強く叱ると、指導の目的があっても精神的な攻撃と受け取られやすくなります。見ている他のメンバーも萎縮します。" },
+      { t: "3回目なので何も言わず、自分で直しておく。",
+        e: "怒らないのは優しく見えますが、本人が直す機会を失います。必要な指導をしないことも、職場では問題になります。" }
+    ]
+  },
+  {
+    tag: "パワハラ(私生活への踏み込み)", short: "二次会で帰ろうとする若手",
+    scene: "歓送迎会の二次会。若手が「明日は朝が早いので」と席を立とうとしている。",
+    c: [
+      { ok: true, t: "「お疲れさま、気をつけて」と笑顔で見送る。",
+        e: "断る自由が保たれていることが大切です。気持ちよく見送れば、次の飲み会にも参加しやすくなります。" },
+      { t: "「付き合いも仕事のうちだぞ」と言って引き留める。",
+        e: "業務時間外の参加を、事実上強いることになります。「付き合いも仕事」は、断りにくくする言い方の代表です。" },
+      { t: "「一杯だけ」と言って、何度か声をかける。",
+        e: "「一杯だけ」は軽く聞こえますが、一度断った相手への再度の誘いは圧力になります。" }
+    ]
+  },
+  {
+    tag: "セクハラ", short: "髪型を変えた後輩",
+    scene: "後輩の女性社員が、髪型をがらりと変えて出社した。",
+    c: [
+      { ok: true, t: "髪型には触れず、いつも通りに挨拶して仕事の話をする。",
+        e: "外見は、本人から話題にしない限り触れないのが無難です。評価したいことは、仕事の内容で伝えます。" },
+      { t: "「似合うね、若く見えるよ」と褒める。",
+        e: "褒めたつもりでも、外見への評価を不快に感じる人がいます。「若く見える」は年齢にも触れていて、二重に注意が必要です。" },
+      { t: "「彼氏の好み?」と冗談めかして聞く。",
+        e: "私生活を詮索する冗談は、典型的なセクハラです。場を和ませるつもりでも、相手には断りにくい質問になります。" }
+    ]
+  },
+  {
+    tag: "パワハラ(私生活への踏み込み)", short: "部下のSNS",
+    scene: "部下の個人のSNSアカウントを、偶然見つけた。",
+    c: [
+      { ok: true, t: "見たことは伝えず、投稿の内容も仕事に持ち込まない。",
+        e: "私生活のSNSは、部下の個人の領域です。見かけても触れず、仕事とは切り離しておくのが基本です。" },
+      { t: "親睦のつもりで、フォロー申請を送る。",
+        e: "上司からの申請は断りにくく、承認が事実上の強制になります。私生活への踏み込みと受け取られます。" },
+      { t: "翌日、「あの店に行ったんだね」と話しかける。",
+        e: "見ていることが伝わると、監視されているように感じます。投稿を話題にするのは避けましょう。" }
+    ]
+  },
+  {
+    tag: "パワハラ(休日の連絡)", short: "日曜夜の資料確認",
+    scene: "日曜の夜。明日の会議資料で、気になる点を思い出した。",
+    c: [
+      { ok: true, t: "メールを下書きにしておき、月曜の始業後に送る。",
+        e: "急ぎでなければ、勤務時間内に送るのが原則です。下書きにしておけば、忘れる心配もありません。" },
+      { t: "LINEで送り、「返信は明日でいいよ」と添える。",
+        e: "通知が届いた時点で、休日でも仕事を意識させます。「返信は明日でいい」と書いても、気になって休めない人は多いです。" },
+      { t: "念のため、電話をかけて確認する。",
+        e: "休日の電話は、出ないと評価に響くと感じさせ、強い拘束になります。緊急でない用件では避けましょう。" }
+    ]
+  },
+  {
+    tag: "パタハラ(育児休業への嫌がらせ)", short: "育休を申し出た部下",
+    scene: "男性の部下が、来月から育休を取りたいと申し出てきた。",
+    c: [
+      { ok: true, t: "「おめでとう。引き継ぎを一緒に決めよう」と、まず受け止める。",
+        e: "育休は、法律で認められた権利です。取得を前提にして、仕事の調整を一緒に考える姿勢が大切です。" },
+      { t: "「今の時期に? もう少し短くできない?」と相談する。",
+        e: "時期や期間を短くするよう求めるのは、取得を妨げる発言になりえます。相談のつもりでも、申し出た側には圧力です。" },
+      { t: "「奥さんに任せられないの?」と聞く。",
+        e: "育児は女性が担うもの、という決めつけです。家庭の事情への口出しにもなります。" }
+    ]
+  },
+  {
+    tag: "エイジハラスメント", short: "再雇用の部下への説明",
+    scene: "60代の再雇用の部下に、新しい勤怠システムの使い方を教えることになった。",
+    c: [
+      { ok: true, t: "他の社員と同じ丁寧さで説明し、一緒に操作してみる。",
+        e: "年齢で扱いを変えず、同じ説明を同じ丁寧さで行うのが基本です。一緒に操作してみると、誰にとっても分かりやすくなります。" },
+      { t: "「年齢的に難しいよね」と言って、簡単な手順書だけ渡す。",
+        e: "年齢だけで「できない」と決めつけています。本人の意欲や力を確かめずに、機会を狭めることになります。" },
+      { t: "「若い人に教えてもらって」と言って任せる。",
+        e: "説明の手間を避けるための丸投げです。年齢を理由に切り離されたと感じさせてしまいます。" }
+    ]
+  },
+  {
+    tag: "パワハラ(精神的な攻撃)", short: "カメラオフの若手",
+    scene: "オンライン会議で、若手がずっとカメラをオフにしている。",
+    c: [
+      { ok: true, t: "カメラの扱いをチームで話し合い、全員のルールとして決める。",
+        e: "特定の人だけを注意せず、ルールとして決めるのが公平です。事情がある人への配慮も、同時に決められます。" },
+      { t: "「顔を出さないのは失礼だ」と、会議の場で注意する。",
+        e: "通信環境や家庭の事情を聞かずに、全員の前で注意しています。理由を知る前に責めるのは避けましょう。" },
+      { t: "「何か隠してるの?」と冗談で聞く。",
+        e: "疑いをかける冗談は、相手を傷つけます。笑って流せない人もいます。" }
+    ]
+  },
+  {
+    tag: "セクハラ", short: "エレベーターでの雑談",
+    scene: "30代の女性社員と、エレベーターで二人きりになった。沈黙が少し気まずい。",
+    c: [
+      { ok: true, t: "天気や最近の仕事の話など、誰とでも話せる話題にする。",
+        e: "家族や結婚の話は、相手が話したいときに聞くものです。自分から出さないのが安全です。" },
+      { t: "「そろそろ結婚は考えてるの?」と親しみを込めて聞く。",
+        e: "結婚や出産の質問は、親しみの意図があってもセクハラにあたります。答えたくない人には負担です。" },
+      { t: "「家族はいるの?」と軽く聞く。",
+        e: "業務に関係のない家族の事情を、自分から聞くのは避けましょう。軽い雑談のつもりでも、答えにくい人がいます。" }
+    ]
+  },
+  {
+    tag: "パワハラ(精神的な攻撃)", short: "落ち込んでいる部下",
+    scene: "ミスをして落ち込んでいる部下が、席でうつむいている。",
+    c: [
+      { ok: true, t: "少し離れた位置から、「話したいことがあれば聞くよ」と声をかける。",
+        e: "励ますときも、相手が話すかどうかを選べる形にします。距離を保った声かけなら、受け取る側の負担が少なくなります。" },
+      { t: "肩を叩いて、「元気出せ!」と励ます。",
+        e: "身体に触れる励ましは、不快と感じる人がいます。親しさのつもりでも、受け取り方を決めるのは相手です。" },
+      { t: "「気合いが足りない」と言って、自分の若い頃の失敗談を長く話す。",
+        e: "精神論と昔話の押しつけです。励ましにならず、相談しにくい雰囲気をつくります。" }
+    ]
+  },
+  {
+    tag: "性別・家庭への決めつけ", short: "出張プロジェクトの人選",
+    scene: "出張の多い重要プロジェクトの担当者を決める。候補の一人に、小さな子どもがいる女性の部下がいる。",
+    c: [
+      { ok: true, t: "仕事の内容と出張の頻度を伝え、本人に希望を聞いてから決める。",
+        e: "本人の意思を確かめるのが先です。判断に必要な情報を渡したうえで、本人が決められるようにします。" },
+      { t: "「小さい子がいて大変だろう」と、先に候補から外す。",
+        e: "善意でも、本人に聞かないまま機会を外すと、家庭の事情による不利益な扱いになります。" },
+      { t: "「出張は多いし、家庭は大丈夫?」と何度も念を押す。",
+        e: "繰り返し念を押すと、断るように仕向けているのと同じです。意思を聞くことと、辞退を促すことは別です。" }
+    ]
+  },
+  {
+    tag: "相談への対応", short: "部下からの相談",
+    scene: "部下が「同じ部署のAさんの言動がつらい」と、相談してきた。",
+    c: [
+      { ok: true, t: "最後まで丁寧に聞き、本人の同意を得たうえで相談窓口につなぐ。",
+        e: "まず受け止めて聞き、本人の同意を得て窓口につなぐのが管理職の役割です。内容は、本人の了解なしに広げません。" },
+      { t: "「気にしすぎだよ」と励まして、様子を見る。",
+        e: "相談を軽く扱うと、本人は二度と話せなくなります。つらさを否定する言葉は避けましょう。" },
+      { t: "その日のうちにAさんを呼び、「誰かが言っていた」と確認する。",
+        e: "相談者が特定され、報復を受けるおそれがあります。本人の了解なしに、相手へ伝えてはいけません。" }
+    ]
+  }
+];
+
+var RANKS = [
+  { min: 12, name: "令和対応、完了", msg: "全問、適切な判断でした。部下が相談しやすい上司です。この感覚を、周りのおじさんにも伝えてください。" },
+  { min: 10, name: "ほぼ安心", msg: "ほとんどの場面で、相手の立場に立てています。間違えた場面だけ見直せば、ほぼ完璧です。" },
+  { min: 7, name: "あと一歩", msg: "悪気のない一言で、相手を困らせている場面がありそうです。間違えた場面を、もう一度確認しましょう。" },
+  { min: 4, name: "要注意", msg: "意図は良くても、受け取る側には負担になる言動が多めです。まず「相手がどう感じるか」を一呼吸おいて考えてみてください。" },
+  { min: 0, name: "まず立ち止まる", msg: "今日が見直しの良い機会です。間違えた場面だけ、やり直してみましょう。知っているだけで、行動は大きく変わります。" }
+];
+
+var KEY = "ojisanHaraBest";
+var KANA = ["ア", "イ", "ウ"];
+var run = [], idx = 0, results = [], isFull = true;
+var $ = function (id) { return document.getElementById(id); };
+
+function shuffle(a) {
+  for (var i = a.length - 1; i > 0; i--) {
+    var j = Math.floor(Math.random() * (i + 1));
+    var t = a[i]; a[i] = a[j]; a[j] = t;
+  }
+  return a;
+}
+function getBest() { try { var v = localStorage.getItem(KEY); return v === null ? null : parseInt(v, 10); } catch (e) { return null; } }
+function setBest(n) { try { localStorage.setItem(KEY, String(n)); } catch (e) {} }
+
+function show(name) {
+  ["start", "quiz", "result"].forEach(function (id) { $(id).hidden = id !== name; });
+  window.scrollTo(0, 0);
+}
+
+function begin(list, full) {
+  isFull = full;
+  run = list.map(function (q) { return { q: q, c: shuffle(q.c.slice()) }; });
+  idx = 0; results = [];
+  show("quiz");
+  render();
+}
+
+function renderCells() {
+  var h = "";
+  for (var i = 0; i < run.length; i++) {
+    var cls = i < results.length ? (results[i].ok ? "ok" : "ng") : (i === idx ? "now" : "");
+    h += '<i class="' + cls + '"></i>';
+  }
+  $("cells").innerHTML = h;
+}
+
+function render() {
+  var cur = run[idx];
+  var right = results.filter(function (r) { return r.ok; }).length;
+  $("qno").textContent = "第" + (idx + 1) + "問 / " + run.length;
+  $("qscore").textContent = "正解 " + right;
+  renderCells();
+  $("scene").textContent = cur.q.scene;
+  $("feedback").innerHTML = "";
+  $("next").hidden = true;
+  var ul = $("choices");
+  ul.innerHTML = "";
+  cur.c.forEach(function (ch, i) {
+    var li = document.createElement("li");
+    var b = document.createElement("button");
+    b.type = "button";
+    b.className = "choice";
+    b.innerHTML = '<span class="mark"></span><span class="txt"></span>';
+    b.querySelector(".mark").textContent = KANA[i];
+    b.querySelector(".txt").textContent = ch.t;
+    b.addEventListener("click", function () { answer(i); });
+    li.appendChild(b);
+    ul.appendChild(li);
+  });
+}
+
+function block(kind, head, text, ans) {
+  var d = document.createElement("div");
+  d.className = "fb " + kind;
+  var h = document.createElement("h3"); h.textContent = head; d.appendChild(h);
+  if (ans) { var a = document.createElement("p"); a.className = "ans"; a.textContent = ans; d.appendChild(a); }
+  var p = document.createElement("p"); p.textContent = text; d.appendChild(p);
+  return d;
+}
+
+function answer(i) {
+  var cur = run[idx];
+  var picked = cur.c[i];
+  var keyIdx = cur.c.findIndex(function (c) { return c.ok; });
+  var ok = !!picked.ok;
+  results.push({ ok: ok, q: cur.q });
+  var btns = $("choices").querySelectorAll(".choice");
+  btns.forEach(function (b, n) {
+    b.disabled = true;
+    if (n === i) b.classList.add(ok ? "picked-ok" : "picked-ng");
+    else if (n === keyIdx) b.classList.add("key");
+    else b.classList.add("dim");
+  });
+  var fb = $("feedback");
+  fb.innerHTML = "";
+  var tg = document.createElement("p"); tg.className = "tagline"; tg.textContent = "分類:" + cur.q.tag;
+  if (ok) {
+    fb.appendChild(block("ok", "正解", picked.e));
+  } else {
+    fb.appendChild(block("ng", "あなたの選択", picked.e));
+    fb.appendChild(block("ok", "正解", cur.c[keyIdx].e, KANA[keyIdx] + ":" + cur.c[keyIdx].t));
+  }
+  fb.appendChild(tg);
+  renderCells();
+  $("qscore").textContent = "正解 " + results.filter(function (r) { return r.ok; }).length;
+  var nx = $("next");
+  nx.textContent = idx === run.length - 1 ? "結果を見る" : "次の場面へ";
+  nx.hidden = false;
+  nx.scrollIntoView({ block: "nearest", behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+}
+
+function finish() {
+  var right = results.filter(function (r) { return r.ok; }).length;
+  var total = results.length;
+  $("rscore").innerHTML = right + "<small>/ " + total + "</small>";
+  var rank = null;
+  if (isFull) {
+    for (var i = 0; i < RANKS.length; i++) { if (right >= RANKS[i].min) { rank = RANKS[i]; break; } }
+    $("rrank").textContent = rank.name;
+    $("rrank").hidden = false;
+    $("rcomment").textContent = rank.msg;
+    var best = getBest();
+    if (best === null || right > best) { setBest(right); $("rbest").textContent = best === null ? "自己ベストを記録しました。" : "自己ベストを更新しました。前回は " + best + " 問でした。"; }
+    else { $("rbest").textContent = "自己ベストは " + best + " 問です。"; }
+  } else {
+    $("rrank").hidden = true;
+    $("rcomment").textContent = right === total ? "間違えた場面を、すべて解き直せました。" : "まだ迷う場面が残っています。もう一度、間違いだけやり直せます。";
+    $("rbest").textContent = "";
+  }
+  var log = $("log");
+  log.innerHTML = "";
+  results.forEach(function (r) {
+    var li = document.createElement("li");
+    li.innerHTML = '<span class="r ' + (r.ok ? "ok" : "ng") + '" aria-label="' + (r.ok ? "正解" : "不正解") + '">' + (r.ok ? "○" : "×") + '</span><span class="t"></span>';
+    var t = li.querySelector(".t");
+    t.textContent = r.q.short;
+    var g = document.createElement("span"); g.className = "g"; g.textContent = r.q.tag; t.appendChild(g);
+    log.appendChild(li);
+  });
+  var wrong = results.filter(function (r) { return !r.ok; });
+  $("redo").hidden = wrong.length === 0;
+  show("result");
+}
+
+$("go").addEventListener("click", function () { begin(Q, true); });
+$("next").addEventListener("click", function () {
+  if (idx === run.length - 1) { finish(); return; }
+  idx++; render(); window.scrollTo(0, 0);
+});
+$("again").addEventListener("click", function () { begin(Q, true); });
+$("redo").addEventListener("click", function () {
+  var wrong = results.filter(function (r) { return !r.ok; }).map(function (r) { return r.q; });
+  begin(wrong, false);
+});
+
+(function () {
+  var b = getBest();
+  if (b !== null) { var el = $("best"); el.textContent = "自己ベスト:" + b + " / 12 問"; el.hidden = false; }
+})();
+</script>
+
+</body></html>
