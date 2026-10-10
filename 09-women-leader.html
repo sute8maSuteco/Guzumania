@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>小さなオジサンの新任女性リーダーお困りごとトレーニング</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  --bg: #E8EEF1;
+  --panel: #FFFFFF;
+  --ink: #22303C;
+  --sub: #5A6B78;
+  --line: #C5D1D8;
+  --suit: #3F5262;
+  --skin: #F1CBA6;
+  --hair: #C9D0D6;
+  --tie: #E2AB2E;
+  --marker: #F4D35E;
+  --ok: #2B8A66;
+  --ok-bg: #E1F3EA;
+  --ng: #C2433B;
+  --ng-bg: #FBE8E6;
+  --ruler: #F6E7A8;
+  --ruler-tick: #8B7B3A;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #131E27; --panel: #1C2A35; --ink: #E7EEF3; --sub: #9DB0BD; --line: #35495A;
+    --suit: #6F889B; --skin: #E9BE98; --hair: #AAB5BE; --tie: #E2AB2E; --marker: #D9B93F;
+    --ok: #5CC49A; --ok-bg: #173A2E; --ng: #EE7B72; --ng-bg: #40221F;
+    --ruler: #5B5326; --ruler-tick: #D9C873;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #131E27; --panel: #1C2A35; --ink: #E7EEF3; --sub: #9DB0BD; --line: #35495A;
+  --suit: #6F889B; --skin: #E9BE98; --hair: #AAB5BE; --tie: #E2AB2E; --marker: #D9B93F;
+  --ok: #5CC49A; --ok-bg: #173A2E; --ng: #EE7B72; --ng-bg: #40221F;
+  --ruler: #5B5326; --ruler-tick: #D9C873;
+}
+html { scroll-padding-top: env(safe-area-inset-top, 0px); background: var(--bg); }
+*, *::before, *::after { box-sizing: inherit; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: "Zen Maru Gothic", "Hiragino Maru Gothic ProN", "Hiragino Sans", "Yu Gothic", "Meiryo", sans-serif;
+  font-weight: 500;
+  line-height: 1.75;
+  -webkit-text-size-adjust: 100%;
+}
+#app { max-width: 540px; margin: 0 auto; padding: 16px 16px 48px; }
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 3px solid var(--marker); outline-offset: 2px; }
+
+/* ruler progress */
+.ruler-wrap { margin: 4px 0 18px; }
+.ruler-meta { display: flex; justify-content: space-between; font-size: 13px; color: var(--sub); margin-bottom: 4px; font-weight: 700; }
+.ruler {
+  position: relative; height: 22px; border-radius: 3px; background: var(--ruler);
+  border: 1px solid var(--ruler-tick); overflow: hidden;
+}
+.ruler::after {
+  content: ""; position: absolute; inset: 0;
+  background:
+    repeating-linear-gradient(90deg, var(--ruler-tick) 0 1px, transparent 1px 8px) bottom/100% 7px no-repeat,
+    repeating-linear-gradient(90deg, var(--ruler-tick) 0 1px, transparent 1px 40px) bottom/100% 13px no-repeat;
+  pointer-events: none;
+}
+.ruler .fill { position: absolute; inset: 0 auto 0 0; background: var(--marker); width: 0; transition: width .4s ease; opacity: .9; }
+
+/* stage */
+.stage { display: flex; gap: 12px; align-items: flex-end; margin-bottom: 16px; }
+.man-col { flex: 0 0 96px; text-align: center; }
+.man { width: 96px; height: auto; display: block; }
+.man .suit { fill: var(--suit); }
+.man .skin { fill: var(--skin); }
+.man .hair { fill: var(--hair); }
+.man .tie { fill: var(--tie); }
+.man .shoe { fill: #1b242c; }
+.man .shirt { fill: #fff; }
+.man .ink { stroke: var(--ink); fill: none; stroke-linecap: round; stroke-width: 2.4; }
+.man .eye { fill: var(--ink); }
+.man .brow { stroke: var(--hair); fill: none; stroke-width: 3.4; stroke-linecap: round; }
+.man .shadow { fill: rgba(0,0,0,.12); }
+.man .m-h, .man .m-s { display: none; }
+.man.mood-happy .m-n, .man.mood-sad .m-n { display: none; }
+.man.mood-happy .m-h { display: inline; }
+.man.mood-sad .m-s { display: inline; }
+.height-tag { font-size: 11px; color: var(--sub); margin-top: 2px; font-weight: 700; }
+@media (prefers-reduced-motion: no-preference) {
+  .man.bump { animation: bump .45s ease; transform-origin: 50% 100%; }
+  @keyframes bump { 0%{transform:scale(1)} 35%{transform:scale(1.06) translateY(-4px)} 100%{transform:scale(1)} }
+}
+
+.bubble {
+  position: relative; flex: 1; background: var(--panel); border: 2px solid var(--ink);
+  border-radius: 14px; padding: 12px 14px; font-size: 15.5px; min-height: 64px;
+}
+.bubble::before {
+  content: ""; position: absolute; left: -11px; bottom: 22px; width: 18px; height: 18px;
+  background: var(--panel); border-left: 2px solid var(--ink); border-bottom: 2px solid var(--ink);
+  transform: rotate(45deg);
+}
+.bubble .scene-cat { display: inline-block; font-size: 12px; font-weight: 700; background: var(--marker); color: #2b2606; border-radius: 4px; padding: 0 8px; margin-bottom: 6px; line-height: 1.7; }
+.bubble p { margin: 0; }
+.bubble p + p { margin-top: 8px; }
+.bubble strong { font-weight: 900; }
+
+/* choices */
+.choices { display: flex; flex-direction: column; gap: 10px; }
+.choice {
+  text-align: left; background: var(--panel); border: 2px solid var(--line); border-radius: 12px;
+  padding: 12px 14px; cursor: pointer; line-height: 1.65; width: 100%;
+}
+.choice:hover:not(:disabled) { border-color: var(--ink); }
+.choice:disabled { cursor: default; }
+.choice .ctext { display: block; font-size: 15px; }
+.choice .chip {
+  display: inline-block; margin-top: 8px; font-size: 12px; font-weight: 700; border-radius: 999px;
+  padding: 0 10px; line-height: 1.8;
+}
+.choice .why { display: block; margin-top: 6px; font-size: 14px; color: var(--sub); }
+.choice.is-ok { border-color: var(--ok); background: var(--ok-bg); }
+.choice.is-ok .chip { background: var(--ok); color: #fff; }
+.choice.is-ng .chip { background: var(--line); color: var(--ink); }
+.choice.picked-ng { border-color: var(--ng); background: var(--ng-bg); }
+.choice.picked-ng .chip { background: var(--ng); color: #fff; }
+.picked-mark { font-size: 12px; font-weight: 700; color: var(--sub); margin-left: 6px; }
+
+.actions { margin-top: 18px; display: flex; justify-content: center; }
+.btn {
+  background: var(--ink); color: var(--bg); border: none; border-radius: 999px;
+  padding: 12px 32px; font-weight: 900; font-size: 16px; cursor: pointer;
+}
+.btn.ghost { background: transparent; color: var(--ink); border: 2px solid var(--ink); }
+
+/* start & result */
+h1 { font-size: 24px; line-height: 1.4; margin: 6px 0 14px; font-weight: 900; }
+.lead { color: var(--sub); font-size: 14.5px; margin: 0 0 18px; }
+.note { font-size: 13px; color: var(--sub); border-top: 1px dashed var(--line); margin-top: 26px; padding-top: 12px; }
+.score-box { text-align: center; margin: 4px 0 18px; }
+.score-box .big { font-size: 52px; font-weight: 900; line-height: 1.1; }
+.score-box .big small { font-size: 20px; color: var(--sub); }
+.score-box .rank { display: inline-block; margin-top: 6px; font-size: 16px; font-weight: 900; background: var(--marker); color: #2b2606; padding: 2px 16px; border-radius: 6px; }
+h2 { font-size: 17px; margin: 26px 0 10px; font-weight: 900; }
+.tcard { background: var(--panel); border: 2px solid var(--line); border-radius: 12px; padding: 12px 14px; margin-bottom: 10px; }
+.tcard .th { display: flex; justify-content: space-between; gap: 10px; font-weight: 900; font-size: 15.5px; }
+.tcard .cnt { color: var(--sub); font-size: 13px; white-space: nowrap; font-weight: 700; }
+.tcard p { margin: 4px 0 0; font-size: 14px; color: var(--sub); }
+.tcard .fix { color: var(--ink); }
+details.rv { background: var(--panel); border: 2px solid var(--line); border-radius: 12px; padding: 8px 14px; margin-bottom: 8px; }
+details.rv summary { cursor: pointer; font-weight: 700; font-size: 14.5px; padding: 4px 0; }
+details.rv .rvbody { font-size: 14px; padding: 6px 0 8px; color: var(--sub); }
+details.rv .rvbody b { color: var(--ink); }
+.mk-ok { color: var(--ok); font-weight: 900; }
+.mk-ng { color: var(--ng); font-weight: 900; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+(function () {
+  "use strict";
+
+  var TAGS = {
+    "笑って流す": { name: "笑ってその場を流す", fix: "笑顔は作らず、短く仕事の話に戻す。流すと「言っても大丈夫」と受け取られる。" },
+    "下手に出る": { name: "遠慮して「お願い」口調になる", fix: "決まったことは「お願い」ではなく「決定」として、短く言い切る。" },
+    "引き受け": { name: "雑用や頼まれごとを引き受け続ける", fix: "断るより、持ち回りのルールにして、自分は外れる。" },
+    "一人で戦う": { name: "ひとりで抱えて張り合う", fix: "先に上司や味方と握ってから動く。任せられる部分は任せる。" },
+    "我慢": { name: "我慢して黙る", fix: "2回目には一言伝える。くり返すなら、日時と内容を記録して相談する。" },
+    "完璧主義": { name: "完璧にこなそうと背負い込む", fix: "6割で十分な仕事もある。休む日があることも前提にしておく。" },
+    "迎合": { name: "嫌われないよう相手に合わせすぎる", fix: "合わせるのは言葉の前置きだけ。判断の基準は、誰に対しても同じにする。" },
+    "感情反撃": { name: "その場で強く言い返す", fix: "その場は短く穏やかに終わらせ、続きは一対一か、文字か、窓口で。" },
+    "罪悪感": { name: "家庭の事情で謝りすぎる", fix: "謝るより、代わりの形(代理役・引き継ぎ)を先に決めておく。" },
+    "愚痴": { name: "愚痴を言い合って終わる", fix: "愚痴で出た不満は、ルールの提案に変えて上に出す。" }
+  };
+
+  var PHASE_NOTE = {
+    "部下との関係": "立場で押さず、決めたことは「決定」として文字に残す。比べられても、基準は一つでいい。",
+    "会議と社内外の場": "笑って流さず、仕組みで変える。役割と決める場所を、みんなが見える場に戻す。",
+    "自分を守る": "代表になりすぎず、謝りすぎず。困ったことは記録して、ひとりで抱えない。"
+  };
+
+  var Q = [
+    { cat: "部下との関係", title: "指示が聞き流される",
+      s: "年上の男性部下Aさんに作業の手順を伝えると「はいはい、分かってますよ」と言い、結局いつもの自分のやり方で進めている。どうする?",
+      tip: "決めたことは「お願い」ではなく「決定」として、文字で残す。",
+      o: [
+        { ok: 1, t: "「今回はこの手順で決定です」と短く言い切り、同じ内容をチャットにも残す。違うやり方をしていたら、そのチャットを示して一言だけ戻す", why: "口頭だけだと「聞いていない」で流されやすい。文字で残せば、言った言わないにならず、何度も説明しなくて済む。" },
+        { tag: "下手に出る", t: "「もしよければ、この手順でお願いできたら…」と、角が立たないように頼む", why: "年上に気を遣うのは自然なこと。ただ、お願いの形だと「断ってもいいもの」と受け取られやすい。" },
+        { tag: "我慢", t: "年上で経験もあるので、結果が出ていればいいかと、そのままにする", why: "結果が同じならそれも一つの判断。ただ手順に理由があるなら、黙認するとほかのメンバーも「守らなくていい」と受け取る。" },
+        { tag: "感情反撃", t: "「私がリーダーなので、従ってください」と、その場で強く言う", why: "言っていることは正しい。ただ立場で押すと張り合いになり、関係が長くこじれやすい。手順の中身で話すほうが早い。" }
+      ] },
+    { cat: "部下との関係", title: "課長が言うと通る",
+      s: "自分が言っても動かない話が、上司の男性課長が同じことを言うと、すぐに通る。どうする?",
+      tip: "張り合うより、先に上司と握っておく。",
+      o: [
+        { ok: 1, t: "大事な方針は、先に課長と話して合意をとり、「課長とも確認済みです」と添えて自分の口から伝える", why: "上司の後ろ盾を最初から借りれば、毎回の説得がいらない。伝える役は自分のままなので、リーダーの立場も保てる。" },
+        { tag: "一人で戦う", t: "自分の言葉で通るまで、何度でも説明を重ねる", why: "まっすぐな努力だが、時間がかかり、疲れるのは自分のほう。仕組みで通すほうが楽に続く。" },
+        { tag: "下手に出る", t: "通りにくい話は、全部課長から言ってもらうようにする", why: "通りやすくはなるが、「リーダーに言っても仕方ない」と覚えられ、自分の立場が弱くなる。" },
+        { tag: "我慢", t: "仕方ないとあきらめて、通らない分は自分で処理する", why: "あきらめると、通らなかった仕事が自分に溜まっていく。" }
+      ] },
+    { cat: "部下との関係", title: "「前の課長は何も言わなかった」",
+      s: "年上の男性部下Bさんの遅刻が続いている。軽く注意したら「細かいなあ、前の課長は何も言わなかったよ」と返された。どうする?",
+      tip: "比べられても、基準は一つ。事実を短く、日付は記録。",
+      o: [
+        { ok: 1, t: "「前のやり方は分かりました。今のチームでは始業時刻を守ってください」と短く返し、遅れた日付をメモしておく。くり返すなら、メモを添えて上司に相談する", why: "前任者と比べる話には乗らず、今の基準だけを伝える。記録があれば、上司に渡すときも説明が一度で済む。" },
+        { tag: "笑って流す", t: "「ですよね、細かくてすみません」と笑って引き下がる", why: "その場は和む。ただ「言えば引く人」と受け取られ、次の注意がさらに難しくなる。" },
+        { tag: "感情反撃", t: "「前の課長は関係ありません」と強い口調で言い返す", why: "言い返したくなるのは当然。ただ張り合うと、話の中心が遅刻から「言い方」に移ってしまう。" },
+        { tag: "我慢", t: "言うとまた嫌な顔をされるので、もう言わないことにする", why: "黙ると遅刻はそのまま残り、時間を守っているメンバーには不公平に映る。" }
+      ] },
+    { cat: "部下との関係", title: "「女同士だから」",
+      s: "女性の部下Cさんから「女同士だから分かってくれますよね」と、締切の延長を頼まれた。どうする?",
+      tip: "事情は聞く。判断は、誰に対しても同じ基準で。",
+      o: [
+        { ok: 1, t: "「事情は聞かせて。ただ、判断は誰に対しても同じ基準でするね」と伝え、ほかのメンバーと同じ条件で延長するかを決める", why: "同じ基準なら、男性からも女性からも信頼される。事情を聞くことと、特別扱いは別のこと。" },
+        { tag: "迎合", t: "気持ちはよく分かるので、今回だけはと延長を認める", why: "共感は大事。ただ性別で判断が変わると見られると、チーム全体の不公平感につながる。" },
+        { tag: "感情反撃", t: "「女同士とか関係ないから」と、きっぱり突き放す", why: "言っていることは正しい。ただ突き放すと、困ったときの相談そのものがしにくくなる。" }
+      ] },
+    { cat: "会議と社内外の場", title: "案が横取りされる",
+      s: "会議で自分が出した案は流されたのに、少しあとで男性メンバーが同じことを言うと「いいね」と採用された。どうする?",
+      tip: "笑って流さず、自分の案だと短く結びつける。",
+      o: [
+        { ok: 1, t: "「先ほど私が出した案と同じですね。では、その方向で私が進めます」と穏やかに言い、担当まで引き取る", why: "怒らずに事実だけを結びつければ、角は立たない。担当まで決めれば、案の持ち主がはっきりする。" },
+        { tag: "笑って流す", t: "採用されたならいいかと、何も言わずに流す", why: "結果は同じでも、案を出したのが誰かが残らない。続くと、会議での発言力が少しずつ削られる。" },
+        { tag: "感情反撃", t: "「それ、さっき私が言いましたよね」と強めに言う", why: "そう言いたくなるのは当然。ただ語気が強いと「怒っている」印象だけが残りやすい。同じ事実でも、短く穏やかに。" },
+        { tag: "我慢", t: "次からは発言を控え、資料にして出すようにする", why: "資料で出すのは一つの工夫。ただ発言を控えると、会議での存在が見えにくくなる。" },
+        { tag: "愚痴", t: "会議のあと、仲のいい同僚に「また取られた」とこぼして終わる", why: "こぼせる相手がいるのは大切。ただ愚痴で終わると、次の会議でも同じことが起きる。" }
+      ] },
+    { cat: "会議と社内外の場", title: "議事録とお茶出し",
+      s: "リーダーになったのに、会議のたびに「議事録お願いできる?」「お茶頼める?」と声がかかる。どうする?",
+      tip: "毎回断るより、持ち回りのルールにして自分は外れる。",
+      o: [
+        { ok: 1, t: "「議事録は今月から持ち回りにします」と当番表を作って共有し、自分は進行役に回る。飲み物は各自で用意する形にする", why: "一度ルールにすれば、毎回断らなくていい。進行役に回れば、リーダーとしての役割も周りに見える。" },
+        { tag: "引き受け", t: "頼まれると断りにくく、そのまま引き受け続ける", why: "引き受けるのは親切。ただそのぶん、リーダーの仕事に使う時間と、周りからの見え方が削られていく。" },
+        { tag: "感情反撃", t: "「それは私の仕事ではありません」と、その場で断る", why: "正しい主張でも、その場で断ると角が立ちやすい。仕組みで変えれば、誰も責めずに済む。" }
+      ] },
+    { cat: "会議と社内外の場", title: "決まるのは喫煙所と飲み会",
+      s: "大事なことが、男性陣の喫煙所での立ち話や飲み会で決まっていることが多い。自分はその場にいない。どうする?",
+      tip: "その場に通うより、決める場所をみんなが見える場に戻す。",
+      o: [
+        { ok: 1, t: "「決定事項は、定例会議かチャットで共有する」とチームのルールにし、上司にも協力を頼む", why: "無理にその場に通う必要はない。決める場所を戻せば、自分だけでなく、行けないメンバー全員が助かる。" },
+        { tag: "迎合", t: "乗り遅れないよう、苦手でも飲み会や喫煙所に付き合う", why: "情報は取れる。ただ時間も気力も使い、家庭の事情がある日は行けずに、また取り残される。" },
+        { tag: "我慢", t: "仕方ないと割り切り、決まったことにあとから従う", why: "割り切るのは楽。ただリーダーなのに決定に関われない状態が、ずっと続く。" },
+        { tag: "愚痴", t: "ほかの女性メンバーと「また勝手に決めてる」と言い合う", why: "気持ちを分け合うのは大切。ただ言い合うだけでは変わらない。出た不満は、ルールの提案に変えたい。" }
+      ] },
+    { cat: "会議と社内外の場", title: "「担当の方は?」",
+      s: "取引先との打ち合わせで、先方が自分ではなく、隣に座る後輩の男性ばかりに話しかけてくる。どうする?",
+      tip: "最初の名乗りで、役割をはっきりさせる。",
+      o: [
+        { ok: 1, t: "冒頭で「担当リーダーの◯◯です。本日は私からご説明します」と名乗り、後輩には事前に「質問は私に振ってね」と頼んでおく", why: "最初に役割をはっきりさせれば、あとから訂正しなくて済む。後輩が振ってくれると、話の流れが自然に戻る。" },
+        { tag: "笑って流す", t: "訂正すると気まずいので、後輩に話してもらうままにする", why: "その場は穏やか。ただ先方の窓口が後輩だと定着してしまい、あとで戻すのが大変になる。" },
+        { tag: "感情反撃", t: "「担当は私ですが」と、話の途中で強めに割って入る", why: "伝えるべきことではある。ただ途中で割り込むと、気まずさが残る。最初に名乗っておくほうが楽。" }
+      ] },
+    { cat: "自分を守る", title: "「キツい」と言われた",
+      s: "はっきり指示を出していたら、陰で「最近キツいよね」「怖い」と言われていると耳にした。どうする?",
+      tip: "柔らかくするのは前置きの一言だけ。指示の中身は変えない。",
+      o: [
+        { ok: 1, t: "指示の中身は変えず、最初に「助かります」「ありがとう」を一言添える形にする。陰の声は追いかけない", why: "同じ指示でも、女性が言うと「キツい」と受け取られがちな場面はある。中身は曲げず、前置きの一言を足すのが、いちばん手間がかからない。" },
+        { tag: "迎合", t: "嫌われないよう、指示をお願い口調にして、言う回数も減らす", why: "嫌われたくないのは自然な気持ち。ただ指示があいまいになると仕事が回らず、結局困るのは自分。" },
+        { tag: "一人で戦う", t: "言っていた人を突き止めて、直接話をしに行く", why: "気になるのは当然。ただ陰の声を追いかけると、時間も気力も取られる。" },
+        { tag: "我慢", t: "気にしないふりをして、ひとりで落ち込む", why: "落ち込むのは自然なこと。信頼できる人に一度話すだけでも、気持ちはかなり軽くなる。" }
+      ] },
+    { cat: "自分を守る", title: "女性リーダー第一号",
+      s: "上司から「うちで初めての女性リーダーだから期待してるよ。女性ならではの視点も出してね」と言われた。どうする?",
+      tip: "代表にならなくていい。自分の仕事の目標で答える。",
+      o: [
+        { ok: 1, t: "「ありがとうございます。まずはチームの目標を◯◯にします」と、自分の仕事の目標で返す。「女性ならでは」は、思いついたときに出せば十分と考える", why: "期待に全部応えようとすると、仕事が二倍になる。自分の目標で答えれば、期待を自分の言葉に置き換えられる。" },
+        { tag: "完璧主義", t: "後に続く女性のためにも失敗できないと、全部を完璧にこなそうとする", why: "背負う気持ちは立派。ただ完璧を目指すほど疲れて、続かなくなる。" },
+        { tag: "迎合", t: "「女性ならでは」の企画を、無理にでも毎回出そうとする", why: "期待に応えたい気持ちは分かる。ただ性別の役割まで背負い込むと、本来の仕事の時間が減る。" },
+        { tag: "下手に出る", t: "「私なんて全然です」と謙遜して終わる", why: "謙遜は自然な返し。ただ自分で評価を下げると、任される仕事も小さくなりやすい。" }
+      ] },
+    { cat: "自分を守る", title: "子どもの発熱で早退",
+      s: "大事な会議の日の朝、保育園から「お子さんが発熱しました」と電話が来た。どうする?",
+      tip: "謝るより、代わりの形を先に決めておく。",
+      o: [
+        { ok: 1, t: "会議の進行と決めることを、すぐにチャットで代理の人に頼み、決定は後で確認すると伝えて帰る。日ごろから代理役を一人決めておく", why: "急な呼び出しは誰にでも起こる。代わりの形が決まっていれば、謝ることより、仕事が止まらないことを示せる。" },
+        { tag: "罪悪感", t: "チーム全員に何度も謝ってから帰る", why: "申し訳ない気持ちは自然。ただ謝るほど「迷惑な事情」として印象に残る。必要なのは、謝罪より引き継ぎ。" },
+        { tag: "完璧主義", t: "家族に何とか迎えを頼み込み、会議には出る", why: "それができる日もある。ただ毎回無理を重ねると続かない。休む日も前提にした形を作っておく。" },
+        { tag: "一人で戦う", t: "会議は延期にして、全部自分が戻ってから進める", why: "責任感からの判断。ただリーダーがいないと何も進まないチームは、リーダーがいちばん休めない。" }
+      ] },
+    { cat: "自分を守る", title: "懇親会での一言",
+      s: "社内の懇親会で、他部署の部長から「女性リーダーは華があっていいね。若いし、きれいだし」と言われた。どうする?",
+      tip: "笑って受けず、短く仕事の話に戻す。くり返すなら記録して相談。",
+      o: [
+        { ok: 1, t: "笑顔は作らずに「ありがとうございます。仕事で評価いただけるよう頑張ります」と短く返し、話題を仕事に戻す。くり返されるなら、日時と内容をメモして相談窓口に相談する", why: "その場で角を立てずに、外見の話を終わらせられる。記録があれば、相談するときの説明が一度で済む。" },
+        { tag: "笑って流す", t: "場の空気を壊さないよう、笑って「そんなことないですよ」と返す", why: "その場は穏やかに済む。ただ笑って受けると「言っても大丈夫」と受け取られ、くり返されやすい。" },
+        { tag: "感情反撃", t: "「それ、セクハラですよ」と、その場ではっきり言う", why: "間違ってはいない。ただ大勢の前だと話が大きくなり、疲れるのは自分。その場は短く終わらせ、対応は窓口で。" },
+        { tag: "我慢", t: "嫌だったが、相手が部長なので誰にも言わずにおく", why: "立場が上だと言いにくいのは当然。ただ黙っていると、ほかの人にも同じことが起きる。記録だけでも残しておく。" }
+      ] }
+  ];
+
+  var RANKS = [
+    { min: 12, name: "しなやかなリーダー", say: "全問正解とは恐れ入った。ワシらオジサンの手の内も、すっかりお見通しじゃな。" },
+    { min: 10, name: "ほぼしなやかなリーダー", say: "なかなかのもんじゃ。間違えた問題のコツだけ、押さえておけば十分じゃよ。" },
+    { min: 7, name: "あと一歩", say: "半分以上は押さえておる。間違えたところは、新しくリーダーになった人なら誰でも迷う場面じゃ。仕組みで防げるから安心せい。" },
+    { min: 4, name: "背負いすぎに注意", say: "笑って流さず、我慢しすぎず、ひとりで戦わんでええ。「文字に残す」「先に上と握る」「仕組みにする」。この3つで十分じゃ。" },
+    { min: 0, name: "ここから変わる", say: "気にするでない。こういう場面を作ってきたのは、だいたいワシらオジサンのほうじゃ。まずは下の対策を1つだけ試してみい。" }
+  ];
+
+  var app = document.getElementById("app");
+  var idx = 0, answers = [], current = null;
+
+  function manSVG(mood) {
+    return '<svg class="man mood-' + mood + '" id="man" viewBox="0 0 100 152" role="img" aria-label="小さなオジサン">' +
+      '<ellipse class="shadow" cx="50" cy="146" rx="30" ry="4"/>' +
+      '<ellipse class="shoe" cx="39" cy="142" rx="10" ry="5"/><ellipse class="shoe" cx="61" cy="142" rx="10" ry="5"/>' +
+      '<rect class="suit" x="33" y="108" width="14" height="33" rx="3"/><rect class="suit" x="53" y="108" width="14" height="33" rx="3"/>' +
+      '<rect class="suit" x="17" y="72" width="11" height="36" rx="5.5"/><rect class="suit" x="72" y="72" width="11" height="36" rx="5.5"/>' +
+      '<circle class="skin" cx="22.5" cy="110" r="5.5"/><circle class="skin" cx="77.5" cy="110" r="5.5"/>' +
+      '<path class="suit" d="M26 76 Q26 64 38 64 L62 64 Q74 64 74 76 L74 116 Q74 120 70 120 L30 120 Q26 120 26 116 Z"/>' +
+      '<polygon class="shirt" points="42,64 58,64 50,86"/>' +
+      '<polygon class="tie" points="48,68 52,68 54,92 50,98 46,92"/>' +
+      '<ellipse class="hair" cx="27" cy="44" rx="5" ry="9"/><ellipse class="hair" cx="73" cy="44" rx="5" ry="9"/>' +
+      '<circle class="skin" cx="50" cy="40" r="24"/>' +
+      '<circle class="skin" cx="26.5" cy="43" r="4"/><circle class="skin" cx="73.5" cy="43" r="4"/>' +
+      '<circle class="ink" cx="42" cy="41" r="7.5" style="stroke-width:1.8"/><circle class="ink" cx="58" cy="41" r="7.5" style="stroke-width:1.8"/>' +
+      '<path class="ink" d="M49.5 41 L50.5 41" style="stroke-width:1.8"/>' +
+      '<circle class="eye" cx="42" cy="41" r="2"/><circle class="eye" cx="58" cy="41" r="2"/>' +
+      '<g class="m-n"><path class="brow" d="M35 31 L48 31"/><path class="brow" d="M52 31 L65 31"/></g>' +
+      '<g class="m-h"><path class="brow" d="M35 32 Q41 26 48 31"/><path class="brow" d="M52 31 Q59 26 65 32"/></g>' +
+      '<g class="m-s"><path class="brow" d="M35 33 L48 28"/><path class="brow" d="M52 28 L65 33"/></g>' +
+      '<circle cx="50" cy="48" r="3" fill="#D9A47F"/>' +
+      '<path class="hair" d="M39 54 Q44 49 50 52 Q56 49 61 54 Q56 58 50 56 Q44 58 39 54 Z"/>' +
+      '<path class="ink m-n" d="M45 62 L55 62"/>' +
+      '<path class="ink m-h" d="M43 60 Q50 68 57 60"/>' +
+      '<path class="ink m-s" d="M45 64 Q50 58 55 64"/>' +
+      '</svg>';
+  }
+
+  function ruler(done, total) {
+    var pct = Math.round(done / total * 100);
+    return '<div class="ruler-wrap"><div class="ruler-meta"><span>' + (done < total ? '第' + (done + 1) + '問' : 'おしまい') + '</span><span>全' + total + '問</span></div>' +
+      '<div class="ruler" role="progressbar" aria-valuemin="0" aria-valuemax="' + total + '" aria-valuenow="' + done + '"><div class="fill" style="width:' + pct + '%"></div></div></div>';
+  }
+
+  function shuffle(a) {
+    a = a.slice();
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    return a;
+  }
+
+  function setMood(m) {
+    var el = document.getElementById("man");
+    if (!el) return;
+    el.setAttribute("class", "man mood-" + m);
+  }
+  function bump() {
+    var el = document.getElementById("man");
+    if (!el) return;
+    el.classList.remove("bump"); void el.getBoundingClientRect(); el.classList.add("bump");
+  }
+
+  function showStart() {
+    idx = 0; answers = [];
+    app.innerHTML =
+      '<div class="stage"><div class="man-col">' + manSVG("normal") + '<div class="height-tag">身長 約15cm</div></div>' +
+      '<div class="bubble"><p>ワシは身長15センチの小さなオジサン。女性リーダーの苦労を、ワシが全部分かるとは言わん。</p><p>ただ、オジサンがどこで話を聞き流し、どこで物事を決めておるかは、よう知っておる。その手の内を、いっしょに見ていこうかの。</p></div></div>' +
+      '<h1>小さなオジサンの<br>新任女性リーダー<br>お困りごとトレーニング</h1>' +
+      '<p class="lead">最近チームを任された女性リーダー向け。全' + Q.length + '問・3〜5択。部下との関係、会議と社内外の場、自分を守る、の3つの場面(各4問)で、どう動くかを選んでください。ここでの「まともな判断」は、張り合わず、我慢もしすぎず、リーダーの手間が少なく済む動き方です。選ぶと、選んだものの解説と、まともな判断の解説が出ます。</p>' +
+      '<div class="actions"><button class="btn" id="go">はじめる</button></div>' +
+      '<p class="note">これは診断ではありません。登場する場面は、女性リーダーがぶつかりやすいと言われるものを集めたもので、すべての女性や男性に当てはまるわけではありません。「ありがちな判断」は、誰でも迷うものです。セクハラやパワハラにあたる言動は、ひとりで抱えず、上司や人事、社内の相談窓口に相談してください。</p>';
+    document.getElementById("go").addEventListener("click", showQuestion);
+    window.scrollTo(0, 0);
+  }
+
+  function showQuestion() {
+    var q = Q[idx];
+    var opts = shuffle(q.o.map(function (o, i) { return { o: o, i: i }; }));
+    current = { q: q, opts: opts, done: false };
+    var html = ruler(idx, Q.length) +
+      '<div class="stage"><div class="man-col">' + manSVG("normal") + '</div>' +
+      '<div class="bubble" id="bubble" aria-live="polite"><span class="scene-cat">' + q.cat + '・' + q.title + '</span><p>' + q.s + '</p></div></div>' +
+      '<div class="choices" id="choices">';
+    opts.forEach(function (x, k) {
+      html += '<button class="choice" data-k="' + k + '"><span class="ctext">' + x.o.t + '</span></button>';
+    });
+    html += '</div><div class="actions" id="actions"></div>';
+    app.innerHTML = html;
+    var btns = app.querySelectorAll(".choice");
+    for (var b = 0; b < btns.length; b++) {
+      btns[b].addEventListener("click", function (e) { choose(parseInt(e.currentTarget.getAttribute("data-k"), 10)); });
+    }
+    window.scrollTo(0, 0);
+  }
+
+  function choose(k) {
+    if (current.done) return;
+    current.done = true;
+    var q = current.q, picked = current.opts[k].o;
+    var isOk = !!picked.ok;
+    answers.push({ qi: idx, ok: isOk, tag: picked.tag || null, picked: picked.t });
+
+    var btns = app.querySelectorAll(".choice");
+    current.opts.forEach(function (x, n) {
+      var el = btns[n];
+      el.disabled = true;
+      var chipText, cls;
+      if (x.o.ok) { cls = "is-ok"; chipText = "まともな判断"; }
+      else { cls = "is-ng"; chipText = "ありがちな判断:" + TAGS[x.o.tag].name; if (n === k) cls += " picked-ng"; }
+      el.className = "choice " + cls;
+      if (!x.o.ok && n !== k) { el.style.display = "none"; return; }
+      el.innerHTML = '<span class="ctext">' + x.o.t + '</span>' +
+        '<span class="chip">' + chipText + '</span>' +
+        (n === k ? '<span class="picked-mark">あなたの選択</span>' : '') +
+        '<span class="why">' + x.o.why + '</span>';
+    });
+
+    var bubble = document.getElementById("bubble");
+    bubble.innerHTML = '<p><strong>' + (isOk ? "ほう、それが「まともな判断」じゃ。" : "それはよくある判断じゃ。責めんでええ。") + '</strong></p>' +
+      '<p>コツ:' + q.tip + '</p>';
+    setMood(isOk ? "happy" : "sad");
+    bump();
+
+    var last = idx === Q.length - 1;
+    var act = document.getElementById("actions");
+    act.innerHTML = '<button class="btn" id="next">' + (last ? "結果を見る" : "次の問題へ") + '</button>';
+    var nb = document.getElementById("next");
+    nb.addEventListener("click", function () {
+      if (last) { showResult(); } else { idx++; showQuestion(); }
+    });
+    nb.focus({ preventScroll: true });
+    var bar = document.querySelector(".ruler .fill");
+    if (bar) bar.style.width = Math.round((idx + 1) / Q.length * 100) + "%";
+    setTimeout(function () { bubble.scrollIntoView({ behavior: "smooth", block: "start" }); }, 60);
+  }
+
+  function showResult() {
+    var score = answers.filter(function (a) { return a.ok; }).length;
+    var rank = RANKS.filter(function (r) { return score >= r.min; })[0];
+    var counts = {};
+    answers.forEach(function (a) { if (a.tag) counts[a.tag] = (counts[a.tag] || 0) + 1; });
+    var keys = Object.keys(counts).sort(function (a, b) { return counts[b] - counts[a]; });
+
+    var html = ruler(Q.length, Q.length) +
+      '<div class="stage"><div class="man-col">' + manSVG(score >= 7 ? "happy" : "normal") + '</div>' +
+      '<div class="bubble"><p>' + rank.say + '</p></div></div>' +
+      '<div class="score-box"><div class="big">' + score + '<small> / ' + Q.length + '</small></div><div class="rank">' + rank.name + '</div></div>';
+
+    html += '<h2>つまずきやすい場面</h2>';
+    ["部下との関係", "会議と社内外の場", "自分を守る"].forEach(function (p) {
+      var tot = 0, okc = 0;
+      answers.forEach(function (a) { if (Q[a.qi].cat === p) { tot++; if (a.ok) okc++; } });
+      html += '<div class="tcard"><div class="th"><span>' + p + '</span><span class="cnt">' + okc + ' / ' + tot + '</span></div>' +
+        '<p class="fix">' + (okc === tot ? "ここは安定しています。" : PHASE_NOTE[p]) + '</p></div>';
+    });
+
+    html += '<h2>つい選びがちだった対応</h2>';
+    if (!keys.length) {
+      html += '<div class="tcard"><div class="th"><span>ありがちな対応は選ばなかった</span></div><p>全問「まともな判断」だった。実際のチームでも、この調子でいこう。</p></div>';
+    } else {
+      keys.slice(0, 3).forEach(function (t) {
+        html += '<div class="tcard"><div class="th"><span>' + TAGS[t].name + '</span><span class="cnt">' + counts[t] + '回</span></div>' +
+          '<p class="fix">対策:' + TAGS[t].fix + '</p></div>';
+      });
+      if (keys.length > 3) {
+        html += '<p class="lead">ほかにも:' + keys.slice(3).map(function (t) { return TAGS[t].name + '(' + counts[t] + '回)'; }).join('、') + '</p>';
+      }
+    }
+
+    html += '<h2>全問の振り返り</h2>';
+    answers.forEach(function (a) {
+      var q = Q[a.qi];
+      var correct = q.o.filter(function (o) { return o.ok; })[0];
+      html += '<details class="rv"><summary><span class="' + (a.ok ? 'mk-ok' : 'mk-ng') + '">' + (a.ok ? '○' : '×') + '</span> ' + q.cat + '・' + q.title + '</summary>' +
+        '<div class="rvbody"><p>' + q.s + '</p>' +
+        (a.ok ? '' : '<p><b>あなたの選択:</b>' + a.picked + '</p>') +
+        '<p><b>まともな判断:</b>' + correct.t + '</p><p>' + correct.why + '</p></div></details>';
+    });
+
+    html += '<div class="actions"><button class="btn ghost" id="again">もう一度やる</button></div>' +
+      '<p class="note">これは診断ではありません。「ありがちな判断」は誰にでも起こりうるものです。日常生活や仕事で困りごとが続く場合は、職場の相談窓口や専門機関に相談することもできます。</p>';
+    app.innerHTML = html;
+    document.getElementById("again").addEventListener("click", showStart);
+    window.scrollTo(0, 0);
+  }
+
+  showStart();
+})();
+</script>
+</body>
+</html>
