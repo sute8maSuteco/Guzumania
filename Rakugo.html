@@ -1,0 +1,439 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>噺家一代</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Yuji+Boku&family=Zen+Old+Mincho:wght@700;900&family=Zen+Kaku+Gothic+New:wght@400;700&display=swap">
+<style>
+/* Layout: one column on washi paper — a 定式幕 stripe, the player's めくり beside their numbers, the next-promotion checklist, the season's actions, then a diary. The 高座 opens as a lit stage over the page. */
+:root{
+  --paper:#efe9dc; --card:#f8f4ea; --ink:#231e19; --muted:#6e655a; --line:#d6cdbb;
+  --kaki:#b8582a; --moegi:#2f5d3a; --murasaki:#5b3d78; --gold:#a8822e; --stage:#2a211b;
+  --brush:'Yuji Boku','Hiragino Mincho ProN','Yu Mincho',serif;
+  --mincho:'Zen Old Mincho','Hiragino Mincho ProN','Yu Mincho',serif;
+  --body:'Zen Kaku Gothic New','Hiragino Sans','Yu Gothic',system-ui,sans-serif;
+  color-scheme:light;
+}
+html,body{background:var(--paper);color:var(--ink)}
+body{font-family:var(--body);padding-inline:16px;line-height:1.65}
+.maku{height:10px;background:repeating-linear-gradient(90deg,#1d1a17 0 36px,var(--kaki) 36px 72px,var(--moegi) 72px 108px)}
+.wrap{max-width:720px;margin:0 auto;padding-block:20px 48px;display:flex;flex-direction:column;gap:16px}
+header{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap}
+h1{font-family:var(--brush);font-weight:400;font-size:clamp(2.2rem,8vw,3rem);margin:0;line-height:1;letter-spacing:.08em}
+.when{font-family:var(--mincho);font-weight:700;font-size:.95rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.top{display:grid;grid-template-columns:auto 1fr;gap:16px;align-items:stretch}
+.mekuri{width:92px;background:#fffdf7;border:1px solid var(--line);box-shadow:0 2px 0 var(--line);display:flex;flex-direction:column;align-items:center;padding:10px 6px;gap:8px}
+.mekuri .rank{font-size:.72rem;letter-spacing:.2em;color:#fff;background:var(--kaki);padding:2px 6px;writing-mode:vertical-rl}
+.mekuri .nm{writing-mode:vertical-rl;font-family:var(--brush);font-size:1.7rem;line-height:1.05;letter-spacing:.06em;flex:1}
+.stats{background:var(--card);border:1px solid var(--line);padding:14px;display:grid;grid-template-columns:1fr 1fr;gap:10px 18px;min-width:0}
+@media (max-width:520px){.stats{grid-template-columns:1fr}}
+.st{display:flex;flex-direction:column;gap:3px;min-width:0}
+.st .lab{display:flex;justify-content:space-between;font-size:.8rem;color:var(--muted)}
+.st .lab b{color:var(--ink);font-family:var(--mincho);font-variant-numeric:tabular-nums}
+.bar{height:6px;background:#e3dccd;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--ink);transition:width .4s}
+.bar.hp i{background:var(--moegi)}.bar.tr i{background:var(--kaki)}.bar.og i{background:var(--murasaki)}
+.panel{background:var(--card);border:1px solid var(--line);padding:14px 16px}
+.panel h2{margin:0 0 8px;font-family:var(--mincho);font-weight:900;font-size:1.05rem;letter-spacing:.06em}
+.req{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:4px 16px;font-size:.88rem}
+.req li{display:flex;gap:8px;align-items:baseline}
+.req li::before{content:"○";color:var(--muted);font-weight:700}
+.req li.ok::before{content:"●";color:var(--moegi)}
+.req li.ok{color:var(--muted)}
+.acts{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
+.act{font:inherit;text-align:left;background:#fffdf7;color:var(--ink);border:1px solid var(--line);border-left:4px solid var(--ac,var(--ink));padding:10px 12px;cursor:pointer;display:flex;flex-direction:column;gap:2px;min-width:0}
+.act:hover:not(:disabled){border-color:var(--ac,var(--ink));background:#fff}
+.act:focus-visible{outline:2px solid var(--kaki);outline-offset:2px}
+.act:disabled{opacity:.45;cursor:not-allowed}
+.act b{font-size:1rem}
+.act span{font-size:.78rem;color:var(--muted)}
+.act.stage{--ac:var(--kaki)}.act.learn{--ac:var(--moegi)}.act.rest{--ac:var(--muted)}.act.og{--ac:var(--murasaki)}
+.diary ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:5px;font-size:.88rem;max-height:240px;overflow:auto}
+.diary li{padding-left:10px;border-left:2px solid var(--line)}
+.diary li.up{border-color:var(--kaki);font-weight:700}
+.diary li.good{border-color:var(--moegi)}
+.diary li.bad{border-color:#9b2c2c}
+.diary time{font-family:var(--mincho);color:var(--muted);margin-right:6px;font-size:.8rem}
+.repo{display:flex;flex-wrap:wrap;gap:6px;font-size:.8rem}
+.repo span{border:1px solid var(--line);padding:1px 8px;background:#fffdf7}
+.repo span i{font-style:normal;color:var(--muted);margin-left:4px;font-variant-numeric:tabular-nums}
+.repo span.t2{border-color:var(--kaki)}
+.note{font-size:.75rem;color:var(--muted);margin:0}
+/* modal */
+.modal{position:fixed;inset:0;z-index:20;background:rgba(20,16,12,.72);display:flex;align-items:center;justify-content:center;padding:16px;overflow:auto}
+.modal[hidden]{display:none}
+.sheet{width:min(100%,560px);background:var(--card);border-top:10px solid transparent;border-image:repeating-linear-gradient(90deg,#1d1a17 0 30px,var(--kaki) 30px 60px,var(--moegi) 60px 90px) 10;padding:20px;display:flex;flex-direction:column;gap:12px;max-height:100%;overflow:auto}
+.sheet h3{margin:0;font-family:var(--mincho);font-weight:900;font-size:1.4rem;line-height:1.35;text-wrap:balance}
+.sheet .kick{font-size:.75rem;letter-spacing:.24em;color:var(--kaki);font-weight:700}
+.sheet p{margin:0}
+.sheet .say{font-family:var(--mincho);font-weight:700;padding:10px 12px;background:#fffdf7;border-left:3px solid var(--kaki)}
+.choices{display:flex;flex-direction:column;gap:8px}
+.ch{font:inherit;text-align:left;background:#fffdf7;color:var(--ink);border:1px solid var(--line);padding:10px 12px;cursor:pointer;display:flex;justify-content:space-between;gap:10px;align-items:baseline}
+.ch:hover{border-color:var(--ink)}
+.ch:focus-visible{outline:2px solid var(--kaki);outline-offset:2px}
+.ch small{color:var(--muted);font-size:.78rem;white-space:nowrap}
+.btn{font:inherit;font-weight:700;background:var(--ink);color:var(--paper);border:none;padding:12px 18px;cursor:pointer;font-size:1rem}
+.btn.ghost{background:none;color:var(--ink);border:1px solid var(--ink)}
+.btn:focus-visible{outline:2px solid var(--kaki);outline-offset:2px}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+.scene{display:block;width:100%;height:auto;max-width:100%;background:var(--stage)}
+.laugh{display:flex;align-items:center;gap:10px;font-size:.8rem;color:var(--muted)}
+.laugh .bar{flex:1;height:10px}
+.laugh .bar i{background:var(--kaki)}
+.meter{position:relative;height:44px;background:#e3dccd;border:1px solid var(--ink);overflow:hidden}
+.meter .zone{position:absolute;top:0;bottom:0;background:rgba(184,88,42,.35);border-left:2px solid var(--kaki);border-right:2px solid var(--kaki)}
+.meter .core{position:absolute;top:0;bottom:0;width:2px;background:var(--kaki)}
+.meter .needle{position:absolute;top:-2px;bottom:-2px;width:4px;margin-left:-2px;background:var(--ink)}
+.big{font-family:var(--brush);font-size:2.4rem;line-height:1.1;text-align:center}
+.zabuton{display:flex;gap:3px;flex-wrap:wrap}
+.zabuton i{width:22px;height:14px;background:var(--murasaki);border-radius:3px}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+.scene .aud.l1 circle{animation:bob .9s ease-in-out infinite}
+.scene .aud.l2 circle{animation:bob .45s ease-in-out infinite}
+@media (prefers-reduced-motion:reduce){.scene .aud circle{animation:none!important}.bar i{transition:none}}
+</style>
+
+<div class="maku" aria-hidden="true"></div>
+<div class="wrap">
+  <header>
+    <h1>噺家一代</h1>
+    <span class="when" id="when"></span>
+  </header>
+  <section class="top">
+    <div class="mekuri"><span class="rank" id="rank"></span><span class="nm" id="nm"></span></div>
+    <div class="stats" id="stats"></div>
+  </section>
+  <section class="panel"><h2 id="reqTitle">次の昇進まで</h2><ul class="req" id="req"></ul></section>
+  <section class="panel"><h2>この季節、なにをする？</h2><div class="acts" id="acts"></div></section>
+  <section class="panel"><h2>持ちネタ</h2><div class="repo" id="repo"></div></section>
+  <section class="panel diary"><h2>噺家日記</h2><ol id="log"></ol></section>
+  <p class="note">登場する噺家・亭号はすべて架空です。実在の人物・番組とは関係ありません。</p>
+</div>
+<div class="modal" id="modal" hidden></div>
+
+<script>
+(()=>{
+'use strict';
+// ================= data
+const RANKS=['前座見習い','前座','二ツ目','真打','名人','笑点レギュラー'];
+const SEASONS=['春','夏','秋','冬'];
+const NETA=[
+ ['道灌',0,-1,0,'隠居に歌を教わった八っつぁん'],['寿限無',0,-1,0,'とびきり長い名前の子'],['子ほめ',0,-1,0,'ただ酒目当てのお世辞'],['たらちね',0,-1,3,'言葉が丁寧すぎる嫁'],
+ ['牛ほめ',0,-1,5,'普請をほめる与太郎'],['平林',0,-1,6,'読めない宛名'],['転失気',0,-1,8,'知ったかぶりの和尚'],['金明竹',0,-1,12,'上方弁の早口口上'],
+ ['時そば',1,3,20,'一文ごまかすそば屋の勘定'],['饅頭こわい',1,-1,20,'こわいものは饅頭'],['目黒のさんま',1,2,24,'さんまは目黒に限る'],['青菜',1,1,26,'植木屋の夏の涼'],
+ ['粗忽長屋',1,-1,28,'抱かれているのは俺だが'],['ちはやふる',1,-1,30,'百人一首の大胆な解釈'],['湯屋番',1,-1,32,'若旦那の番台の妄想'],['長短',1,-1,34,'気の長い男と短い男'],
+ ['火焔太鼓',1,-1,38,'売れた古道具の太鼓'],['死神',1,-1,44,'ろうそくの火と死神'],
+ ['井戸の茶碗',2,-1,55,'正直者どうしの押し問答'],['らくだ',2,-1,60,'屑屋と長屋の通夜'],['百年目',2,0,62,'花見で番頭がばれる'],['紺屋高尾',2,-1,65,'職人と花魁の純愛'],
+ ['居残り佐平次',2,-1,68,'居残る男の口八丁'],['文七元結',2,3,72,'五十両の財布と身投げ'],['芝浜',2,3,75,'大晦日の財布と夫婦']
+].map(([n,t,s,d,k])=>({n,t,s,d,k}));
+const TIERN=['前座噺','滑稽噺','大ネタ'];
+const MASTERS=[
+ {name:'月見亭 満月',style:'人情噺の名手。とにかく厳しい。',bonus:{gei:1.3,trust:.8,fans:1,og:1},names:['満丸','まん坊','月太郎']},
+ {name:'夕凪家 小波',style:'滑稽噺の爆笑派。陽気で面倒見がいい。',bonus:{gei:1,trust:1.3,fans:1,og:1,ma:1.3},names:['さざ波','小凪','波平']},
+ {name:'鶴屋 千歳',style:'テレビでおなじみの人気者。顔が広い。',bonus:{gei:.9,trust:1,fans:1.4,og:1.4},names:['千鳥','つる吉','鶴之助']},
+];
+const CROWDS=[
+ {n:'常連のご隠居さんたち',good:'昔の寄席の思い出話',ok:'季節の話題',bad:'流行りのスマホアプリの話'},
+ {n:'修学旅行の高校生',good:'学校の先生あるある',ok:'季節の話題',bad:'昔の名人の芸談'},
+ {n:'会社帰りの勤め人',good:'満員電車と上司の話',ok:'季節の話題',bad:'子育ての苦労話'},
+ {n:'外国人観光客のツアー',good:'扇子と手ぬぐいの見立てを実演',ok:'日本の四季の話',bad:'早口の言葉遊び'},
+ {n:'落語好きの若い女性たち',good:'楽屋の裏話',ok:'季節の話題',bad:'難しい古語の解説'},
+ {n:'ほろ酔いの団体さん',good:'酒のしくじり話',ok:'季節の話題',bad:'しんみりした身の上話'},
+];
+const OGIRI=[
+ {q:'こんな寄席はイヤだ。',a:[['めくりが電光掲示板で「次は 遅延」',2],['座布団がバランスボール',1],['お客さんが一人もいない',-1]]},
+ {q:'師匠が急にハイテクになった。ひとこと。',a:[['「破門の通知は、メールで送っといたぞ」',2],['扇子のかわりにスマホで扇ぐ',1],['「パソコンを買ったよ」',-1]]},
+ {q:'江戸っ子がスマホを持ったら？',a:[['「既読は宵越しにしねえ！」',2],['着信音が祭り囃子',1],['電話をかける',-1]]},
+ {q:'こんなそば屋はイヤだ。',a:[['勘定のたびに「いま何どきだい？」と聞き返してくる',2],['そばが一本ずつ出てくる',1],['値段が高い',-1]]},
+ {q:'お化けが就職の面接で、ひとこと。',a:[['「足はありませんが、腰は低いです」',2],['「夜勤は得意です」',1],['「よろしくお願いします」',-1]]},
+ {q:'座布団を十枚もらったら、どうする？',a:[['積み上げて、師匠を見下ろす',2],['並べて昼寝する',1],['売る',-1]]},
+];
+// ================= state
+let G=null;
+const SAVE='hanashika-save-v1';
+const $=id=>document.getElementById(id);
+const rnd=n=>Math.floor(Math.random()*n);
+const ri=(a,b)=>a+rnd(b-a+1);
+const clamp=(v,a=0,b=100)=>Math.max(a,Math.min(b,v));
+const shuffle=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=rnd(i+1);[a[i],a[j]]=[a[j],a[i]]}return a};
+function M(){return MASTERS[G.master]}
+function newState(m){return{master:m,name:'',rank:0,turn:0,rankTurn:0,age:22,gei:5,ma:5,fans:0,trust:20,hp:100,money:30,og:0,repo:{},best:0,tori:0,log:[],offerWait:0,shoten:0}}
+function save(){try{localStorage.setItem(SAVE,JSON.stringify(G))}catch(e){}}
+function load(){try{const s=localStorage.getItem(SAVE);return s?JSON.parse(s):null}catch(e){return null}}
+function fullName(){return G.name?`${M().name.split(' ')[0]} ${G.name}`:'名なし'}
+function stamp(){return`${Math.floor(G.turn/4)+1}年目${SEASONS[G.turn%4]}`}
+function log(t,cls=''){G.log.unshift({w:stamp(),t,cls})}
+function owned(){return Object.keys(G.repo).map(n=>NETA.find(x=>x.n===n))}
+function maxTier(r=G.rank){return r<=1?0:r===2?1:2}
+function bigMastered(){return owned().filter(x=>x.t===2&&G.repo[x.n]>=80).length}
+function add(k,v,mult){const m=mult?(M().bonus[mult]||1):1;const d=Math.round(v*m);G[k]=k==='fans'||k==='money'?Math.max(0,G[k]+d):clamp(G[k]+d);return d}
+// ================= requirements
+function reqs(){
+  const r=G.rank,n=Object.keys(G.repo).length;
+  if(r===0)return[['師匠の信頼 35',G.trust>=35],['持ちネタ 2席',n>=2]];
+  if(r===1)return[['前座として2年',G.rankTurn>=8],['持ちネタ 7席',n>=7],['師匠の信頼 55',G.trust>=55],['芸 25',G.gei>=25]];
+  if(r===2)return[['二ツ目として3年',G.rankTurn>=12],['持ちネタ 14席',n>=14],['芸 55',G.gei>=55],['間 50',G.ma>=50],['ファン 600人',G.fans>=600],['披露目の資金 200万円',G.money>=200]];
+  if(r===3)return[['芸 85',G.gei>=85],['間 80',G.ma>=80],['ファン 4,000人',G.fans>=4000],['大ネタを3席 仕上げる（習熟80）',bigMastered()>=3],['トリで大受け（90点）3回',G.tori>=3]];
+  if(r===4)return[['大喜利 60',G.og>=60],['ファン 8,000人',G.fans>=8000],['番組からのお声がけ',G.og>=60&&G.fans>=8000]];
+  return[];
+}
+// ================= render
+function render(){
+  $('when').textContent=`入門${Math.floor(G.turn/4)+1}年目・${SEASONS[G.turn%4]}　${G.age}歳`;
+  $('rank').textContent=RANKS[G.rank];$('nm').textContent=fullName();
+  const S=[['芸','gei',''],['間','ma',''],['師匠の信頼','trust','tr'],['体力','hp','hp']];
+  if(G.rank>=3)S.push(['大喜利','og','og']);
+  let h=S.map(([l,k,c])=>`<div class="st"><div class="lab"><span>${l}</span><b>${G[k]}</b></div><div class="bar ${c}"><i style="width:${G[k]}%"></i></div></div>`).join('');
+  h+=`<div class="st"><div class="lab"><span>ファン</span><b>${G.fans.toLocaleString()}人</b></div></div><div class="st"><div class="lab"><span>貯金</span><b>${G.money.toLocaleString()}万円</b></div></div><div class="st"><div class="lab"><span>師匠</span><b>${M().name}</b></div></div>`;
+  $('stats').innerHTML=h;
+  const rq=reqs();$('reqTitle').textContent=G.rank<5?`「${RANKS[G.rank+1]}」まで`:'到達';
+  $('req').innerHTML=rq.map(([l,ok])=>`<li class="${ok?'ok':''}">${l}</li>`).join('');
+  $('acts').innerHTML=ACTS.filter(a=>a.on()).map((a,i)=>{const dis=G.hp<a.hp||(a.can&&!a.can());return`<button class="act ${a.c}" data-id="${a.id}" type="button" ${dis?'disabled':''}><b>${a.n}</b><span>${a.d()}　体力−${a.hp}</span></button>`}).join('');
+  $('acts').querySelectorAll('.act').forEach(b=>b.addEventListener('click',()=>doAct(b.dataset.id)));
+  const o=owned().sort((a,b)=>a.t-b.t);
+  $('repo').innerHTML=o.length?o.map(x=>`<span class="t${x.t}">${x.n}<i>${G.repo[x.n]}</i></span>`).join(''):'<span>まだ一席も教わっていない</span>';
+  $('log').innerHTML=G.log.slice(0,60).map(l=>`<li class="${l.cls}"><time>${l.w}</time>${l.t}</li>`).join('');
+}
+// ================= actions
+const ACTS=[
+ {id:'learn',n:'稽古をつけてもらう',c:'learn',hp:10,on:()=>G.rank<5,d:()=>G.rank<3?'師匠に新しい噺を教わる':'他の師匠に大ネタを教わる'},
+ {id:'practice',n:'ネタをさらう',c:'learn',hp:10,on:()=>Object.keys(G.repo).length>0,d:()=>'持ちネタをひとつ磨く'},
+ {id:'gakuya',n:'楽屋で働く',c:'',hp:15,on:()=>G.rank<=1,d:()=>'着物を畳み、お茶を出し、太鼓を叩く'},
+ {id:'yose',n:'寄席の高座に上がる',c:'stage',hp:20,on:()=>G.rank>=1,can:()=>owned().some(x=>x.t<=maxTier()),d:()=>G.rank===1?'開口一番をつとめる':G.rank===2?'二ツ目として出番をもらう':'トリをつとめる'},
+ {id:'dokuen',n:'勉強会・独演会を開く',c:'stage',hp:30,on:()=>G.rank>=2,can:()=>owned().some(x=>x.t<=maxTier()),d:()=>G.rank===2?'勉強会を開く（会場費あり）':'独演会を開く（会場費あり）'},
+ {id:'watch',n:'名人の高座を聴きに行く',c:'learn',hp:5,on:()=>G.rank<5,d:()=>'客席から芸を盗む（木戸銭1万円）'},
+ {id:'ogiri',n:'大喜利の修業',c:'og',hp:10,on:()=>G.rank>=3,d:()=>'謎かけと即答の腕を上げる'},
+ {id:'media',n:'テレビ・ラジオに出る',c:'og',hp:15,on:()=>G.rank>=3,d:()=>'顔を売ってファンを増やす'},
+ {id:'rest',n:'休む',c:'rest',hp:0,on:()=>true,d:()=>G.rank<=1?'体力回復。前座が休むと師匠の目が…':'体力をしっかり回復'},
+];
+async function doAct(id){
+  if(!$('modal').hidden)return;
+  const a=ACTS.find(x=>x.id===id);if(G.hp<a.hp)return;
+  G.hp-=a.hp;
+  const r=await ACT_FN[id]();
+  if(r==='cancel'){G.hp+=a.hp;render();return}
+  await endSeason();
+}
+const ACT_FN={
+  async learn(){
+    const cand=shuffle(NETA.filter(x=>!G.repo[x.n]&&x.t<=Math.max(maxTier(),G.rank===0?0:maxTier())&&x.d<=G.gei+10)).slice(0,3);
+    if(!cand.length){await alertM('稽古','いまの腕では、教われる噺がありません。','芸を磨くか、昇進して格を上げましょう。');return'cancel'}
+    const i=await choose(G.rank<3?`${M().name}の稽古`:'他の師匠の稽古','どの噺を教わる？',cand.map(x=>({l:`${x.n}`,s:`${TIERN[x.t]}・${x.k}`})),true);
+    if(i<0)return'cancel';
+    const x=cand[i];G.repo[x.n]=20;const g=add('gei',ri(2,3),'gei');if(G.rank<3)add('trust',3,'trust');
+    log(`「${x.n}」を三遍稽古で教わった。芸+${g}`,'good');
+  },
+  async practice(){
+    const o=owned().sort((a,b)=>G.repo[a.n]-G.repo[b.n]);
+    const i=await choose('ネタをさらう','どの噺を磨く？',o.map(x=>({l:x.n,s:`習熟 ${G.repo[x.n]}・${TIERN[x.t]}`})),true);
+    if(i<0)return'cancel';
+    const x=o[i],up=ri(14,20);G.repo[x.n]=clamp(G.repo[x.n]+up);const m=add('ma',ri(1,2),'ma');
+    log(`「${x.n}」を稽古場でさらった。習熟+${up}、間+${m}`);
+  },
+  async gakuya(){
+    const t=add('trust',ri(6,10),'trust'),m=add('ma',1,'ma');if(G.rank===1)G.money+=3;
+    const e=['師匠の着物を、きれいに畳めた。','出囃子の太鼓が、少しうまくなった。','先輩のお茶の好みを覚えた。','楽屋で名人の芸談を聞けた。'][rnd(4)];
+    log(`${e} 信頼+${t}、間+${m}${G.rank===1?'、ワリ3万円':''}`);
+  },
+  async yose(){return kouza(G.rank===1?'kaikou':G.rank===2?'yose':'tori')},
+  async dokuen(){return kouza('dokuen')},
+  async watch(){
+    if(G.money<1){await alertM('名人の高座','木戸銭が払えません。','貯金がありません。');return'cancel'}
+    G.money-=1;const g=add('gei',ri(2,4),'gei'),m=add('ma',ri(1,3),'ma');
+    log(`客席から名人の「${NETA[ri(18,24)].n}」を聴いた。芸+${g}、間+${m}`,'good');
+  },
+  async ogiri(){const o=add('og',ri(6,9),'og');log(`謎かけ百本ノック。大喜利+${o}`,'good')},
+  async media(){const f=add('fans',ri(300,700),'fans');G.money+=20;log(`テレビの情報番組に出演。ファン+${f}、出演料20万円`,'good')},
+  async rest(){G.hp=clamp(G.hp+50);if(G.rank<=1){const t=add('trust',-4);log(`ゆっくり休んだ。……師匠の機嫌が少し悪い。信頼${t}`,'bad')}else log('ゆっくり休んだ。体力が戻った。')}
+};
+// ================= kouza minigame
+const VENUES={
+  kaikou:{n:'寄席・開口一番',cap:40,pay:1,fan:.25},
+  yose:{n:'寄席・二ツ目の出番',cap:120,pay:3,fan:.45},
+  tori:{n:'寄席・主任（トリ）',cap:250,pay:10,fan:.6},
+  dokuen:{n:'',cap:0,pay:0,fan:.8}
+};
+function sceneSVG(level=0){
+  const kim=G.rank<=1?'#4a4f57':G.rank===2?'#1d1a17':'#141210';
+  const haori=G.rank>=2?`<path d="M150 112 L132 168 L228 168 L210 112 Z" fill="#0d0b0a"/><circle cx="168" cy="122" r="3" fill="#e8e1d2"/><circle cx="192" cy="122" r="3" fill="#e8e1d2"/>`:'';
+  let aud='';for(let i=0;i<14;i++){const x=16+i*25.5,y=196+(i%2)*4;aud+=`<circle cx="${x}" cy="${y}" r="11" fill="#120e0b" style="animation-delay:${(i%5)*.08}s"/>`}
+  return`<svg class="scene" viewBox="0 0 360 210" aria-hidden="true">
+  <defs><radialGradient id="spot" cx=".5" cy=".35" r=".6"><stop offset="0" stop-color="#7a5b3a"/><stop offset="1" stop-color="#2a211b"/></radialGradient></defs>
+  <rect width="360" height="210" fill="url(#spot)"/>
+  <rect x="0" y="0" width="360" height="12" fill="#1d1a17"/><rect x="0" y="0" width="120" height="12" fill="#1d1a17"/><rect x="120" y="0" width="120" height="12" fill="#b8582a"/><rect x="240" y="0" width="120" height="12" fill="#2f5d3a"/>
+  <rect x="40" y="160" width="280" height="22" fill="#6b4126"/><rect x="40" y="160" width="280" height="4" fill="#8a5a36"/><rect x="40" y="176" width="280" height="10" fill="#9b2c2c"/>
+  <rect x="138" y="150" width="84" height="16" rx="5" fill="#5b3d78"/>
+  <path d="M146 112 Q180 100 214 112 L226 160 L134 160 Z" fill="${kim}"/>${haori}
+  <rect x="172" y="96" width="16" height="14" fill="#f1d6b8"/>
+  <circle cx="180" cy="84" r="17" fill="#f1d6b8"/><path d="M163 82 Q164 64 180 64 Q196 64 197 82 Q190 72 180 72 Q170 72 163 82 Z" fill="#1d1a17"/>
+  <path d="M174 88 Q180 ${level>1?96:92} 186 88" fill="none" stroke="#1d1a17" stroke-width="2"/>
+  <rect x="${level>0?212:200}" y="${level>0?116:132}" width="26" height="5" rx="1" fill="#e8e1d2" transform="rotate(${level>0?-35:-10} 212 130)"/>
+  <rect x="290" y="70" width="40" height="88" fill="#fffdf7"/><text x="310" y="80" font-family="Yuji Boku, serif" font-size="16" fill="#231e19" style="writing-mode:vertical-rl" text-anchor="start">${fullName().replace(' ','')}</text>
+  <g class="aud ${level>=2?'l2':level>=1?'l1':''}">${aud}</g>
+  </svg>`;
+}
+function sheet(inner){const m=$('modal');m.innerHTML=`<div class="sheet" role="dialog">${inner}</div>`;m.hidden=false;const f=m.querySelector('button');if(f)setTimeout(()=>{try{f.focus()}catch(e){}},30);return m}
+function closeM(){$('modal').hidden=true;$('modal').innerHTML=''}
+function choose(kick,title,items,cancel,extra=''){
+  return new Promise(res=>{
+    const m=sheet(`${extra}<span class="kick">${kick}</span><h3>${title}</h3><div class="choices">${items.map((it,i)=>`<button class="ch" data-i="${i}" type="button"><span>${it.l}</span><small>${it.s||''}</small></button>`).join('')}</div>${cancel?'<button class="btn ghost" data-i="-1" type="button">やめる</button>':''}`);
+    m.querySelectorAll('[data-i]').forEach(b=>b.addEventListener('click',()=>{closeM();res(+b.dataset.i)}));
+  });
+}
+function alertM(kick,title,body,btn='わかった'){
+  return new Promise(res=>{const m=sheet(`<span class="kick">${kick}</span><h3>${title}</h3>${body?`<p>${body}</p>`:''}<button class="btn" type="button">${btn}</button>`);m.querySelector('.btn').addEventListener('click',()=>{closeM();res()})});
+}
+function timing(head,label,zoneW,speed,level,laugh){
+  return new Promise(res=>{
+    const center=ri(30,70);
+    const m=sheet(`${sceneSVG(level)}<div class="laugh"><span>客席の笑い</span><div class="bar"><i style="width:${laugh}%"></i></div></div><span class="kick">${head}</span><h3>${label}</h3>
+      <div class="meter"><div class="zone" style="left:${center-zoneW/2}%;width:${zoneW}%"></div><div class="core" style="left:${center}%"></div><div class="needle" id="needle"></div></div>
+      <button class="btn" id="hit" type="button">ここで間をとる！（スペース）</button>`);
+    const nd=m.querySelector('#needle');let t0=performance.now(),raf,done=false,pos=0;
+    const step=now=>{const ph=((now-t0)/1000*speed)%2;pos=(ph<1?ph:2-ph)*100;nd.style.left=pos+'%';raf=requestAnimationFrame(step)};raf=requestAnimationFrame(step);
+    const hit=()=>{if(done)return;done=true;cancelAnimationFrame(raf);window.removeEventListener('keydown',kd);
+      const d=Math.abs(pos-center),half=zoneW/2;
+      const sc=d<=half?Math.round(100-40*(d/half)):Math.max(0,Math.round(55-(d-half)*3));
+      setTimeout(()=>{closeM();res(sc)},260)};
+    const kd=e=>{if(e.code==='Space'||e.key==='Enter'){e.preventDefault();hit()}};
+    window.addEventListener('keydown',kd);m.querySelector('#hit').addEventListener('click',hit);
+  });
+}
+async function kouza(kind){
+  let V={...VENUES[kind]};
+  if(kind==='dokuen'){
+    const cap=Math.round(40+G.fans*.12),cost=Math.round(5+cap*.04);
+    if(G.money<cost){await alertM('会場','会場費が足りません。',`会場費 ${cost}万円が必要です。`);return'cancel'}
+    G.money-=cost;V={n:G.rank===2?'勉強会':'独演会',cap,pay:0,fan:.8,cost};
+  }
+  const crowd=CROWDS[rnd(CROWDS.length)],season=G.turn%4;
+  const list=owned().filter(x=>x.t<=maxTier()).sort((a,b)=>b.t-a.t||G.repo[b.n]-G.repo[a.n]);
+  const i=await choose(`${V.n}　客席：${crowd.n}（${V.cap}人）`,'どの噺をかける？',list.map(x=>({l:`${x.n}${x.s===season?'　★旬':''}`,s:`習熟 ${G.repo[x.n]}・${TIERN[x.t]}`})),false,sceneSVG(0));
+  const x=list[i],mast=G.repo[x.n];
+  // makura
+  const opts=shuffle([['good',crowd.good],['ok',crowd.ok],['bad',crowd.bad]]);
+  const j=await choose(`マクラ　客席：${crowd.n}`,`「${x.n}」に入る前に、どんな話でつかむ？`,opts.map(o=>({l:o[1]})),false,sceneSVG(0));
+  const warm={good:85,ok:55,bad:18}[opts[j][0]];
+  let laugh=Math.round(warm*.3);
+  const zone=clamp(9+G.ma*.2+mast*.12,9,42),base=.75+x.t*.2;
+  const taps=[];
+  for(let k=0;k<3;k++){
+    const sc=await timing(`本題「${x.n}」　くすぐり ${k+1}/3`,['最初のくすぐり。','畳みかける。','もうひと押し。'][k],zone,base+k*.18,laugh>=60?2:laugh>=35?1:0,laugh);
+    taps.push(sc);laugh=Math.round(warm*.2+taps.reduce((a,b)=>a+b,0)/taps.length*.55*Math.min(1,(k+1)/3)+G.gei*.1);
+  }
+  const sage=await timing(`サゲ「${x.n}」`,'最後のサゲ。ここで決める！',zone*.7,base+.6,laugh>=60?2:laugh>=35?1:0,laugh);
+  let score=warm*.2+taps.reduce((a,b)=>a+b,0)/3*.55+sage*.25;
+  score=score*.85+G.gei*.15+(x.s===season?8:0)+(x.t===2&&kind==='tori'?4:0);
+  score=Math.round(clamp(score));
+  const react=score>=90?['大爆笑','拍手喝采、追い出し太鼓が聞こえない。']:score>=70?['よく受けた','客席がよく揺れた。']:score>=45?['まずまず','あたたかい笑いだった。']:score>=25?['クスクス','お客さんが優しかった。']:['シーン……','咳払いがよく響いた。'];
+  // rewards
+  const fan=Math.round(V.cap*V.fan*score/100*(M().bonus.fans||1));
+  let pay=V.pay;if(kind==='dokuen')pay=Math.round(V.cap*.35*score/100+V.cap*.05);
+  G.fans+=fan;G.money+=pay;G.repo[x.n]=clamp(mast+6);const g=add('gei',score>=70?2:1,'gei'),m=add('ma',score>=60?2:1,'ma');
+  if(G.rank<=2&&score<25)add('trust',-3);
+  if(kind==='tori'&&score>=90)G.tori++;
+  G.best=Math.max(G.best,score);
+  log(`${V.n}で「${x.n}」。${react[0]}（${score}点）。ファン+${fan}、${kind==='dokuen'?`売上${pay}万円（会場費${V.cost}万円）`:`ワリ${pay}万円`}`,score>=70?'good':score<25?'bad':'');
+  await new Promise(res=>{const mm=sheet(`${sceneSVG(score>=70?2:score>=40?1:0)}<span class="kick">${V.n}「${x.n}」</span><p class="big">${react[0]}</p><p style="text-align:center">${react[1]}</p>
+    <p class="say">得点 ${score}点　ファン+${fan}人　${kind==='dokuen'?`売上${pay}万円`:`ワリ${pay}万円`}${x.s===season?'　（旬の噺 +8）':''}${kind==='tori'&&score>=90?'　トリで大受け！':''}</p><button class="btn" type="button">楽屋へ戻る</button>`);
+    mm.querySelector('.btn').addEventListener('click',()=>{closeM();res()})});
+}
+// ================= season end, events, promotions
+const EVENTS=[
+ {on:()=>G.rank<=1,f:()=>{const t=add('trust',-8);return[`師匠の着物を、裏返しに畳んでしまった。信頼${t}`,'bad']}},
+ {on:()=>G.rank<=1,f:()=>{const t=add('trust',6,'trust'),m=add('ma',2);return[`二番太鼓を師匠に褒められた。信頼+${t}、間+${m}`,'good']}},
+ {on:()=>G.rank<=1,f:()=>{const g=add('gei',3);return[`先輩が急に休み、代演で高座に上がった。芸+${g}`,'good']}},
+ {on:()=>G.rank===2,f:()=>{G.fans+=150;return['「若手落語家」の特集で雑誌に載った。ファン+150','good']}},
+ {on:()=>G.rank===2,f:()=>{const g=add('gei',3);return[`勉強会の客が三人だった。悔しさで稽古に熱が入る。芸+${g}`,'']}},
+ {on:()=>G.rank>=2,f:()=>{G.money+=40;return['ひいきの旦那が祝儀をくれた。40万円','good']}},
+ {on:()=>G.rank>=3,f:()=>{G.fans+=400;G.money-=10;return['弟子入り志願者がやって来た。弟子をとった。ファン+400','good']}},
+ {on:()=>G.rank>=3,f:()=>{G.fans+=500;G.money+=30;return['ラジオのレギュラー番組が決まった。ファン+500、30万円','good']}},
+ {on:()=>true,f:()=>{G.hp=clamp(G.hp-25);return['風邪をひいて寝込んだ。体力−25','bad']}},
+ {on:()=>true,f:()=>{const m=add('ma',3);return[`高座の最中に携帯が鳴ったが、うまくアドリブで受けた。間+${m}`,'good']}},
+];
+async function endSeason(){
+  // event
+  if(Math.random()<.35){const pool=EVENTS.filter(e=>e.on());const [t,c]=pool[rnd(pool.length)].f();log(t,c);await alertM('できごと',t.split('。')[0]+'。',t.split('。').slice(1).join('。'))}
+  G.turn++;G.rankTurn++;if(G.turn%4===0)G.age++;
+  G.hp=clamp(G.hp+10);
+  if(G.offerWait>0)G.offerWait--;
+  // hamon
+  if(G.rank<3&&G.trust<=0){render();return gameOver('破門','師匠から「もう来なくていい」と言われた。',`${M().name}の一門を去ることになった。`)}
+  if(G.age>=80){return ending(false)}
+  await promote();
+  if(G.rank>=5)return;
+  save();render();
+}
+async function promote(){
+  const ok=reqs().every(r=>r[1]);if(!ok||G.rank>=5)return;
+  if(G.rank===0){
+    const nm=M().names;
+    const i=await choose('前座昇進','師匠から名前をもらう。どれにする？',nm.map(n=>({l:`${M().name.split(' ')[0]} ${n}`})),false,`<p class="say">${M().name}「おまえ、楽屋に入っていいぞ。名前をやろう」</p>`);
+    G.name=nm[i];G.rank=1;G.rankTurn=0;log(`前座になり、「${fullName()}」の名をもらった。`,'up');
+    await alertM('前座昇進',`今日から「${fullName()}」。`,'楽屋に入り、開口一番で高座に上がれるようになった。寄席では前座噺しかかけられない。');
+  }else if(G.rank===1){
+    G.rank=2;G.rankTurn=0;add('trust',5);log('二ツ目に昇進した。羽織を着られるようになった。','up');
+    await alertM('二ツ目昇進','羽織が着られる。','楽屋働きから解放された。勉強会を開けるようになり、滑稽噺をかけられる。');
+  }else if(G.rank===2){
+    G.money-=200;G.rank=3;G.rankTurn=0;G.fans+=300;log('真打に昇進した。披露目に200万円、口上で一門がずらりと並んだ。','up');
+    await alertM('真打昇進',`${fullName()}、真打に。`,'昇進披露興行の口上に、師匠と一門が並んだ。寄席のトリがとれるようになり、大ネタもかけられる。テレビや大喜利の仕事も来るようになった。');
+  }else if(G.rank===3){
+    G.rank=4;G.rankTurn=0;log('世間が「名人」と呼びはじめた。','up');
+    await alertM('名人',`「${fullName()}は名人だ」`,'評論家も客も、口をそろえてそう言うようになった。あとは、日曜夕方のあの大喜利番組だけ。');
+  }else if(G.rank===4){
+    if(G.offerWait>0)return;
+    await alertM('お声がけ','大喜利番組のプロデューサーから電話が来た。','「次の収録、ゲスト回答者で出ていただけませんか。座布団が7枚たまれば、レギュラーの話を進めます」','収録へ向かう');
+    const z=await taping();
+    if(z>=7){G.rank=5;log(`笑点の収録で座布団${z}枚。新レギュラーに決まった！`,'up');return ending(true,z)}
+    G.offerWait=4;add('og',-5);log(`大喜利番組の収録。座布団${z}枚で、レギュラーは見送り。`,'bad');
+    await alertM('収録終了',`座布団は ${z}枚。`,'今回はレギュラーの話は見送りに。大喜利を磨いて、また声がかかるのを待とう（1年後）。');
+  }
+}
+async function taping(){
+  let z=G.og>=80?1:0;const qs=shuffle(OGIRI).slice(0,5);
+  for(let k=0;k<qs.length;k++){
+    const q=qs[k],as=shuffle(q.a);
+    const cushions=`<div class="zabuton" aria-label="座布団${z}枚">${'<i></i>'.repeat(Math.max(0,z))}</div>`;
+    const i=await choose(`大喜利 ${k+1}/5　座布団 ${z}枚`,`お題「${q.q}」`,as.map(a=>({l:a[0]})),false,cushions);
+    const v=as[i][1];z=Math.max(0,z+v);
+    await alertM(v===2?'座布団 2枚！':v===1?'座布団 1枚':'一枚 持ってって！',v===2?'客席が割れんばかりの笑い。':v===1?'そこそこの笑い。':'座布団運びが、一枚持っていった。','');
+  }
+  return z;
+}
+function gameOver(kick,title,body){
+  try{localStorage.removeItem(SAVE)}catch(e){}
+  return new Promise(()=>{const m=sheet(`<span class="kick">${kick}</span><h3>${title}</h3><p>${body}</p><p class="say">入門${Math.floor(G.turn/4)+1}年目　${G.age}歳　持ちネタ${Object.keys(G.repo).length}席　最高の高座 ${G.best}点</p><div class="row"><button class="btn" id="again" type="button">入門しなおす</button></div>`);
+    m.querySelector('#again').addEventListener('click',()=>{try{localStorage.removeItem(SAVE)}catch(e){};closeM();start()})});
+}
+function ending(won,z){
+  try{localStorage.removeItem(SAVE)}catch(e){}
+  render();
+  const n=Object.keys(G.repo).length;
+  const html=won?`<span class="kick">新レギュラー誕生</span><h3>「${fullName()}」、日曜夕方の顔に。</h3>
+    <p>${G.age}歳。入門から${Math.floor(G.turn/4)}年。前座見習いの日の、着物の畳み方を思い出す。</p>
+    <p class="say">座布団 ${z}枚　持ちネタ ${n}席　ファン ${G.fans.toLocaleString()}人　最高の高座 ${G.best}点</p>
+    <p>${M().name}「……まあ、まだまだだな」<br>そう言って、師匠は少しだけ笑った。</p>`
+   :`<span class="kick">生涯一噺家</span><h3>${fullName()}、八十歳。</h3><p>大喜利の座布団には届かなかったが、今日も寄席の高座に上がる。</p><p class="say">到達：${RANKS[G.rank]}　持ちネタ ${n}席　ファン ${G.fans.toLocaleString()}人　最高の高座 ${G.best}点</p>`;
+  const m=sheet(`${html}<div class="row"><button class="btn" id="again" type="button">もう一度 入門する</button></div>`);
+  m.querySelector('#again').addEventListener('click',()=>{closeM();start()});
+}
+// ================= start
+function start(){
+  const sv=load();
+  const intro=`<span class="kick">江戸落語 入門</span><h3>前座見習いから、名人へ。そして日曜夕方の大喜利へ。</h3>
+   <p>季節ごとに一つ行動を選びます。稽古で噺を覚え、寄席で「間」をはかって笑いをとり、師匠の信頼を失わないように。信頼が0になると破門です。</p>`;
+  if(sv){
+    const m=sheet(`${intro}<div class="row"><button class="btn" id="cont" type="button">つづきから（${RANKS[sv.rank]}・${sv.age}歳）</button><button class="btn ghost" id="fresh" type="button">新しく入門する</button></div>`);
+    m.querySelector('#cont').addEventListener('click',()=>{G=sv;closeM();render()});
+    m.querySelector('#fresh').addEventListener('click',()=>{closeM();pickMaster(intro)});
+  }else pickMaster(intro);
+}
+async function pickMaster(intro){
+  const i=await choose('弟子入り','どの師匠の門を叩く？',MASTERS.map(m=>({l:m.name,s:m.style})),false,intro);
+  G=newState(i);log(`${MASTERS[i].name}の家の前で、三日間頭を下げつづけ、弟子入りを許された。`,'up');
+  save();render();
+}
+G=newState(0);render();start();
+})();
+</script>
+
+</body></html>

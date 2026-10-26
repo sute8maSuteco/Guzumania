@@ -1,0 +1,244 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>無限探偵事務所</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@600;800&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* 事件ファイル型レイアウト：上部に事務所の帳簿、中央に1件の調書、下に事務所の強化 */
+:root{
+  --bg:#e9edf2; --paper:#f8fafc; --ink:#1d2533; --muted:#5d6878; --line:#cdd5df;
+  --lamp:#b9771f; --lamp-soft:#f3e3c7; --ok:#2f7d55; --ng:#b23a3a; --chip:#e3e8ef;
+  --display:"Shippori Mincho B1","Hiragino Mincho ProN",serif;
+  --body:"Zen Kaku Gothic New","Hiragino Sans","Noto Sans JP",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#121821; --paper:#1a222e; --ink:#e4e9f0; --muted:#94a0b2; --line:#2c3746;
+  --lamp:#e2a64e; --lamp-soft:#3a2e1c; --ok:#5fbf8a; --ng:#e07171; --chip:#243041; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121821; --paper:#1a222e; --ink:#e4e9f0; --muted:#94a0b2; --line:#2c3746;
+  --lamp:#e2a64e; --lamp-soft:#3a2e1c; --ok:#5fbf8a; --ng:#e07171; --chip:#243041; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.6;padding-inline:16px;padding-block:16px 40px}
+.wrap{max-width:640px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+h1{font-family:var(--display);font-weight:800;font-size:1.6rem;margin:0;letter-spacing:.04em;text-wrap:balance}
+.ledger{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.ledger div{background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:8px 10px;min-width:0}
+.ledger small{display:block;color:var(--muted);font-size:.72rem;letter-spacing:.06em}
+.ledger b{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:1.05rem}
+.rank{color:var(--lamp);font-family:var(--display);font-weight:600}
+.file{background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:18px;display:flex;flex-direction:column;gap:16px;box-shadow:0 1px 0 var(--line)}
+.fileno{font-family:var(--mono);font-size:.78rem;color:var(--muted);letter-spacing:.08em}
+.case-title{font-family:var(--display);font-size:1.3rem;font-weight:800;margin:2px 0 4px;text-wrap:balance}
+.summary{margin:0;color:var(--ink)}
+.actions-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.pips{display:flex;gap:5px;flex-wrap:wrap}
+.pip{width:14px;height:14px;border-radius:50%;border:2px solid var(--lamp);background:var(--lamp)}
+.pip.used{background:transparent;opacity:.45}
+.label{font-size:.75rem;color:var(--muted);letter-spacing:.08em;font-weight:700}
+.scene{display:grid;gap:8px}
+.clue{display:flex;gap:10px;align-items:center;justify-content:space-between;border:1px dashed var(--line);border-radius:6px;padding:10px 12px}
+.clue p{margin:0;min-width:0}
+.clue.found{border-style:solid;background:var(--lamp-soft);border-color:transparent}
+.clue .k{font-weight:700;color:var(--lamp)}
+button{font:inherit;cursor:pointer;border-radius:6px;border:1px solid var(--line);background:var(--paper);color:var(--ink);padding:7px 12px;font-size:.85rem;font-weight:500;white-space:nowrap}
+button:hover:not(:disabled){border-color:var(--lamp)}
+button:focus-visible{outline:2px solid var(--lamp);outline-offset:2px}
+button:disabled{opacity:.4;cursor:default}
+.btn-main{background:var(--lamp);color:var(--paper);border-color:var(--lamp);font-weight:700;padding:10px 18px;font-size:.95rem}
+.suspects{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media (max-width:460px){.suspects{grid-template-columns:1fr}.ledger{grid-template-columns:1fr 1fr}}
+.sus{border:1px solid var(--line);border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:8px;min-width:0;position:relative}
+.sus.out{opacity:.45}
+.sus.out .nm{text-decoration:line-through}
+.sus.culprit{border:2px solid var(--ng)}
+.nm{font-family:var(--display);font-weight:800;font-size:1.1rem}
+.job{color:var(--muted);font-size:.8rem;margin-left:6px;font-family:var(--body);font-weight:400}
+.traits{display:flex;gap:6px;flex-wrap:wrap}
+.chip{background:var(--chip);border-radius:4px;padding:2px 8px;font-size:.78rem}
+.chip.match{outline:1.5px solid var(--lamp)}
+.alibi{font-size:.82rem;color:var(--muted);margin:0}
+.alibi.ok{color:var(--ok)}.alibi.ng{color:var(--ng)}
+.sus-btns{display:flex;gap:6px;flex-wrap:wrap}
+.sus-btns button{padding:5px 9px;font-size:.78rem}
+.accuse{border-color:var(--ng);color:var(--ng)}
+.accuse.arm{background:var(--ng);color:var(--paper)}
+.memo{position:absolute;top:8px;right:8px;padding:2px 7px;font-size:.72rem;color:var(--muted)}
+.result{border-radius:8px;padding:14px 16px;display:flex;flex-direction:column;gap:8px}
+.result.win{background:color-mix(in srgb,var(--ok) 14%,var(--paper))}
+.result.lose{background:color-mix(in srgb,var(--ng) 14%,var(--paper))}
+.result h3{font-family:var(--display);margin:0;font-size:1.25rem}
+.result p{margin:0}
+.stamp{font-family:var(--display);font-weight:800;letter-spacing:.2em}
+details{background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:12px 16px}
+summary{cursor:pointer;font-weight:700;font-family:var(--display)}
+.shop{display:grid;gap:8px;margin-top:10px}
+.item{display:flex;justify-content:space-between;align-items:center;gap:10px;border-top:1px solid var(--line);padding-top:8px}
+.item p{margin:0;min-width:0;font-size:.85rem}
+.item b{display:block;font-size:.92rem}
+.log{list-style:none;margin:10px 0 0;padding:0;font-size:.82rem;display:grid;gap:4px}
+.log li{display:flex;gap:8px;font-variant-numeric:tabular-nums}
+.log .m{font-family:var(--mono);color:var(--muted)}
+.hint{color:var(--muted);font-size:.8rem;margin:0}
+@media (prefers-reduced-motion:no-preference){.result{animation:pop .35s ease-out}@keyframes pop{from{transform:scale(.97)}to{transform:none}}}
+</style>
+
+<div class="wrap">
+  <header style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap">
+    <h1>無限探偵事務所</h1>
+    <span class="rank" id="rank"></span>
+  </header>
+  <div class="ledger" id="ledger"></div>
+  <section class="file" id="file"></section>
+  <details id="shopBox"><summary>事務所を強化する</summary><div class="shop" id="shop"></div></details>
+  <details><summary>遊び方</summary>
+    <p class="hint" style="margin-top:8px">行動ポイントを使って現場を調べ、容疑者の特徴とアリバイを確かめます。犯人は「現場の手がかりにすべて当てはまり、アリバイの裏付けがない」ただ一人。行動を残して解決するほど報酬が増えます。確信がなくても告発はいつでもできます。</p>
+  </details>
+  <details><summary>事件簿</summary><ul class="log" id="log"></ul></details>
+</div>
+
+<script>
+const ATTR=[
+ {label:'利き手',vals:['右利き','左利き'],btn:'傷を調べる',clue:['傷は右手で付けられている','傷は左手で付けられている']},
+ {label:'靴',vals:['革靴','スニーカー'],btn:'足跡を調べる',clue:['床に革靴の硬い足跡','床にスニーカーの靴底の跡']},
+ {label:'喫煙',vals:['喫煙者','非喫煙者'],btn:'灰皿を調べる',clue:['灰皿にまだ温かい吸い殻','灰皿は空で煙草の匂いもない']}
+];
+const SURN=['黒木','白石','緋村','青柳','藤堂','桐生','早乙女','御堂','鷺沢','久遠','如月','一条','東雲','柊','真壁','氷室','葛城','綾瀬','千早','宗像','九条','雨宮','神楽坂','月岡'];
+const JOBS=['執事','家政婦','画商','医師','作家','弁護士','庭師','料理長','秘書','甥','元刑事','女優','記者','骨董商','牧師','令嬢','音楽家','運転手','占い師','株仲買人'];
+const PLACES=['霧深い山荘','海辺の洋館','寝台特急の食堂車','閉館後の美術館','老舗の温泉旅館','豪華客船の船室','時計塔のある大学','古書店の地下室','雪に閉ざされたホテル','劇場の楽屋'];
+const CRIMES=['当主の金庫から家宝の宝石が消えた','主催者の書斎が荒らされ、遺言状が盗まれた','展示中の名画がすり替えられた','招待客の一人が毒入りのワインで倒れた（命に別状なし）','秘蔵の古地図が忽然と姿を消した','鍵のかかった部屋で当主が殴打された'];
+const TIMES=['午後8時','午後9時','午後10時','午後11時','深夜0時'];
+const WIT=['料理長','フロント係','車掌','守衛','女中頭','バーテンダー','船長','管理人'];
+const SPOTS=['ラウンジ','食堂','図書室','中庭','バー','ビリヤード室','温室','玄関ホール'];
+const ALONE=['自室で一人で休んでいた','散歩に出ていた','風呂に入っていた','書き物をしていた','気分が悪く横になっていた'];
+const RANKS=[[0,'新米探偵'],[5,'駆け出し探偵'],[15,'一人前の探偵'],[30,'敏腕探偵'],[60,'名探偵'],[100,'伝説の名探偵']];
+const UPG={
+ assist:{name:'助手を雇う',desc:'毎回の行動 +1',max:4,cost:l=>[300,800,1800,4000][l]},
+ inform:{name:'情報屋と契約',desc:'事件開始時に容疑者1人の特徴が判明',max:2,cost:l=>[500,2000][l]},
+ card:{name:'名刺を刷り直す',desc:'報酬 +20%',max:5,cost:l=>Math.round(200*Math.pow(2.2,l))}
+};
+const rnd=n=>Math.floor(Math.random()*n), pick=a=>a[rnd(a.length)];
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=rnd(i+1);[a[i],a[j]]=[a[j],a[i]]}return a};
+const yen=n=>'¥'+n.toLocaleString('ja-JP');
+
+let S;
+function fresh(){return{money:0,solved:0,failed:0,streak:0,best:0,upg:{assist:0,inform:0,card:0},log:[],no:0,cur:null}}
+function load(){try{const r=localStorage.getItem('mugen-tantei');if(r)return Object.assign(fresh(),JSON.parse(r))}catch(e){}return fresh()}
+function save(){try{localStorage.setItem('mugen-tantei',JSON.stringify(S))}catch(e){}}
+function rankOf(n){let r=RANKS[0][1];for(const[t,name]of RANKS)if(n>=t)r=name;return r}
+
+function genCase(){
+  const n=S.solved>=40?6:S.solved>=15?5:4;
+  const decoys=S.solved>=30?2:1;
+  let sus,cul;
+  for(let k=0;k<1000;k++){
+    const names=shuffle(SURN),jobs=shuffle(JOBS);
+    sus=Array.from({length:n},(_,i)=>({name:names[i],job:jobs[i],t:ATTR.map(()=>rnd(2)),alibi:true,rt:false,ra:false,out:false}));
+    cul=rnd(n);sus[cul].alibi=false;
+    shuffle(sus.map((_,i)=>i).filter(i=>i!==cul)).slice(0,decoys).forEach(i=>sus[i].alibi=false);
+    const same=(a,b)=>a.t.every((v,i)=>v===b.t[i]);
+    const unique=sus.filter(s=>same(s,sus[cul])&&!s.alibi).length===1;
+    const lookalike=sus.some((s,i)=>i!==cul&&s.t.filter((v,j)=>v===sus[cul].t[j]).length>=2);
+    if(unique&&lookalike)break;
+  }
+  const time=pick(TIMES);
+  sus.forEach(s=>{s.say=s.alibi?`${time}は${pick(SPOTS)}にいた。${pick(WIT)}が姿を見ている`:`${time}は${pick(ALONE)}。誰にも会っていない`});
+  const max=6+(n-4)+S.upg.assist;
+  S.no++;
+  const c={no:S.no,place:pick(PLACES),crime:pick(CRIMES),time,sus,cul,scene:ATTR.map(()=>false),max,left:max,done:false,arm:-1,inform:[]};
+  shuffle(sus.map((_,i)=>i)).slice(0,S.upg.inform).forEach(i=>{sus[i].rt=true;c.inform.push(i)});
+  S.cur=c;save();
+}
+
+function spend(){const c=S.cur;if(c.left<=0||c.done)return false;c.left--;return true}
+
+function act(type,i){
+  const c=S.cur;
+  if(type==='next'){genCase();return render()}
+  if(c.done)return;
+  if(type==='scene'&&!c.scene[i]&&spend())c.scene[i]=true;
+  else if(type==='trait'&&!c.sus[i].rt&&spend())c.sus[i].rt=true;
+  else if(type==='alibi'&&!c.sus[i].ra&&spend())c.sus[i].ra=true;
+  else if(type==='memo')c.sus[i].out=!c.sus[i].out;
+  else if(type==='accuse'){
+    if(c.arm!==i){c.arm=i;render();return}
+    finish(i);
+  }
+  if(type!=='accuse')c.arm=-1;
+  save();render();
+}
+
+function finish(i){
+  const c=S.cur;c.done=true;c.pick=i;
+  const win=i===c.cul;
+  if(win){
+    S.streak++;S.best=Math.max(S.best,S.streak);S.solved++;
+    const diff=1+(c.sus.length-4)*0.5;
+    c.reward=Math.round((100+c.left*25)*diff*(1+S.upg.card*0.2)*(1+Math.min(S.streak-1,10)*0.1));
+    S.money+=c.reward;
+  }else{S.streak=0;S.failed++;c.reward=0}
+  c.win=win;
+  S.log.unshift({no:c.no,place:c.place,cul:c.sus[c.cul].name,win,r:c.reward});S.log=S.log.slice(0,30);
+  save();
+}
+
+function buy(k){const l=S.upg[k],u=UPG[k];if(l>=u.max)return;const cost=u.cost(l);if(S.money<cost)return;S.money-=cost;S.upg[k]++;save();render()}
+
+function render(){
+  const c=S.cur;
+  document.getElementById('rank').textContent=rankOf(S.solved);
+  document.getElementById('ledger').innerHTML=
+    `<div><small>報酬金</small><b>${yen(S.money)}</b></div><div><small>解決</small><b>${S.solved}</b></div>`+
+    `<div><small>連続解決</small><b>${S.streak}</b></div><div><small>最高記録</small><b>${S.best}</b></div>`;
+  const pips=Array.from({length:c.max},(_,k)=>`<span class="pip ${k>=c.left?'used':''}"></span>`).join('');
+  const scene=ATTR.map((a,k)=>c.scene[k]||c.done
+    ?`<div class="clue found"><p><span class="k">${a.label}</span>　${a.clue[c.sus[c.cul].t[k]]}</p></div>`
+    :`<div class="clue"><p class="hint">${a.label}の手がかり（未調査）</p><button data-a="scene" data-i="${k}" ${c.left?'':'disabled'}>${a.btn}</button></div>`).join('');
+  const sus=c.sus.map((s,k)=>{
+    const show=s.rt||c.done, al=s.ra||c.done;
+    const chips=ATTR.map((a,j)=>{const m=show&&c.scene[j]&&s.t[j]===c.sus[c.cul].t[j];return `<span class="chip ${m?'match':''}">${show?a.vals[s.t[j]]:a.label+'？'}</span>`}).join('');
+    const btns=c.done?'':`<div class="sus-btns">
+      ${s.rt?'':`<button data-a="trait" data-i="${k}" ${c.left?'':'disabled'}>身辺調査</button>`}
+      ${s.ra?'':`<button data-a="alibi" data-i="${k}" ${c.left?'':'disabled'}>アリバイ確認</button>`}
+      <button class="accuse ${c.arm===k?'arm':''}" data-a="accuse" data-i="${k}">${c.arm===k?'本当に告発する':'犯人だ'}</button></div>`;
+    return `<div class="sus ${s.out&&!c.done?'out':''} ${c.done&&k===c.cul?'culprit':''}">
+      ${c.done?'':`<button class="memo" data-a="memo" data-i="${k}" aria-label="除外メモ">${s.out?'戻す':'除外'}</button>`}
+      <div class="nm">${s.name}<span class="job">${s.job}</span></div>
+      <div class="traits">${chips}</div>
+      <p class="alibi ${al?(s.alibi?'ok':'ng'):''}">${al?`「${s.say}」 ― ${s.alibi?'裏付けあり':'裏付けなし'}`:'アリバイ：未確認'}</p>
+      ${btns}</div>`}).join('');
+  let res='';
+  if(c.done){
+    const cu=c.sus[c.cul];
+    res=c.win
+      ?`<div class="result win"><span class="stamp" style="color:var(--ok)">解決</span><h3>犯人は${cu.name}（${cu.job}）</h3><p>報酬 ${yen(c.reward)}${c.left?`（残り行動 ${c.left} のボーナス込み）`:''}。連続解決 ${S.streak} 件。</p><div><button class="btn-main" data-a="next">次の事件へ</button></div></div>`
+      :`<div class="result lose"><span class="stamp" style="color:var(--ng)">迷宮入り</span><h3>真犯人は${cu.name}（${cu.job}）だった</h3><p>${c.sus[c.pick].name}は無実でした。手がかりは${ATTR.map((a,j)=>a.vals[cu.t[j]]).join('・')}、そしてアリバイなし。連続記録はリセット。</p><div><button class="btn-main" data-a="next">次の事件へ</button></div></div>`;
+  }
+  document.getElementById('file').innerHTML=`
+    <div><div class="fileno">CASE No.${String(c.no).padStart(4,'0')} ・ 容疑者 ${c.sus.length}名</div>
+    <div class="case-title">${c.place}</div>
+    <p class="summary">${c.time}ごろ、${c.crime}。</p>
+    ${c.inform.length&&!c.done?`<p class="hint">情報屋から：${c.inform.map(i=>c.sus[i].name).join('、')}の特徴を入手済み</p>`:''}</div>
+    ${res}
+    <div class="actions-row"><span class="label">残り行動 ${c.left}/${c.max}</span><div class="pips">${pips}</div></div>
+    <div class="scene"><span class="label">現場の手がかり</span>${scene}</div>
+    <div><span class="label">容疑者</span><div class="suspects" style="margin-top:6px">${sus}</div></div>`;
+  document.getElementById('shop').innerHTML=Object.entries(UPG).map(([k,u])=>{
+    const l=S.upg[k],maxed=l>=u.max,cost=maxed?0:u.cost(l);
+    return `<div class="item"><p><b>${u.name}　Lv.${l}/${u.max}</b>${u.desc}</p><button data-a="buy" data-i="${k}" ${maxed||S.money<cost?'disabled':''}>${maxed?'最大':yen(cost)}</button></div>`}).join('')+
+    `<p class="hint">容疑者は解決15件で5人、40件で6人に増え、30件からはアリバイのない無実の人が2人になります。</p>`;
+  document.getElementById('log').innerHTML=S.log.length?S.log.map(l=>`<li><span class="m">No.${String(l.no).padStart(4,'0')}</span><span style="color:var(--${l.win?'ok':'ng'})">${l.win?'解決':'失敗'}</span><span>${l.place} ／ 犯人 ${l.cul}</span></li>`).join(''):'<li class="hint">まだ記録はありません</li>';
+}
+
+document.addEventListener('click',e=>{
+  const b=e.target.closest('button[data-a]');if(!b)return;
+  const a=b.dataset.a,i=b.dataset.i;
+  if(a==='buy')return buy(i);
+  act(a,a==='next'?null:Number(i));
+});
+
+S=load();
+if(!S.cur)genCase();
+render();
+</script>
+
+</body></html>
