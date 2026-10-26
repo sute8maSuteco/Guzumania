@@ -1,0 +1,342 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>[hidden]{display:none!important}body{margin:0}</style>
+<title>なるまでが山</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Zen+Old+Mincho:wght@700;900&family=BIZ+UDPGothic:wght@400;700&display=swap">
+<style>
+/* Layout: one column "back room" board — stage ladder, gauges, three action cards, then the ledger log. Scandals land as a tabloid ad. */
+:root{
+  --bg:#121218; --panel:#1d1c25; --panel2:#262532; --line:#363446; --fg:#ece6d8; --muted:#9d97a8;
+  --gold:#d9b45a; --red:#e2343f; --clean:#6fbf8e; --grey:#a9a6b8; --black:#e2343f; --cover:#6aa6e0;
+  --tab-paper:#fbf7ec; --tab-ink:#141414; --tab-yellow:#ffd400;
+  --head:'Dela Gothic One','Hiragino Sans','Yu Gothic',sans-serif;
+  --mincho:'Zen Old Mincho','Hiragino Mincho ProN','Yu Mincho',serif;
+  --body:'BIZ UDPGothic','Hiragino Sans','Yu Gothic',system-ui,sans-serif;
+  color-scheme:dark;
+}
+html,body{background:var(--bg);color:var(--fg)}
+body{font-family:var(--body);padding-inline:16px;line-height:1.6}
+.wrap{max-width:640px;margin:0 auto;padding-block:20px 48px;display:flex;flex-direction:column;gap:16px}
+header{display:flex;flex-direction:column;gap:4px}
+h1{font-family:var(--head);font-weight:400;font-size:clamp(1.9rem,7vw,2.6rem);margin:0;line-height:1.1;letter-spacing:.04em}
+h1 em{font-style:normal;color:var(--red)}
+.sub{margin:0;color:var(--muted);font-size:.85rem;text-wrap:balance}
+.ladder{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;list-style:none;margin:0;padding:0}
+.ladder li{position:relative;text-align:center;font-size:.75rem;padding:8px 2px;background:var(--panel);border:1px solid var(--line);color:var(--muted);min-width:0}
+.ladder li b{display:block;font-family:var(--head);font-weight:400;font-size:.95rem;color:var(--fg);opacity:.5}
+.ladder li.done{border-color:var(--gold)}
+.ladder li.done b{color:var(--gold);opacity:1}
+.ladder li.now{background:var(--panel2);border-color:var(--fg);color:var(--fg)}
+.ladder li.now b{opacity:1}
+.board{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:16px;display:flex;flex-direction:column;gap:14px}
+.stagehead{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
+.stagehead h2{margin:0;font-family:var(--head);font-weight:400;font-size:1.35rem}
+.stagehead span{font-size:.8rem;color:var(--muted)}
+.gauges{display:grid;grid-template-columns:1fr 1fr;gap:12px 16px}
+.g{display:flex;flex-direction:column;gap:4px;min-width:0}
+.g .lab{display:flex;justify-content:space-between;font-size:.78rem;color:var(--muted)}
+.g .lab b{color:var(--fg);font-variant-numeric:tabular-nums;font-weight:700}
+.bar{height:10px;background:#0c0c11;border:1px solid var(--line);overflow:hidden}
+.bar i{display:block;height:100%;transition:width .4s ease}
+.bar.prog i{background:var(--gold)}
+.bar.sus i{background:linear-gradient(90deg,#8a6f3a,var(--red))}
+.risk{font-family:var(--head);font-weight:400;font-size:1.05rem;color:var(--red);font-variant-numeric:tabular-nums}
+.chips{display:flex;gap:4px;flex-wrap:wrap}
+.chips i{width:14px;height:14px;border:1.5px solid var(--muted);display:inline-block}
+.chips i.on{background:var(--red);border-color:var(--red)}
+.chips.term i{border-radius:50%}
+.chips.term i.on{background:var(--fg);border-color:var(--fg)}
+.money{font-family:var(--head);font-weight:400;font-size:1.15rem;color:var(--gold);font-variant-numeric:tabular-nums}
+.demand{margin:0;font-family:var(--mincho);font-weight:700;font-size:.92rem;padding:10px 12px;border-left:3px solid var(--red);background:#16151d}
+.hand{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+@media (max-width:560px){.hand{grid-template-columns:1fr}.gauges{grid-template-columns:1fr}}
+.card{font:inherit;color:var(--fg);text-align:left;background:var(--panel2);border:1px solid var(--line);border-top:4px solid var(--tc);border-radius:4px;padding:12px;display:flex;flex-direction:column;gap:8px;cursor:pointer;min-width:0;transition:transform .12s,border-color .12s}
+.card:hover:not(:disabled){transform:translateY(-3px);border-color:var(--tc)}
+.card:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.card:disabled{opacity:.4;cursor:not-allowed}
+.card .tier{font-size:.7rem;letter-spacing:.14em;color:var(--tc);font-weight:700}
+.card .nm{font-weight:700;font-size:1rem;line-height:1.35;text-wrap:balance}
+.card .ds{font-size:.78rem;color:var(--muted);line-height:1.5}
+.card .st{display:flex;flex-wrap:wrap;gap:4px 10px;font-size:.78rem;font-variant-numeric:tabular-nums;margin-top:auto}
+.card .st .up{color:var(--gold)}.card .st .bad{color:var(--red)}.card .st .good{color:var(--clean)}
+.card .after{font-size:.72rem;color:var(--muted);border-top:1px dashed var(--line);padding-top:6px}
+.t0{--tc:var(--clean)}.t1{--tc:var(--grey)}.t2{--tc:var(--black)}.t3{--tc:var(--cover)}
+.wait{font:inherit;align-self:center;background:none;border:1px solid var(--line);color:var(--muted);border-radius:999px;padding:6px 16px;cursor:pointer}
+.wait:hover{color:var(--fg);border-color:var(--fg)}
+.wait:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.log{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:12px 16px}
+.log h3{margin:0 0 6px;font-size:.78rem;letter-spacing:.2em;color:var(--muted);font-weight:700}
+.log ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px;font-size:.84rem;max-height:200px;overflow:auto}
+.log li{padding-left:10px;border-left:2px solid var(--line)}
+.log li.ev{border-color:var(--gold)}.log li.bad{border-color:var(--red)}.log li.ok{border-color:var(--clean)}
+.note{color:var(--muted);font-size:.75rem;margin:0}
+/* modal */
+.modal{position:fixed;inset:0;z-index:20;background:rgba(8,8,12,.82);display:flex;align-items:center;justify-content:center;padding:16px;overflow:auto}
+.modal[hidden]{display:none}
+.sheet{width:min(100%,520px);background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:22px;display:flex;flex-direction:column;gap:14px;max-height:100%;overflow:auto}
+.sheet h2{margin:0;font-family:var(--head);font-weight:400;font-size:1.6rem;line-height:1.25;text-wrap:balance}
+.sheet .kicker{font-size:.75rem;letter-spacing:.24em;color:var(--red);font-weight:700}
+.sheet p{margin:0}
+.sheet .quote{font-family:var(--mincho);font-weight:700;font-size:1.02rem;line-height:1.8;padding:12px 14px;background:#14131a;border-left:3px solid var(--red)}
+.sheet .rule{font-size:.85rem;color:var(--muted)}
+.btn{font:inherit;font-weight:700;background:var(--fg);color:var(--bg);border:none;border-radius:4px;padding:12px 18px;cursor:pointer;font-size:1rem}
+.btn.ghost{background:none;color:var(--fg);border:1px solid var(--line)}
+.btn:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+.field{display:flex;flex-direction:column;gap:6px;font-size:.85rem;color:var(--muted)}
+.field input{font:inherit;font-size:1.1rem;color:var(--fg);background:#0c0c11;border:1px solid var(--line);border-radius:4px;padding:10px 12px;width:100%}
+.field input:focus-visible{outline:2px solid var(--gold);outline-offset:1px}
+/* tabloid */
+.tabloid{width:min(100%,520px);background:var(--tab-paper);color:var(--tab-ink);border-radius:2px;padding:16px;display:flex;flex-direction:column;gap:12px;box-shadow:0 20px 60px rgba(0,0,0,.6);animation:slam .5s cubic-bezier(.2,1.5,.4,1) both}
+.tab-top{display:flex;justify-content:space-between;align-items:center;border-bottom:4px solid var(--tab-ink);padding-bottom:6px}
+.tab-top b{font-family:var(--head);font-weight:400;font-size:1.3rem;letter-spacing:.06em}
+.tab-top span{font-size:.75rem}
+.tab-body{display:flex;flex-direction:row-reverse;gap:10px;min-height:300px;overflow-x:auto}
+.vh{writing-mode:vertical-rl;font-family:var(--head);font-weight:400;line-height:1.05;letter-spacing:.02em}
+.vh.main{font-size:clamp(2.2rem,10vw,3.2rem);color:var(--red);background:var(--tab-yellow);padding:8px 4px}
+.vh.sub2{font-size:clamp(1.3rem,6vw,1.8rem);color:var(--tab-ink)}
+.vh.small{font-size:1rem;color:var(--tab-ink);font-family:var(--mincho);font-weight:900}
+.tab-foot{border-top:2px solid var(--tab-ink);padding-top:8px;display:flex;flex-direction:column;gap:10px;font-size:.88rem}
+.tab-foot .btn{background:var(--tab-ink);color:var(--tab-paper)}
+.tab-foot .btn.ghost{color:var(--tab-ink);border-color:var(--tab-ink);background:none}
+.blacklist{margin:0;padding-left:1.2em;font-size:.85rem;color:var(--muted)}
+.stamp{align-self:flex-start;font-family:var(--head);font-weight:400;color:var(--red);border:3px solid var(--red);padding:2px 12px;transform:rotate(-6deg);font-size:1.2rem;letter-spacing:.1em}
+@keyframes slam{from{transform:scale(1.25) rotate(3deg);opacity:0}to{transform:none;opacity:1}}
+@keyframes shake{0%,100%{transform:none}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+.shake{animation:shake .3s}
+@media (prefers-reduced-motion:reduce){.tabloid,.shake{animation:none}.card{transition:none}.bar i{transition:none}}
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>なるまでが<em>山</em></h1>
+    <p class="sub">どんな汚い手を使ってでも上へ。ただし任期中にバレたら即終了。上に行くほど、もっと汚れることを求められる。</p>
+  </header>
+  <ol class="ladder" id="ladder"></ol>
+  <section class="board" id="board">
+    <div class="stagehead"><h2 id="sTitle"></h2><span id="sTurn"></span></div>
+    <div class="gauges">
+      <div class="g"><div class="lab"><span id="mName">目標</span><b id="mVal"></b></div><div class="bar prog"><i id="mBar"></i></div></div>
+      <div class="g"><div class="lab"><span>疑惑</span><b id="susVal"></b></div><div class="bar sus"><i id="susBar"></i></div></div>
+      <div class="g"><div class="lab"><span>いま調べられたら バレる確率</span></div><span class="risk" id="risk"></span></div>
+      <div class="g"><div class="lab"><span>資金</span></div><span class="money" id="money"></span></div>
+      <div class="g"><div class="lab"><span>残り任期</span><b id="termVal"></b></div><div class="chips term" id="term"></div></div>
+      <div class="g"><div class="lab"><span>黒幕のノルマ（ブラックな手）</span><b id="quotaVal"></b></div><div class="chips" id="quota"></div></div>
+    </div>
+    <p class="demand" id="demand"></p>
+    <div class="hand" id="hand"></div>
+    <button class="wait" id="wait" type="button">何もしないで様子を見る（疑惑 −6）</button>
+  </section>
+  <section class="log"><h3>裏帳簿</h3><ol id="log"></ol></section>
+  <p class="note">この物語はフィクションです。実在の人物・団体とは関係ありません。</p>
+</div>
+<div class="modal" id="modal" hidden></div>
+
+<script>
+(()=>{
+'use strict';
+// tier: 0 clean / 1 grey / 2 black / 3 cover(もみ消し)
+const C=(n,t,g,m,s,d,scoop)=>({n,t,g,m,s,d,scoop});
+const STAGES=[
+ {name:'大学生',role:'受験生',meter:'合格可能性',target:100,turns:6,quota:0,
+  boss:'父「手段は問わん。うちの子が 落ちるなど 許されんぞ」',
+  intro:'志望校は超難関。まじめに勉強するだけでは、たぶん間に合わない。',
+  clear:'合格発表の掲示板に、あなたの番号があった。晴れて大学生だ。',
+  cards:[C('まじめに勉強する',0,11,0,0,'地道に問題集を解く。','') ,C('塾の夏期講習に通う',0,15,-30,0,'金で時間を買う、正攻法。',''),C('過去問を解いて落ち着く',0,8,0,-3,'心も整う。',''),
+   C('先生にゴマをすって内申点',1,13,0,7,'職員室に通いつめる。','内申点ゴマすり工作'),C('推薦書を盛って書く',1,19,0,10,'ボランティア歴を少しだけ。','推薦書に虚偽記載'),
+   C('カンニングペンを仕込む',2,26,-10,16,'消しゴムの中に秘密がある。','カンニング常習の過去'),C('替え玉受験を依頼する',2,46,-60,30,'そっくりな先輩に頼む。','替え玉受験の過去'),C('親のコネで口利き',2,36,-40,20,'理事長と父は同期らしい。','裏口入学の口利き'),
+   C('友達に口止めする',3,0,-20,-15,'ジュースをおごって黙らせる。',''),C('SNSの過去投稿を全消し',3,0,0,-10,'証拠は残さない。','')]},
+ {name:'議員',role:'候補',meter:'票読み',target:120,turns:7,quota:1,
+  boss:'後援会長「きれいごとじゃ 選挙は勝てんよ。最低1回は“汚れて”もらう」',
+  intro:'地元の選挙区から出馬。ライバルは三期目の現職だ。',
+  clear:'当選確実の速報。万歳三唱のなか、あなたは議員バッジを手にした。',
+  cards:[C('駅前で辻立ちする',0,8,0,0,'雨の日も風の日も。',''),C('地域の祭りに顔を出す',0,10,-10,0,'焼きそばを焼く。',''),C('政策ビラを配る',0,6,0,-3,'誠実さアピール。',''),
+   C('経歴を盛る',1,18,0,10,'留学は2週間だったが。','経歴詐称'),C('業者に選挙カーを“無償”提供させる',1,16,20,12,'あとでお礼はする。','選挙カー無償提供'),
+   C('有権者に商品券を配る',2,30,-50,20,'「ほんの気持ちです」。','商品券ばらまき買収'),C('対立候補の怪文書をまく',2,32,0,22,'出どころは不明、ということに。','怪文書の発信元'),C('組織票と裏取引する',2,38,20,26,'見返りは当選後に。','組織票の裏取引'),
+   C('秘書に口止め料を渡す',3,0,-40,-18,'封筒は厚めに。',''),C('美談をSNSに流す',3,4,0,-10,'子猫を助けた話。','')]},
+ {name:'閣僚',role:'議員',meter:'派閥の評価',target:140,turns:7,quota:2,
+  boss:'派閥の長老「ポストが欲しけりゃ、それなりの“誠意”を見せたまえ。2回はな」',
+  intro:'初当選から数年。副大臣のポストをめぐり、派閥内の椅子取りが始まった。',
+  clear:'内閣改造。あなたの名前が副大臣として読み上げられた。政府の一員だ。',
+  cards:[C('政策勉強会に皆勤',0,6,0,0,'誰も見ていないが。',''),C('派閥の雑巾がけ',0,9,-10,0,'長老の荷物持ち。',''),
+   C('パーティー券を水増し販売',1,10,60,14,'参加者は名簿の半分。','パーティー券の水増し'),C('官僚に“忖度”させる',1,22,0,14,'言わなくても伝わる。','官僚への圧力'),
+   C('長老に裏金を献上する',2,36,-70,22,'菓子折りの底に。','長老への裏献金'),C('政敵の醜聞をリークする',2,34,0,22,'記者に耳打ち。','政敵へのリーク工作'),C('裏帳簿で資金をプール',2,12,90,26,'政治資金収支報告書には載らない。','裏金プール'),
+   C('帳簿をシュレッダーにかける',3,0,-20,-22,'業者を呼ぶほどの量。',''),C('記者と高級料亭で会食',3,0,-50,-18,'オフレコでお願いしますよ。','')]},
+ {name:'大臣',role:'副大臣',meter:'総理の覚え',target:160,turns:7,quota:3,
+  boss:'官房長官「大臣の椅子は限られている。3つは 泥をかぶってもらおう」',
+  intro:'次の組閣で大臣に。だが総理は「使える人間」しか選ばない。',
+  clear:'皇居での認証式。モーニング姿で記念撮影。あなたは大臣になった。',
+  cards:[C('国会答弁を丁寧にこなす',0,6,0,0,'官僚の作文を読むだけだが。',''),C('被災地を視察する',0,8,-10,0,'長靴は新品。',''),
+   C('統計をちょっと盛る',1,24,0,16,'グラフの目盛りを工夫。','統計の水増し'),C('支援企業に便宜を図る',1,14,70,16,'入札の情報を少しだけ。','支援企業への便宜'),
+   C('公文書の改ざんを指示する',2,42,0,30,'なかったことにする。','公文書改ざん指示'),C('業界団体と癒着する',2,30,60,26,'ゴルフは週2回。','業界団体との癒着'),C('総理の政敵を背中から刺す',2,40,0,24,'総理には恩を売る。','総理政敵への裏切り工作'),
+   C('「秘書がやりました」',3,0,0,-30,'秘書には本当に申し訳ない。',''),C('「記憶にございません」',3,0,0,-15,'記者会見で3回言う。','')]},
+ {name:'総理',role:'大臣',meter:'総裁選の票',target:180,turns:8,quota:4,
+  boss:'闇のフィクサー「頂点に立つ者は、誰よりも汚れている。4つだ」',
+  intro:'ついに総裁選。勝てば総理大臣。最後にして最大の山だ。',
+  clear:'総裁選に勝利。首班指名を受け、あなたは内閣総理大臣になった。',
+  cards:[C('政策ビジョンを語る',0,5,0,0,'誰も聞いていない。',''),C('若手と勉強会',0,7,-10,0,'将来の手駒づくり。',''),
+   C('メディア幹部と会食',1,20,-40,14,'論調がやわらかくなる。','メディア幹部との癒着会食'),C('他派閥を切り崩す',1,26,0,16,'ポストを約束して回る。','派閥切り崩しの密約'),
+   C('総裁選の票を買う',2,48,-120,32,'一票いくらの世界。','総裁選で票の買収'),C('盟友を裏切る',2,40,0,22,'あの日の誓いは忘れた。','盟友への裏切り'),C('政敵の身辺を探らせる',2,36,-50,28,'探偵は元警察官。','政敵の身辺調査'),
+   C('週刊誌の編集長を懐柔',3,0,-90,-28,'次号の記事が差し替わる。',''),C('別の大ニュースで話題をそらす',3,-5,0,-20,'なぜか今日、大発表がある。','')]},
+];
+const EVENTS=[
+  {w:3,t:'週刊誌の記者が、あなたの周辺を嗅ぎ回っている。',s:8,need:'dirty',cls:'bad'},
+  {w:2,t:'元関係者が、なにか話したそうにしている……。',s:12,need:'dirty',cls:'bad'},
+  {w:2,t:'支援者から多額の献金が届いた。',m:40,cls:'ev'},
+  {w:2,t:'世論の追い風が吹いている。',g:8,cls:'ok'},
+  {w:2,t:'大きな国際ニュースで、世間の関心がそれた。',s:-10,cls:'ok'},
+  {w:1,t:'ライバルが別のスキャンダルで失脚した。',g:12,cls:'ok'},
+];
+// ---- state
+let G=null;
+const $=id=>document.getElementById(id);
+const rnd=n=>Math.floor(Math.random()*n);
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+function riskOf(s){return s<=15?0:Math.min(.9,Math.pow((s-15)/85,1.8)*.8)}
+const pct=p=>Math.round(p*100)+'%';
+const yen=m=>{const v=m*100;return v>=10000?(v/10000).toFixed(1).replace(/\.0$/,'')+'億円':v+'万円'};
+function log(t,cls=''){G.log.unshift({t,cls});render()}
+
+function newGame(name){
+  G={name,stage:0,turn:1,prog:0,sus:0,money:100,dirty:0,acts:[],past:[],total:0,log:[],hand:[]};
+  stageIntro();
+}
+function S(){return STAGES[G.stage]}
+function deal(){
+  const cs=S().cards,by=t=>cs.filter(c=>c.t===t);
+  const pick=a=>a[rnd(a.length)];
+  const hand=[pick(by(0))];
+  const dark=[...by(1),...by(2)];hand.push(pick(dark));
+  const rest=cs.filter(c=>!hand.includes(c)&&(c.t!==3||G.sus>0));
+  hand.push(pick(rest));
+  G.hand=hand.sort((a,b)=>a.t-b.t);
+}
+function play(c){
+  if(c&&G.money+c.m<0)return;
+  if(c){
+    G.prog=Math.max(0,G.prog+c.g);G.money+=c.m;G.sus=clamp(G.sus+c.s,0,100);
+    if(c.t===2)G.dirty++;
+    if(c.t>=1&&c.t<=2){G.acts.push(c.scoop);G.total+=c.s}
+    log(`${G.turn}期目：${c.n}。`+[c.g?`${S().meter}${c.g>0?'+':''}${c.g}`:'',c.s?`疑惑${c.s>0?'+':''}${c.s}`:'',c.m?`資金${c.m>0?'+':''}${c.m*100}万`:''].filter(Boolean).join('／'),c.t===2?'bad':c.t===3?'ok':'');
+  }else{G.sus=clamp(G.sus-6,0,100);log(`${G.turn}期目：なにもせず様子を見た。疑惑−6`,'ok')}
+  // cleared?
+  if(G.prog>=S().target&&G.dirty>=S().quota){return stageClear()}
+  // scandal check
+  const p=riskOf(G.sus);
+  if(Math.random()<p)return scandal();
+  // event
+  if(Math.random()<.4){
+    const pool=EVENTS.filter(e=>!e.need||G.acts.length);let tot=pool.reduce((a,e)=>a+e.w,0),r=Math.random()*tot,e=pool[0];
+    for(const x of pool){if((r-=x.w)<0){e=x;break}}
+    if(e.s)G.sus=clamp(G.sus+e.s,0,100);if(e.m)G.money+=e.m;if(e.g)G.prog+=e.g;
+    log('【できごと】'+e.t+(e.s?` 疑惑${e.s>0?'+':''}${e.s}`:'')+(e.m?` 資金+${e.m*100}万`:'')+(e.g?` ${S().meter}+${e.g}`:''),e.cls);
+    if(G.prog>=S().target&&G.dirty>=S().quota)return stageClear();
+  }
+  G.turn++;
+  if(G.turn>S().turns)return timeUp();
+  deal();render();
+}
+// ---- render
+function render(){
+  if(!G)return;const st=S();
+  $('ladder').innerHTML=STAGES.map((s,i)=>`<li class="${i<G.stage?'done':i===G.stage?'now':''}"><b>${s.name}</b>${i<G.stage?'到達':i===G.stage?'挑戦中':'—'}</li>`).join('');
+  $('sTitle').textContent=`STAGE ${G.stage+1}　${st.name}になるまで`;
+  $('sTurn').textContent=`${G.name}（${st.role}）`;
+  $('mName').textContent=st.meter;$('mVal').textContent=`${G.prog} / ${st.target}`;
+  $('mBar').style.width=Math.min(100,G.prog/st.target*100)+'%';
+  $('susVal').textContent=G.sus;$('susBar').style.width=G.sus+'%';
+  $('risk').textContent=pct(riskOf(G.sus));
+  $('money').textContent=yen(G.money);
+  $('termVal').textContent=`${st.turns-G.turn+1} / ${st.turns}`;
+  $('term').innerHTML=Array.from({length:st.turns},(_,i)=>`<i class="${i>=G.turn-1?'on':''}"></i>`).join('');
+  $('quotaVal').textContent=st.quota?`${Math.min(G.dirty,st.quota)} / ${st.quota}`:'なし';
+  $('quota').innerHTML=Array.from({length:st.quota},(_,i)=>`<i class="${i<G.dirty?'on':''}"></i>`).join('');
+  $('demand').textContent=st.boss;
+  const TN=['クリーン','グレー','ブラック','もみ消し'];
+  $('hand').innerHTML=G.hand.map((c,i)=>{
+    const ns=clamp(G.sus+c.s,0,100),dis=G.money+c.m<0;
+    const sts=[c.g?`<span class="up">${st.meter} ${c.g>0?'+':''}${c.g}</span>`:'',c.s?`<span class="${c.s>0?'bad':'good'}">疑惑 ${c.s>0?'+':''}${c.s}</span>`:'',c.m?`<span class="${c.m>0?'up':''}">資金 ${c.m>0?'+':'−'}${Math.abs(c.m*100)}万</span>`:''].join('');
+    return`<button class="card t${c.t}" data-i="${i}" type="button" ${dis?'disabled':''}><span class="tier">${TN[c.t]}</span><span class="nm">${c.n}</span><span class="ds">${c.d}</span><span class="st">${sts}</span><span class="after">${dis?'資金が足りない':`選んだ後のバレる確率 ${pct(riskOf(ns))}`}</span></button>`;
+  }).join('');
+  $('hand').querySelectorAll('.card').forEach(b=>b.addEventListener('click',()=>play(G.hand[+b.dataset.i])));
+  $('log').innerHTML=G.log.slice(0,40).map(l=>`<li class="${l.cls}">${l.t}</li>`).join('');
+}
+// ---- modals
+function modal(html,onMount){const m=$('modal');m.innerHTML=html;m.hidden=false;if(onMount)onMount(m);const f=m.querySelector('input,button');if(f)setTimeout(()=>{try{f.focus()}catch(e){}},30)}
+function closeModal(){$('modal').hidden=true;$('modal').innerHTML=''}
+function title(){
+  modal(`<div class="sheet"><span class="kicker">ようこそ、永田町へ</span><h2>なるまでが山</h2>
+    <p class="rule">大学生 → 議員 → 閣僚 → 大臣 → 総理。各ステージの任期中に目標ゲージを満たせば次へ。汚い手ほど早く進めるが、疑惑がたまり、任期中にバレたら即ゲームオーバー。上に行くほど黒幕のノルマ（ブラックな手の回数）が増え、疑惑の4割は次のステージに持ち越される。</p>
+    <form id="nf" class="field"><label for="pname">あなたの名字</label><input id="pname" maxlength="6" value="黒川" autocomplete="off"><button class="btn" type="submit">出馬する</button></form></div>`,
+    m=>m.querySelector('#nf').addEventListener('submit',e=>{e.preventDefault();const v=m.querySelector('#pname').value.trim()||'黒川';newGame(v.slice(0,6))}));
+}
+function stageIntro(){
+  const st=S();G.startSus=G.sus;deal();render();
+  modal(`<div class="sheet"><span class="kicker">STAGE ${G.stage+1} / 5</span><h2>${st.name}になるまで</h2><p>${st.intro}</p><p class="quote">${st.boss}</p>
+    <p class="rule">任期 ${st.turns}期以内に「${st.meter}」を ${st.target} に。${st.quota?`ブラックな手を ${st.quota}回以上 使うこと。`:'ノルマはまだない。'}${G.stage?`持ち越した疑惑：${G.sus}`:''}</p>
+    <button class="btn" id="go" type="button">はじめる</button></div>`,m=>m.querySelector('#go').addEventListener('click',()=>{closeModal();log(`── STAGE ${G.stage+1}「${st.name}になるまで」開始 ──`,'ev')}));
+}
+function stageClear(){
+  const st=S();render();
+  G.past.push(...G.acts.map(a=>({a,where:st.role})));
+  const last=G.stage===STAGES.length-1;
+  if(last)return ending();
+  const carry=Math.round(G.sus*.4);
+  modal(`<div class="sheet"><span class="stamp">${st.name}</span><h2>${st.clear}</h2>
+    <p class="rule">任期 ${G.turn}期目で達成。疑惑 ${G.sus} のうち ${carry} は、次のステージに持ち越される。過去は消えない。</p>
+    ${G.acts.length?`<p class="rule">このステージで闇に葬ったこと：${G.acts.join('、')}</p>`:''}
+    <button class="btn" id="go" type="button">次の山へ</button></div>`,m=>m.querySelector('#go').addEventListener('click',()=>{
+      G.stage++;G.turn=1;G.prog=0;G.dirty=0;G.acts=[];G.sus=carry;G.money+=50;log('支援者から祝い金 +5,000万','ev');stageIntro();
+    }));
+}
+function scandal(){
+  const st=S();render();
+  document.getElementById('board').classList.add('shake');setTimeout(()=>$('board').classList.remove('shake'),400);
+  const fromNow=G.acts.length&&(Math.random()<.75||!G.past.length);
+  const scoop=fromNow?G.acts[rnd(G.acts.length)]:G.past[rnd(G.past.length)].a;
+  const label=fromNow?'':'過去の';
+  const other=[...G.acts,...G.past.map(p=>p.a)].filter(a=>a!==scoop).slice(0,2);
+  modal(`<div class="tabloid" role="dialog" aria-label="スクープ"><div class="tab-top"><b>週刊 スッパヌキ</b><span>今週号　定価480円</span></div>
+    <div class="tab-body">
+      <div class="vh main">${G.name}${st.role}<br>${label}${scoop}</div>
+      <div class="vh sub2">独占証言<br>「全部知ってます」</div>
+      ${other.length?`<div class="vh small">余罪も続々<br>${other.join('<br>')}</div>`:`<div class="vh small">関係者が<br>重い口を開いた</div>`}
+    </div>
+    <div class="tab-foot"><p><b>GAME OVER</b>　STAGE ${G.stage+1}「${st.name}になるまで」の任期 ${G.turn}期目、疑惑 ${G.sus} でスクープされた。${G.stage>0?`${G.name}は ${STAGES[G.stage-1].name}の職を辞した。`:'受験資格を失った。'}</p>
+    <div class="row"><button class="btn" id="again" type="button">最初からやりなおす</button><button class="btn ghost" id="retry" type="button">このステージから再挑戦</button></div></div></div>`,
+    m=>{m.querySelector('#again').addEventListener('click',()=>{closeModal();title()});m.querySelector('#retry').addEventListener('click',()=>retryStage())});
+}
+function retryStage(){closeModal();G.turn=1;G.prog=0;G.dirty=0;G.acts=[];G.sus=G.startSus||0;G.money=Math.max(G.money,60);G.log=[];stageIntro()}
+function timeUp(){
+  const st=S();render();
+  const why=G.prog<st.target?`${st.meter}が ${G.prog} / ${st.target} で届かなかった。`:`目標には届いたが、黒幕のノルマ（${G.dirty} / ${st.quota}）を果たさなかったため、推してもらえなかった。`;
+  const head=['不合格','落選','派閥に干された','大臣になれなかった','総裁選に敗れた'][G.stage];
+  modal(`<div class="sheet"><span class="kicker">任期満了</span><h2>${head}</h2><p>${why}</p><p class="rule">山は、きれいな手だけでは登れなかったようだ。</p>
+    <div class="row"><button class="btn" id="retry" type="button">このステージから再挑戦</button><button class="btn ghost" id="again" type="button">最初から</button></div></div>`,
+    m=>{m.querySelector('#again').addEventListener('click',()=>{closeModal();title()});m.querySelector('#retry').addEventListener('click',retryStage)});
+}
+function ending(){
+  const n=G.past.length,tot=G.total;
+  const rank=tot>=320?['漆黒','歴史の教科書に載る（悪い意味で）']:tot>=220?['どす黒い','永田町の伝説']:tot>=140?['灰色','清濁あわせのむ苦労人']:['うす汚れ','ほぼ奇跡のクリーン総理'];
+  modal(`<div class="sheet"><span class="stamp">内閣総理大臣</span><h2>${G.name}総理、誕生。</h2>
+    <p>首相官邸の執務室。窓の外では、フラッシュがやむことなく光っている。</p>
+    <p class="quote">「国民の皆さまに、誠実な政治をお約束します」</p>
+    <p class="rule">黒さランク：<b style="color:var(--red)">${rank[0]}</b>（${rank[1]}）／ 積み上げた疑惑の合計 ${tot}</p>
+    ${n?`<p class="rule">金庫にしまった秘密 ${n}件</p><ul class="blacklist">${G.past.map(p=>`<li>${p.where}時代：${p.a}</li>`).join('')}</ul>`:''}
+    <p class="rule">……そして、そのすべてを知る元秘書は、いまも どこかで 生きている。</p>
+    <button class="btn" id="again" type="button">もう一度 山に登る</button></div>`,
+    m=>m.querySelector('#again').addEventListener('click',()=>{closeModal();title()}));
+}
+$('wait').addEventListener('click',()=>{if(G&&$('modal').hidden)play(null)});
+// initial background state for first frame
+G={name:'黒川',stage:0,turn:1,prog:0,sus:0,money:100,dirty:0,acts:[],past:[],total:0,log:[{t:'名字を決めて、最初の山に挑もう。',cls:'ev'}],hand:[]};
+deal();render();title();
+})();
+</script>
+
+</html>

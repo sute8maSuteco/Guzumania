@@ -1,0 +1,347 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>[hidden]{display:none!important}body{margin:0}</style>
+<title>雨やどりのしおり</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Old+Mincho:wght@500;900&family=Zen+Maru+Gothic:wght@500;700;900&family=Klee+One:wght@600&display=swap">
+<style>
+/* Layout: one centered webtoon strip; each page is exactly one screen tall (9:16), black-ink manga on paper, one red accent for the umbrella. */
+:root{
+  --paper:#f2efe8; --page:#ffffff; --ink:#141414; --tone:#9a9a9a; --red:#d33a4c; --soft:#6d6a64;
+  --mincho:'Zen Old Mincho','Hiragino Mincho ProN','Yu Mincho',serif;
+  --maru:'Zen Maru Gothic','Hiragino Maru Gothic ProN','Yu Gothic',sans-serif;
+  --hand:'Klee One','Zen Maru Gothic',cursive;
+  color-scheme:light;
+}
+html,body{background:var(--paper);color:var(--ink)}
+body{font-family:var(--maru);padding-inline:16px;line-height:1.6}
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;display:flex;align-items:center;justify-content:space-between;gap:12px;max-width:520px;margin:0 auto;padding-block:10px;background:var(--paper)}
+.bar b{font-family:var(--mincho);font-weight:900;font-size:1rem;letter-spacing:.08em}
+.bar span{font-size:.75rem;color:var(--soft);font-variant-numeric:tabular-nums}
+.bar button{font:inherit;font-size:.8rem;border:1.5px solid var(--ink);background:var(--page);color:var(--ink);border-radius:999px;padding:3px 12px;cursor:pointer}
+.strip{display:flex;flex-direction:column;align-items:center;gap:28px;padding-block:8px 64px}
+.page{position:relative;width:min(100%,calc((100svh - 60px)*9/16));aspect-ratio:9/16;max-width:100%;container-type:inline-size;background:var(--page);box-shadow:0 1px 0 rgba(0,0,0,.08),0 8px 24px rgba(0,0,0,.08);scroll-margin-top:52px}
+.page svg.art{position:absolute;inset:0;width:100%;height:100%;display:block}
+.b{position:absolute;font-size:4.3cqw;line-height:1.45;font-weight:700;color:var(--ink);text-wrap:balance;animation:pop .45s cubic-bezier(.2,1.4,.4,1) both}
+.speech{background:#fff;border:2.5px solid var(--ink);border-radius:48% / 42%;padding:3.2cqw 4.6cqw;text-align:center}
+.speech::after{content:"";position:absolute;width:5cqw;height:5cqw;background:#fff;border-right:2.5px solid var(--ink);border-bottom:2.5px solid var(--ink)}
+.t-bl::after{left:18%;bottom:-2.6cqw;transform:skewX(30deg) rotate(45deg)}
+.t-br::after{right:18%;bottom:-2.6cqw;transform:skewX(-30deg) rotate(45deg)}
+.t-tl::after{left:18%;top:-2.6cqw;transform:rotate(-135deg)}
+.t-tr::after{right:18%;top:-2.6cqw;transform:rotate(-135deg)}
+.thought{background:#fff;border:2px dashed var(--ink);border-radius:46%;padding:3cqw 4.4cqw;text-align:center;font-weight:500}
+.narr{background:#fff;border:2px solid var(--ink);padding:2cqw 3.4cqw;font-family:var(--mincho);font-weight:500;font-size:4cqw}
+.shout{font-family:var(--maru);font-weight:900;font-size:7cqw;background:#fff;padding:3cqw 5cqw;clip-path:polygon(50% 0,60% 18%,78% 4%,76% 26%,100% 22%,86% 42%,100% 58%,80% 64%,90% 88%,66% 76%,56% 100%,46% 80%,26% 96%,28% 72%,2% 76%,16% 54%,0 36%,22% 32%,14% 8%,38% 20%);}
+.shout-wrap{position:absolute;animation:pop .45s cubic-bezier(.2,1.4,.4,1) both;filter:drop-shadow(2px 0 0 var(--ink)) drop-shadow(-2px 0 0 var(--ink)) drop-shadow(0 2px 0 var(--ink)) drop-shadow(0 -2px 0 var(--ink))}
+.shout-wrap .shout{position:relative;display:block}
+.who{display:block;font-size:2.8cqw;font-weight:500;color:var(--soft);letter-spacing:.1em;margin-bottom:.3em}
+.title{position:absolute;left:0;right:0;top:9%;text-align:center;font-family:var(--mincho);font-weight:900;font-size:12cqw;line-height:1.15;letter-spacing:.12em;color:var(--ink);text-shadow:0 0 6px #fff,0 0 2px #fff}
+.title small{display:block;font-size:3.6cqw;letter-spacing:.3em;font-weight:500;margin-top:3cqw}
+.hint{position:absolute;left:0;right:0;bottom:-24px;text-align:center;font-size:.75rem;color:var(--soft);letter-spacing:.2em}
+.choices{position:absolute;left:4%;right:4%;bottom:3%;display:flex;flex-direction:column;gap:2.4cqw;background:#fff;border:2.5px solid var(--ink);padding:3cqw 3.4cqw 4.4cqw 3cqw}
+.choices p{margin:0;text-align:center;font-family:var(--mincho);font-weight:900;font-size:3.6cqw;letter-spacing:.2em}
+.choice{font-family:var(--maru);font-weight:700;font-size:4.4cqw;color:var(--ink);background:#fff;border:2.5px solid var(--ink);padding:2.6cqw 3cqw;cursor:pointer;text-align:left;display:flex;gap:2.4cqw;align-items:center;box-shadow:1.4cqw 1.4cqw 0 var(--ink);transition:transform .12s,box-shadow .12s}
+.choice::before{content:"▶";color:var(--red);font-size:3.4cqw}
+.choice:hover{transform:translate(-.4cqw,-.4cqw);box-shadow:1.8cqw 1.8cqw 0 var(--ink)}
+.choice:focus-visible{outline:3px solid var(--red);outline-offset:2px}
+.choice.picked{background:var(--ink);color:#fff}
+.choice.picked::before{color:#fff}
+.choice.other{opacity:.55}
+.end{position:absolute;left:5%;right:5%;bottom:3.5%;display:flex;flex-direction:column;align-items:center;gap:2.4cqw;background:#fff;border:2.5px solid var(--ink);padding:4cqw}
+.end .stamp{font-family:var(--mincho);font-weight:900;font-size:4cqw;letter-spacing:.3em;color:var(--red)}
+.end h2{margin:0;font-family:var(--mincho);font-weight:900;font-size:7.4cqw;letter-spacing:.12em;text-wrap:balance}
+.end .count{font-size:3.2cqw;color:var(--soft)}
+.end .row{display:flex;gap:2.4cqw;flex-wrap:wrap;justify-content:center}
+.end button{font-family:var(--maru);font-weight:700;font-size:3.6cqw;border:2px solid var(--ink);background:#fff;color:var(--ink);padding:1.8cqw 3.4cqw;cursor:pointer}
+.end button.main{background:var(--ink);color:#fff}
+.end button:focus-visible,.bar button:focus-visible{outline:3px solid var(--red);outline-offset:2px}
+@keyframes pop{from{opacity:0;transform:scale(.82)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.b,.shout-wrap{animation:none}.choice{transition:none}}
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <pattern id="tone" width="5" height="5" patternUnits="userSpaceOnUse"><rect width="5" height="5" fill="#fff"/><circle cx="2.5" cy="2.5" r="1.1" fill="#8c8c8c"/></pattern>
+    <pattern id="tone2" width="4" height="4" patternUnits="userSpaceOnUse"><rect width="4" height="4" fill="#fff"/><circle cx="2" cy="2" r="1.35" fill="#555"/></pattern>
+    <pattern id="tone3" width="6" height="6" patternUnits="userSpaceOnUse"><rect width="6" height="6" fill="#fff"/><circle cx="3" cy="3" r=".8" fill="#b0b0b0"/></pattern>
+    <radialGradient id="glow"><stop offset="0" stop-color="#fff"/><stop offset=".6" stop-color="#fff" stop-opacity=".9"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>
+  </defs>
+</svg>
+
+<div class="bar">
+  <b>雨やどりのしおり</b>
+  <span id="count">エンディング 0 / 4</span>
+  <button id="restart" type="button">最初から</button>
+</div>
+<main class="strip" id="strip" aria-live="polite"></main>
+
+<script>
+(()=>{
+'use strict';
+const INK='#141414',RED='#d33a4c';
+// ---------- tiny helpers
+function rng(seed){return()=>(seed=(seed*16807)%2147483647)/2147483647}
+const g=(inner,t='')=>`<g ${t?`transform="${t}"`:''}>${inner}</g>`;
+
+// ---------- backgrounds (panel local coords w×h)
+function rain(w,h,n=60,seed=3,op=.9){const r=rng(seed);let s='';for(let i=0;i<n;i++){const x=r()*w*1.2,y=r()*h,l=18+r()*30;s+=`<line x1="${x}" y1="${y}" x2="${x-l*.32}" y2="${y+l}" stroke="${INK}" stroke-width="${.8+r()*1.1}" opacity="${op}"/>`}return s}
+function bgWhite(w,h){return`<rect width="${w}" height="${h}" fill="#fff"/>`}
+function bgEntrance(w,h){
+  let s=bgWhite(w,h);
+  s+=`<rect x="${w*.44}" y="${h*.08}" width="${w*.52}" height="${h*.74}" fill="url(#tone)"/>`;
+  s+=`<g clip-path="inset(0)"><svg x="${w*.44}" y="${h*.08}" width="${w*.52}" height="${h*.74}" overflow="hidden">${rain(w*.52,h*.74,40,7)}</svg></g>`;
+  s+=`<rect x="${w*.44}" y="${h*.08}" width="${w*.52}" height="${h*.74}" fill="none" stroke="${INK}" stroke-width="4"/><line x1="${w*.7}" y1="${h*.08}" x2="${w*.7}" y2="${h*.82}" stroke="${INK}" stroke-width="3"/>`;
+  for(let r=0;r<5;r++)for(let c=0;c<3;c++){s+=`<rect x="${8+c*(w*.12)}" y="${h*.08+r*h*.14}" width="${w*.11}" height="${h*.12}" fill="${(r+c)%2?'url(#tone3)':'#fff'}" stroke="${INK}" stroke-width="1.8"/><line x1="${8+c*w*.12+w*.08}" y1="${h*.08+r*h*.14+h*.05}" x2="${8+c*w*.12+w*.08}" y2="${h*.08+r*h*.14+h*.07}" stroke="${INK}" stroke-width="2"/>`}
+  s+=`<line x1="0" y1="${h*.86}" x2="${w}" y2="${h*.86}" stroke="${INK}" stroke-width="2"/><rect x="0" y="${h*.86}" width="${w}" height="${h*.14}" fill="url(#tone3)"/>`;
+  return s;
+}
+function bgStreet(w,h,seed=5,wet=true){
+  let s=`<rect width="${w}" height="${h}" fill="url(#tone)"/>`;
+  const r=rng(seed);let x=0;
+  while(x<w){const bw=30+r()*50,bh=h*(.25+r()*.25);s+=`<rect x="${x}" y="${h*.55-bh}" width="${bw}" height="${bh}" fill="url(#tone2)" stroke="${INK}" stroke-width="1.5"/>`;
+    for(let wy=h*.55-bh+10;wy<h*.5;wy+=18)for(let wx=x+6;wx<x+bw-8;wx+=12)s+=`<rect x="${wx}" y="${wy}" width="6" height="8" fill="#fff"/>`;x+=bw+4}
+  s+=`<rect x="0" y="${h*.55}" width="${w}" height="${h*.45}" fill="#fff"/>`;
+  s+=`<path d="M${w*.5} ${h*.55} L${-w*.2} ${h} M${w*.5} ${h*.55} L${w*1.2} ${h}" stroke="${INK}" stroke-width="2"/><path d="M${w*.5} ${h*.6} L${w*.5} ${h*.68} M${w*.5} ${h*.74} L${w*.5} ${h*.86}" stroke="${INK}" stroke-width="4"/>`;
+  s+=`<line x1="0" y1="${h*.55}" x2="${w}" y2="${h*.55}" stroke="${INK}" stroke-width="2"/>`;
+  if(wet){s+=`<ellipse cx="${w*.25}" cy="${h*.85}" rx="40" ry="7" fill="url(#tone3)" stroke="${INK}" stroke-width="1.2"/><ellipse cx="${w*.78}" cy="${h*.78}" rx="28" ry="5" fill="url(#tone3)" stroke="${INK}" stroke-width="1.2"/>`+rain(w,h,70,seed+4)}
+  return s;
+}
+function bgLibrary(w,h,sunny=false){
+  let s=bgWhite(w,h);const r=rng(11);
+  for(let y=h*.04;y<h*.9;y+=h*.15){
+    s+=`<line x1="0" y1="${y+h*.13}" x2="${w}" y2="${y+h*.13}" stroke="${INK}" stroke-width="3"/>`;
+    let x=4;while(x<w){const bw=6+r()*12,bh=h*.08+r()*h*.045;s+=`<rect x="${x}" y="${y+h*.13-bh}" width="${bw}" height="${bh}" fill="${r()<.4?'url(#tone2)':r()<.5?'url(#tone)':'#fff'}" stroke="${INK}" stroke-width="1.3"/>`;x+=bw+(r()<.12?14:1)}
+  }
+  if(sunny){s+=`<rect x="${w*.55}" y="${h*.06}" width="${w*.4}" height="${h*.55}" fill="#fff" stroke="${INK}" stroke-width="4"/><line x1="${w*.75}" y1="${h*.06}" x2="${w*.75}" y2="${h*.61}" stroke="${INK}" stroke-width="3"/><circle cx="${w*.85}" cy="${h*.18}" r="${w*.06}" fill="#fff" stroke="${INK}" stroke-width="2"/>`;
+    for(let i=0;i<8;i++){const a=i*Math.PI/4;s+=`<line x1="${w*.85+Math.cos(a)*w*.08}" y1="${h*.18+Math.sin(a)*w*.08}" x2="${w*.85+Math.cos(a)*w*.11}" y2="${h*.18+Math.sin(a)*w*.11}" stroke="${INK}" stroke-width="2"/>`}}
+  return s;
+}
+function bgFocus(w,h,seed=9){
+  let s=bgWhite(w,h);const r=rng(seed),cx=w/2,cy=h*.42;
+  for(let i=0;i<110;i++){const a=r()*Math.PI*2,R=Math.max(w,h),x=cx+Math.cos(a)*R,y=cy+Math.sin(a)*R,wd=.02+r()*.025;
+    const x2=cx+Math.cos(a+wd)*R,y2=cy+Math.sin(a+wd)*R,ix=cx+Math.cos(a)*w*.38,iy=cy+Math.sin(a)*h*.3;s+=`<path d="M${x} ${y} L${x2} ${y2} L${ix} ${iy} Z" fill="${INK}"/>`}
+  return s;
+}
+function bgSparkle(w,h,seed=21){
+  let s=`<rect width="${w}" height="${h}" fill="url(#tone3)"/>`;const r=rng(seed);
+  for(let i=0;i<14;i++){const x=r()*w,y=r()*h,R=10+r()*26;s+=`<circle cx="${x}" cy="${y}" r="${R}" fill="url(#glow)"/><circle cx="${x}" cy="${y}" r="${R*.7}" fill="none" stroke="${INK}" stroke-width=".8" opacity=".5"/>`}
+  for(let i=0;i<10;i++){const x=r()*w,y=r()*h,R=5+r()*8;s+=`<path d="M${x} ${y-R} Q${x} ${y} ${x+R} ${y} Q${x} ${y} ${x} ${y+R} Q${x} ${y} ${x-R} ${y} Q${x} ${y} ${x} ${y-R} Z" fill="#fff" stroke="${INK}" stroke-width="1.2"/>`}
+  return s;
+}
+function bgSpeed(w,h,seed=13){let s=bgWhite(w,h);const r=rng(seed);for(let i=0;i<46;i++){const y=r()*h,x=r()*w*.6;s+=`<line x1="${x}" y1="${y}" x2="${x+w*.5+r()*w*.4}" y2="${y}" stroke="${INK}" stroke-width="${.8+r()*2.4}"/>`}return s}
+function bgSchool(w,h){
+  let s=`<rect width="${w}" height="${h}" fill="url(#tone)"/>`;
+  s+=`<rect x="${w*.08}" y="${h*.5}" width="${w*.84}" height="${h*.32}" fill="#fff" stroke="${INK}" stroke-width="3"/><rect x="${w*.42}" y="${h*.36}" width="${w*.16}" height="${h*.14}" fill="#fff" stroke="${INK}" stroke-width="3"/><circle cx="${w*.5}" cy="${h*.43}" r="${w*.04}" fill="#fff" stroke="${INK}" stroke-width="2"/><line x1="${w*.5}" y1="${h*.43}" x2="${w*.5}" y2="${h*.41}" stroke="${INK}" stroke-width="2"/><line x1="${w*.5}" y1="${h*.43}" x2="${w*.52}" y2="${h*.43}" stroke="${INK}" stroke-width="2"/>`;
+  for(let r=0;r<3;r++)for(let c=0;c<8;c++)s+=`<rect x="${w*.12+c*w*.1}" y="${h*.53+r*h*.09}" width="${w*.06}" height="${h*.05}" fill="url(#tone2)" stroke="${INK}" stroke-width="1.2"/>`;
+  s+=`<rect x="0" y="${h*.82}" width="${w}" height="${h*.18}" fill="#fff"/><line x1="0" y1="${h*.82}" x2="${w}" y2="${h*.82}" stroke="${INK}" stroke-width="2"/>`;
+  return s+rain(w,h,110,17);
+}
+function bgStation(w,h){
+  let s=bgStreet(w,h,8,true);
+  s+=`<rect x="${w*.06}" y="${h*.1}" width="${w*.5}" height="${h*.12}" fill="#fff" stroke="${INK}" stroke-width="3"/><text x="${w*.31}" y="${h*.19}" text-anchor="middle" font-family="Zen Old Mincho, serif" font-weight="900" font-size="${h*.075}" fill="${INK}">あおば駅</text>`;
+  s+=`<line x1="${w*.12}" y1="${h*.22}" x2="${w*.12}" y2="${h*.55}" stroke="${INK}" stroke-width="4"/><line x1="${w*.5}" y1="${h*.22}" x2="${w*.5}" y2="${h*.55}" stroke="${INK}" stroke-width="4"/>`;
+  return s;
+}
+
+// ---------- characters (bust, local: head top ≈ y -12, shoulders bottom ≈ 260)
+const SK='fill="#fff" stroke="#141414" stroke-width="3" stroke-linejoin="round"';
+function eyes(kind,ex){
+  const L=[-19,19];let s='';
+  for(const x of L){
+    const y=66;
+    if(ex==='smile'||ex==='laugh')s+=`<path d="M${x-9} ${y+3} Q${x} ${y-8} ${x+9} ${y+3}" fill="none" stroke="${INK}" stroke-width="3.6" stroke-linecap="round"/>`;
+    else if(ex==='surprised')s+=`<circle cx="${x}" cy="${y}" r="8.5" fill="#fff" stroke="${INK}" stroke-width="2.6"/><circle cx="${x}" cy="${y+1}" r="2.6" fill="${INK}"/>`;
+    else if(ex==='sad')s+=`<path d="M${x-9} ${y+1} Q${x} ${y+7} ${x+9} ${y+1}" fill="none" stroke="${INK}" stroke-width="3.2" stroke-linecap="round"/>`;
+    else if(kind==='girl')s+=`<path d="M${x-12} ${y-5} Q${x} ${y-14} ${x+12} ${y-5}" fill="none" stroke="${INK}" stroke-width="4.4" stroke-linecap="round"/><ellipse cx="${x}" cy="${y+2}" rx="6.8" ry="9.5" fill="${INK}"/><circle cx="${x-2.2}" cy="${y-2}" r="2.6" fill="#fff"/><circle cx="${x+2.6}" cy="${y+6}" r="1.2" fill="#fff"/><path d="M${x-6} ${y+13} L${x+6} ${y+13}" stroke="${INK}" stroke-width="1.4"/>`;
+    else s+=`<ellipse cx="${x}" cy="${y+1}" rx="5.4" ry="8" fill="${INK}"/><circle cx="${x-1.6}" cy="${y-2.5}" r="2" fill="#fff"/>`;
+  }
+  return s;
+}
+function brows(ex){
+  if(ex==='sad'||ex==='troubled'||ex==='blush')return`<path d="M-29 48 L-11 42 M29 48 L11 42" stroke="${INK}" stroke-width="3" stroke-linecap="round"/>`;
+  if(ex==='surprised')return`<path d="M-29 40 Q-20 34 -11 38 M29 40 Q20 34 11 38" fill="none" stroke="${INK}" stroke-width="3" stroke-linecap="round"/>`;
+  return`<path d="M-29 46 Q-20 42 -11 45 M29 46 Q20 42 11 45" fill="none" stroke="${INK}" stroke-width="3" stroke-linecap="round"/>`;
+}
+function mouth(ex){
+  if(ex==='smile')return`<path d="M-9 90 Q0 98 9 90" fill="none" stroke="${INK}" stroke-width="3" stroke-linecap="round"/>`;
+  if(ex==='laugh')return`<path d="M-11 88 Q0 104 11 88 Z" fill="${INK}"/>`;
+  if(ex==='surprised')return`<ellipse cx="0" cy="93" rx="5.5" ry="7" fill="${INK}"/>`;
+  if(ex==='blush'||ex==='troubled')return`<path d="M-10 93 q2.5 -4 5 0 t5 0 t5 0 t5 0" fill="none" stroke="${INK}" stroke-width="2.6" stroke-linecap="round"/>`;
+  if(ex==='sad')return`<path d="M-7 95 Q0 90 7 95" fill="none" stroke="${INK}" stroke-width="2.6" stroke-linecap="round"/>`;
+  return`<path d="M-5 92 L5 92" stroke="${INK}" stroke-width="2.6" stroke-linecap="round"/>`;
+}
+function blush(){return`<path d="M-36 80 l7 -7 M-29 82 l7 -7 M-22 84 l7 -7 M15 84 l7 -7 M22 82 l7 -7 M29 80 l7 -7" stroke="${INK}" stroke-width="1.8" stroke-linecap="round"/>`}
+function sweat(){return`<path d="M50 26 Q58 40 50 46 Q42 40 50 26 Z" fill="#fff" stroke="${INK}" stroke-width="2"/>`}
+function boy(ex='normal'){
+  let s=`<path d="M-100 262 Q-96 168 -34 146 L34 146 Q96 168 100 262 Z" fill="${INK}"/>`;
+  s+=`<path d="M-24 146 L0 196 L24 146 Z" fill="#fff" stroke="${INK}" stroke-width="2"/><path d="M-4 160 L4 160 L7 210 L0 220 L-7 210 Z" fill="url(#tone2)" stroke="${INK}" stroke-width="1.5"/>`;
+  s+=`<rect x="-14" y="108" width="28" height="42" ${SK}/>`;
+  s+=`<ellipse cx="-47" cy="72" rx="7" ry="12" ${SK}/><ellipse cx="47" cy="72" rx="7" ry="12" ${SK}/>`;
+  s+=`<path d="M-46 50 Q-48 104 0 118 Q48 104 46 50 Z" ${SK}/>`;
+  s+=`<path d="M-54 66 Q-62 4 -8 -10 Q46 -14 58 34 Q60 52 52 70 L46 42 Q34 30 24 46 L16 22 Q4 42 -12 26 L-20 48 Q-34 32 -44 50 Z" fill="${INK}"/><path d="M-22 4 Q4 -4 28 6" fill="none" stroke="#fff" stroke-width="3" opacity=".85"/>`;
+  s+=brows(ex)+eyes('boy',ex)+`<path d="M0 74 L-3 84 L2 85" fill="none" stroke="${INK}" stroke-width="1.8"/>`+mouth(ex);
+  if(ex==='blush')s+=blush();
+  if(ex==='troubled'||ex==='blush')s+=sweat();
+  return s;
+}
+function girl(ex='normal'){
+  let s=`<path d="M-62 44 Q-80 150 -70 236 L70 236 Q80 150 62 44 Q52 -14 0 -14 Q-52 -14 -62 44 Z" fill="#262626"/>`;
+  s+=`<path d="M-96 262 Q-92 172 -32 148 L32 148 Q92 172 96 262 Z" fill="${INK}"/>`;
+  s+=`<path d="M-26 148 L0 186 L26 148 Z" fill="#fff" stroke="${INK}" stroke-width="2"/><path d="M0 170 L-20 160 L-20 182 Z M0 170 L20 160 L20 182 Z" fill="${RED}" stroke="${INK}" stroke-width="1.6"/><circle cx="0" cy="170" r="4" fill="${RED}" stroke="${INK}" stroke-width="1.6"/>`;
+  s+=`<rect x="-13" y="108" width="26" height="44" ${SK}/>`;
+  s+=`<path d="M-44 52 Q-46 102 0 116 Q46 102 44 52 Z" ${SK}/>`;
+  s+=`<path d="M-52 92 Q-60 40 -40 14 Q-10 -6 22 -2 Q56 8 56 60 Q58 90 52 110 L46 64 Q40 38 30 30 L24 54 Q14 32 4 30 L-2 52 Q-12 32 -24 32 L-30 56 Q-40 40 -46 60 Z" fill="#262626"/>`;
+  s+=`<path d="M-34 14 Q0 -2 34 12" fill="none" stroke="#fff" stroke-width="4" opacity=".85"/><path d="M-26 22 Q0 12 26 20" fill="none" stroke="#fff" stroke-width="1.6" opacity=".7"/>`;
+  s+=`<rect x="26" y="20" width="18" height="6" rx="3" fill="${RED}" stroke="${INK}" stroke-width="1.6" transform="rotate(-28 35 23)"/>`;
+  s+=brows(ex)+eyes('girl',ex)+`<path d="M0 76 L-2 82" stroke="${INK}" stroke-width="1.6"/>`+mouth(ex);
+  if(ex==='blush'||ex==='surprised'&&false)s+=blush();
+  return s;
+}
+function ch(kind,ex,x,y,s=1,flip=false){return g(kind==='boy'?boy(ex):girl(ex),`translate(${x} ${y}) scale(${flip?-s:s} ${s})`)}
+function umbrella(x,y,R,open=true){
+  if(!open)return`<path d="M${x} ${y} L${x-10} ${y+150} L${x+10} ${y+150} Z" fill="${RED}" stroke="${INK}" stroke-width="2.5"/><path d="M${x} ${y+150} L${x} ${y+190} Q${x} ${y+204} ${x-12} ${y+200}" fill="none" stroke="${INK}" stroke-width="4"/>`;
+  let sc='';const n=6;for(let i=0;i<n;i++){const x1=x-R+i*(2*R/n),x2=x1+2*R/n;sc+=`Q${(x1+x2)/2} ${y+18} ${x2} ${y}`}
+  return`<path d="M${x-R} ${y} Q${x-R} ${y-R*.8} ${x} ${y-R*.82} Q${x+R} ${y-R*.8} ${x+R} ${y} ${sc} Z" fill="${RED}" stroke="${INK}" stroke-width="3"/>`+
+    `<path d="M${x} ${y-R*.82} L${x-R*.5} ${y+8} M${x} ${y-R*.82} L${x+R*.5} ${y+8} M${x} ${y-R*.82} L${x} ${y+10}" stroke="${INK}" stroke-width="1.6" opacity=".6"/>`+
+    `<line x1="${x}" y1="${y-R*.82}" x2="${x}" y2="${y-R*.95}" stroke="${INK}" stroke-width="3"/><line x1="${x}" y1="${y+10}" x2="${x}" y2="${y+200}" stroke="${INK}" stroke-width="4"/>`;
+}
+function bookmark(w,h,lines,cap){
+  const bw=w*.34,bh=h*.82,x=w/2-bw/2,y=h*.1;
+  let s=`<rect width="${w}" height="${h}" fill="url(#tone3)"/>`;
+  s+=`<path d="M${w/2} ${y} Q${w/2+30} ${y-40} ${w/2+60} ${y-10}" fill="none" stroke="${RED}" stroke-width="3"/>`;
+  s+=`<rect x="${x+5}" y="${y+5}" width="${bw}" height="${bh}" fill="${INK}"/><rect x="${x}" y="${y}" width="${bw}" height="${bh}" fill="#fffdf6" stroke="${INK}" stroke-width="2.5"/><circle cx="${w/2}" cy="${y+14}" r="5" fill="#fff" stroke="${INK}" stroke-width="2"/>`;
+  const n=lines.length,fs=Math.min(20,bw/(n*1.7)),gap=fs*1.55,maxLen=Math.max(...lines.map(t=>t.length)),fs2=Math.min(fs,(bh-70)/(maxLen*1.1));
+  lines.forEach((t,i)=>{const cx=w/2+((n-1)/2-i)*gap;s+=`<text x="${cx}" y="${y+36}" font-family="Klee One, cursive" font-weight="600" font-size="${fs2}" fill="${INK}" text-anchor="start" style="writing-mode:vertical-rl;glyph-orientation-vertical:0;letter-spacing:2px">${t}</text>`});
+  if(cap)s+=`<text x="${w/2}" y="${y+bh-14}" text-anchor="middle" font-family="Klee One, cursive" font-size="12" fill="#555">${cap}</text>`;
+  return s;
+}
+function bookArt(w,h){
+  let s=`<rect width="${w}" height="${h}" fill="url(#tone)"/>`;
+  const bw=w*.5,bh=h*.82,x=w/2-bw/2,y=h*.09;
+  s+=`<rect x="${x+6}" y="${y+6}" width="${bw}" height="${bh}" fill="${INK}"/><rect x="${x}" y="${y}" width="${bw}" height="${bh}" fill="#fff" stroke="${INK}" stroke-width="3"/>`;
+  s+=`<rect x="${x+bw*.1}" y="${y+bh*.1}" width="${bw*.8}" height="${bh*.5}" fill="url(#tone2)" stroke="${INK}" stroke-width="1.5"/>`;
+  for(let i=0;i<9;i++){const sx=x+bw*.15+((i*37)%70)/70*bw*.7,sy=y+bh*.14+((i*53)%60)/60*bh*.42;s+=`<path d="M${sx} ${sy-5} L${sx+1.5} ${sy-1.5} L${sx+5} ${sy} L${sx+1.5} ${sy+1.5} L${sx} ${sy+5} L${sx-1.5} ${sy+1.5} L${sx-5} ${sy} L${sx-1.5} ${sy-1.5} Z" fill="#fff"/>`}
+  s+=`<text x="${w/2}" y="${y+bh*.74}" text-anchor="middle" font-family="Zen Old Mincho, serif" font-weight="900" font-size="${bw*.12}" fill="${INK}">星をつなぐ手紙</text>`;
+  s+=`<rect x="${x+bw*.7}" y="${y-18}" width="16" height="40" fill="#fffdf6" stroke="${INK}" stroke-width="2"/>`;
+  return s;
+}
+
+// ---------- page composition
+const ONE=[[10,10,340,620]];
+const TWO=[[10,10,340,300],[10,322,340,308]];
+const TOP_BIG=[[10,10,340,392],[10,414,340,216]];
+function pageSVG(layout,arts){
+  let s=`<svg class="art" viewBox="0 0 360 640" preserveAspectRatio="none" aria-hidden="true"><rect width="360" height="640" fill="#fff"/>`;
+  layout.forEach(([x,y,w,h],i)=>{const a=arts[i];s+=`<svg x="${x}" y="${y}" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" overflow="hidden">${a?a(w,h):bgWhite(w,h)}</svg><rect x="${x}" y="${y}" width="${w}" height="${h}" fill="none" stroke="${INK}" stroke-width="3"/>`});
+  return s+'</svg>';
+}
+// bubble shorthand: [kind,x%,y%,w%,text,tail,who]
+const P={
+  p1:{layout:ONE,arts:[(w,h)=>bgSchool(w,h)],title:true,b:[['narr',8,80,42,'六月。<br>放課後。']],next:'p2'},
+  p2:{layout:TWO,arts:[(w,h)=>bgEntrance(w,h),(w,h)=>bgWhite(w,h)+`<rect y="${h*.6}" width="${w}" height="${h*.4}" fill="url(#tone3)"/>`+ch('boy','troubled',w*.5,h*.2,1.1)],
+    b:[['narr',6,4,52,'天気予報は、晴れだった。'],['speech',58,57,34,'……マジか。','bl','湊']],next:'p3'},
+  p3:{layout:ONE,arts:[(w,h)=>bgEntrance(w,h)+ch('boy','surprised',w*.27,h*.42,1.05,true)+ch('girl','normal',w*.73,h*.36,1.15)+umbrella(w*.93,h*.62,0,false)],
+    b:[['narr',6,4,58,'となりに、知らない女子が<br>立っていた。'],['speech',50,17,40,'……傘、ないの？','br','？？？'],['shout',2,22,40,'えっ']],next:'p4'},
+  p4:{layout:TWO,arts:[(w,h)=>bgSparkle(w,h)+ch('girl','smile',w*.5,h*.12,1.15),(w,h)=>bgFocus(w,h)+ch('boy','blush',w*.5,h*.15,1)],
+    b:[['speech',8,6,40,'駅までで<br>よければ……','bl','？？？'],['speech',58,24,34,'入る？','bl'],['thought',52,52,40,'ど、どうする……！？']],
+    choices:{q:'どうする？',opts:[['……お願いします','a1'],['いや、走るから大丈夫！','b1']]}},
+  // route A
+  a1:{layout:ONE,arts:[(w,h)=>bgStreet(w,h,5,true)+`<rect x="${w*.1}" y="${h*.3}" width="${w*.8}" height="${h*.7}" fill="#fff"/>`+umbrella(w*.5,h*.32,w*.44)+ch('boy','blush',w*.3,h*.38,.95,true)+ch('girl','smile',w*.7,h*.4,.9)+`<path d="M${w*.06} ${h*.4} q4 10 0 16" fill="none" stroke="${INK}" stroke-width="2"/>`],
+    b:[['narr',6,4,58,'ひとつの傘は、<br>ふたりには少しせまい。'],['speech',58,76,36,'肩、ぬれてるよ','tl','柚月'],['speech',4,76,38,'へ、平気平気','tr','湊']],next:'a2'},
+  a2:{layout:TWO,arts:[(w,h)=>bgStreet(w,h,6,true)+`<rect x="${w*.2}" y="${h*.28}" width="${w*.6}" height="${h*.72}" fill="#fff"/>`+ch('girl','surprised',w*.5,h*.2,1.05),(w,h)=>bookArt(w,h)],
+    b:[['speech',62,8,32,'その本……','bl','柚月'],['speech',4,52,48,'『星をつなぐ<br>手紙』？','br'],['speech',46,82,50,'図書室で借りたんだ。<br>しおりが挟まってて','tl','湊']],next:'a3'},
+  a3:{layout:TOP_BIG,arts:[(w,h)=>bookmark(w,h,['雨の日は、','空が近い。']),(w,h)=>bgFocus(w,h,4)+ch('girl','blush',w*.5,h*.1,.75)+blushOverlay(w,h)],
+    b:[['narr',4,4,36,'しおりには、<br>細い字で<br>こう書いてあった。'],['speech',2,70,40,'……それ、<br>わたしの。','br','柚月'],['shout',64,66,30,'えっ']],next:'a4'},
+  a4:{layout:TWO,arts:[(w,h)=>bgSparkle(w,h,33)+ch('girl','blush',w*.5,h*.16,1.1)+blush2(w,h),(w,h)=>bgStreet(w,h,9,true)+`<rect x="${w*.15}" y="${h*.3}" width="${w*.7}" height="${h*.7}" fill="#fff"/>`+ch('boy','smile',w*.5,h*.18,1)],
+    b:[['speech',4,4,44,'前に借りたとき、<br>挟んだまま<br>返しちゃって','bl','柚月'],['speech',56,30,40,'読まれてたなんて<br>……はずかしい','bl'],['thought',4,58,54,'この言葉、<br>ずっと気になってたんだ']],next:'a5'},
+  a5:{layout:TWO,arts:[(w,h)=>bgStation(w,h)+umbrella(w*.62,h*.66,w*.3)+ch('boy','normal',w*.5,h*.68,.6,true)+ch('girl','smile',w*.76,h*.7,.56),(w,h)=>bgWhite(w,h)+ch('boy','normal',w*.5,h*.06,.62)],
+    b:[['speech',58,4,38,'駅、<br>ついちゃったね','bl','柚月']],
+    choices:{q:'なんて言う？',opts:[['しおりの言葉、どういう意味？','a6'],['これ、きみに返すよ','r6']]}},
+  a6:{layout:ONE,arts:[(w,h)=>bgSparkle(w,h,44)+umbrella(w*.5,h*.3,w*.46)+ch('girl','smile',w*.62,h*.36,1.05)+ch('boy','surprised',w*.18,h*.62,.7,true)],
+    b:[['speech',4,4,52,'雨の日はね、<br>傘の中が<br>小さな空になるでしょ','br','柚月'],['speech',54,58,42,'だから、<br>空が近いの','tl'],['speech',30,84,64,'……今日、ちょっとわかった気がする','tl','湊']],next:'a7'},
+  a7:{layout:TOP_BIG,arts:[(w,h)=>bgStation(w,h)+`<rect x="${w*.05}" y="${h*.36}" width="${w*.9}" height="${h*.64}" fill="#fff"/>`+ch('girl','smile',w*.7,h*.34,.95)+ch('boy','blush',w*.27,h*.4,.88,true),null],
+    b:[['speech',48,8,46,'わたし、<br>二年の柚月。','bl','柚月'],['speech',2,12,44,'湊。……明日も<br>雨だといいな','br','湊']],
+    end:{n:1,t:'小さな空',line:'「晴れても、図書室にいるよ」'}},
+  r6:{layout:TWO,arts:[(w,h)=>bookmark(w,h,['雨の日は、','空が近い。']),(w,h)=>bgSparkle(w,h,51)+ch('girl','smile',w*.5,h*.14,1.05)],
+    b:[['speech',58,40,38,'これ、<br>きみに返すよ','tl','湊'],['speech',4,56,38,'……ありがとう','br','柚月'],['speech',58,74,36,'じゃあ、<br>かわりに','tl']],next:'r7'},
+  r7:{layout:TOP_BIG,arts:[(w,h)=>bookmark(w,h,['つぎは','『夜明けの地図』を','どうぞ。'],'― 柚月'),null],
+    b:[['narr',4,4,40,'しおりの裏に、<br>新しい一行が<br>ふえていた。']],
+    end:{n:2,t:'しおりの続き',line:'「感想、聞かせてね」'}},
+  // route B
+  b1:{layout:ONE,arts:[(w,h)=>bgSpeed(w,h)+rain(w,h,90,23)+ch('boy','troubled',w*.5,h*.34,1.3)],
+    b:[['narr',6,4,52,'……なんで<br>断ったんだ、俺。'],['shout',46,70,50,'つめてぇ！']],next:'b2'},
+  b2:{layout:TWO,arts:[(w,h)=>bgLibrary(w,h),(w,h)=>bgLibrary(w,h)+`<rect y="${h*.72}" width="${w}" height="${h*.28}" fill="#fff" stroke="${INK}" stroke-width="3"/>`+ch('girl','surprised',w*.55,h*.08,1)],
+    b:[['narr',6,4,40,'次の日。<br>図書室。'],['speech',4,56,30,'あ。<br>昨日の','br','柚月'],['speech',50,86,46,'き、きみ……<br>図書委員だったんだ','tl','湊']],next:'b3'},
+  b3:{layout:TOP_BIG,arts:[(w,h)=>bookmark(w,h,['雨の日は、','空が近い。']),(w,h)=>bgLibrary(w,h)+ch('girl','normal',w*.78,h*.12,.75)],
+    b:[['narr',4,4,40,'返した本から、<br>しおりが<br>落ちた。'],['speech',4,66,52,'これ、わたしが<br>挟んだしおり','br','柚月'],['speech',4,84,52,'『雨の日は、空が近い』<br>……読んだ？','br']],next:'b4'},
+  b4:{layout:ONE,arts:[(w,h)=>bgFocus(w,h,15)+ch('boy','blush',w*.5,h*.16,1.25)],
+    b:[['thought',8,4,56,'ここで、<br>なんて言う……？']],
+    choices:{q:'どう答える？',opts:[['昨日は、傘ことわってごめん','b5'],['……読んでない','b6']]}},
+  b5:{layout:TOP_BIG,arts:[(w,h)=>bgSparkle(w,h,61)+ch('girl','laugh',w*.5,h*.16,1.1),null],
+    b:[['speech',4,4,48,'走ってく背中、<br>ちょっと<br>かっこ悪かったよ','bl','柚月'],['speech',52,40,44,'次の雨の日は、<br>ちゃんと入ってね','bl']],
+    end:{n:3,t:'次の雨の日',line:'湊「……うん」'}},
+  b6:{layout:TOP_BIG,arts:[(w,h)=>bgLibrary(w,h,true)+ch('girl','sad',w*.32,h*.24,.95),null],
+    b:[['speech',58,40,32,'……そっか','bl','柚月'],['narr',52,4,44,'窓の外は、<br>もう晴れていた。']],
+    end:{n:4,t:'晴れのち、後悔',line:'（なんで、素直に言えないんだ）'}},
+};
+function blushOverlay(w,h){return''}
+function blush2(w,h){return''}
+
+// ---------- render
+const strip=document.getElementById('strip');
+const KEY='amayadori-endings';
+function loadEnds(){try{return new Set(JSON.parse(localStorage.getItem(KEY)||'[]'))}catch(e){return new Set()}}
+function saveEnds(s){try{localStorage.setItem(KEY,JSON.stringify([...s]))}catch(e){}}
+let ends=loadEnds();
+function updateCount(){document.getElementById('count').textContent=`エンディング ${ends.size} / 4`}
+updateCount();
+
+function bubble(b,i){
+  const[kind,x,y,w,t,tail,who]=b;
+  const style=`left:${x}%;top:${y}%;max-width:${w}%;animation-delay:${.15+i*.18}s`;
+  const label=who?`<span class="who">${who}</span>`:'';
+  if(kind==='shout')return`<div class="shout-wrap" style="${style}"><span class="shout">${t}</span></div>`;
+  return`<div class="b ${kind} ${tail?'t-'+tail:''}" style="${style}">${label}${t}</div>`;
+}
+function renderPage(id){
+  const p=P[id],el=document.createElement('section');
+  el.className='page';el.dataset.id=id;el.setAttribute('aria-label','ページ');
+  let html=pageSVG(p.layout,p.arts);
+  if(p.title)html+=`<div class="title">雨やどりの<br>しおり<small>― BOY MEETS GIRL ―</small></div>`;
+  html+=p.b.map(bubble).join('');
+  if(p.next)html+=`<div class="hint">▼ スクロール</div>`;
+  if(p.choices){
+    html+=`<div class="choices"><p>${p.choices.q}</p>`+p.choices.opts.map((o,i)=>`<button class="choice" data-i="${i}" type="button">${o[0]}</button>`).join('')+`</div>`;
+  }
+  if(p.end){
+    html+=`<div class="end"><span class="stamp">END ${p.end.n}</span><h2>${p.end.t}</h2><span class="count">${p.end.line}</span><span class="count" data-c></span><div class="row"><button class="main" data-act="back" type="button">ひとつ前の選択肢へ</button><button data-act="top" type="button">最初から読む</button></div></div>`;
+  }
+  el.innerHTML=html;
+  if(p.choices)el.querySelectorAll('.choice').forEach(btn=>btn.addEventListener('click',()=>choose(el,+btn.dataset.i)));
+  if(p.end){
+    ends.add(p.end.n);saveEnds(ends);updateCount();
+    el.querySelector('[data-c]').textContent=`見つけたエンディング ${ends.size} / 4`;
+    el.querySelector('[data-act="back"]').addEventListener('click',()=>{const cs=[...strip.querySelectorAll('.page')].filter(x=>P[x.dataset.id].choices);const last=cs[cs.length-1];if(last)go(last)});
+    el.querySelector('[data-act="top"]').addEventListener('click',restart);
+  }
+  strip.appendChild(el);return el;
+}
+function appendChain(id){let first=null;while(id){const el=renderPage(id);if(!first)first=el;const p=P[id];id=p.next||null}return first}
+function go(el){el.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'})}
+function choose(pageEl,i){
+  while(pageEl.nextElementSibling)pageEl.nextElementSibling.remove();
+  pageEl.querySelectorAll('.choice').forEach((b,j)=>{b.classList.toggle('picked',j===i);b.classList.toggle('other',j!==i)});
+  const first=appendChain(P[pageEl.dataset.id].choices.opts[i][1]);
+  requestAnimationFrame(()=>go(first));
+}
+function restart(){strip.innerHTML='';appendChain('p1');window.scrollTo({top:0,behavior:'auto'})}
+document.getElementById('restart').addEventListener('click',restart);
+appendChain('p1');
+})();
+</script>
+
+</html>
