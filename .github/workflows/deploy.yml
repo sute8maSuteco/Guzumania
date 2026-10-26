@@ -1,7 +1,7 @@
 name: Deploy Pages with Directory Listing
 on:
   push:
-    branches: ["Guzumania"] # あなたのデフォルトブランチ名に合わせてください
+    branches: ["main"] # あなたのデフォルトブランチ名に合わせてください
 
 permissions:
   contents: read
