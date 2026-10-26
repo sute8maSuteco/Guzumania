@@ -1,0 +1,29 @@
+name: Deploy Pages with Directory Listing
+on:
+  push:
+    branches: ["Guzumania"] # あなたのデフォルトブランチ名に合わせてください
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Generate Directory Listing
+        uses: gacts/directory-listing@v1
+        with:
+          target: '.' # 一覧を作りたいフォルダ。リポジトリ全体なら '.'
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.'
+
+      - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v4
