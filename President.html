@@ -1,0 +1,387 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>大統領になろう</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Zen+Kaku+Gothic+New:wght@400;700&display=swap">
+<style>
+/* Layout: one phone-height screen. Top = stage illustration (party colors) with HUD overlay (phase, money, poll/approval bars).
+   Then a row of pledge chips (lobbies you owe), the message box, and the choices — a novel-game flow. */
+:root{
+  --bg:#f3f1ec; --card:#ffffff; --fg:#1d2230; --muted:#6b7280; --line:#e1ddd4;
+  --red:#d33a3a; --blue:#2f63d6; --gold:#e0a82e; --ok:#2f9e6a;
+  --me:var(--red); --opp:var(--blue);
+  --head:'Dela Gothic One','Hiragino Sans','Yu Gothic',sans-serif;
+  --body:'Zen Kaku Gothic New','Hiragino Sans','Yu Gothic',system-ui,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#11141b;--card:#1a1e27;--fg:#e9ecf2;--muted:#9aa1ad;--line:#2b303b;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#11141b;--card:#1a1e27;--fg:#e9ecf2;--muted:#9aa1ad;--line:#2b303b;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--fg);overflow:hidden}
+body{font-family:var(--body);line-height:1.5}
+.app{height:100vh;height:100dvh;max-width:520px;margin:0 auto;display:flex;flex-direction:column;padding:10px 12px calc(10px + env(safe-area-inset-bottom));gap:7px}
+.stage{position:relative;flex:1 1 auto;min-height:130px;border-radius:14px;overflow:hidden;background:#0e1424}
+.stage svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+.hud{position:absolute;left:0;right:0;top:0;display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 10px;background:linear-gradient(rgba(0,0,0,.6),transparent);color:#fff;font-size:.76rem;font-variant-numeric:tabular-nums}
+.hud b{font-family:var(--head);font-weight:400;font-size:.95rem}
+.hud .money{white-space:nowrap}
+.gauge{position:absolute;left:0;right:0;bottom:0;padding:18px 10px 8px;background:linear-gradient(transparent,rgba(0,0,0,.72));color:#fff;font-size:.74rem;font-variant-numeric:tabular-nums}
+.gauge .row{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.gauge .row b{font-family:var(--head);font-weight:400;font-size:1.1rem}
+.vs{display:flex;height:9px;border-radius:5px;overflow:hidden;background:rgba(255,255,255,.2);margin-top:3px;position:relative}
+.vs i{display:block;height:100%;transition:width .6s}
+.vs .mid{position:absolute;left:50%;top:-2px;bottom:-2px;width:2px;background:#fff;opacity:.8}
+.chips{flex:none;display:flex;gap:4px;flex-wrap:wrap;min-height:22px;align-items:center}
+.chips .lab{font-size:.68rem;color:var(--muted);margin-right:2px}
+.chip{font-size:.66rem;padding:2px 7px;border-radius:999px;border:1px solid var(--line);background:var(--card);white-space:nowrap}
+.chip.pl{border-color:var(--gold);color:var(--fg)}
+.chip.done{background:var(--ok);border-color:var(--ok);color:#fff}
+.chip.bt{background:var(--red);border-color:var(--red);color:#fff;text-decoration:line-through}
+.chip.host{border-color:var(--red);color:var(--red)}
+.msg{flex:none;height:clamp(96px,18dvh,160px);overflow-y:auto;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:.88rem}
+.msg.big{height:clamp(130px,34dvh,300px)}
+.msg h2{margin:0 0 4px;font-family:var(--head);font-weight:400;font-size:1.05rem;line-height:1.35}
+.msg p{margin:0 0 5px}
+.msg .q{font-weight:700;padding:5px 9px;border-left:3px solid var(--gold);background:color-mix(in srgb,var(--gold) 9%,var(--card))}
+.msg .warn{color:var(--red);font-weight:700}
+.msg .log{color:var(--muted);font-size:.78rem;border-top:1px dashed var(--line);padding-top:5px;margin-top:6px}
+.msg table{width:100%;border-collapse:collapse;font-size:.78rem;margin-top:4px}
+.msg td{padding:3px 4px;border-bottom:1px solid var(--line)}
+.msg td:last-child{text-align:right;white-space:nowrap}
+.acts{flex:none;display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.act{font:inherit;text-align:left;background:var(--card);color:var(--fg);border:1px solid var(--line);border-left:4px solid var(--fg);border-radius:10px;padding:7px 10px;cursor:pointer;display:flex;flex-direction:column;justify-content:center;min-width:0;min-height:48px}
+.act:hover:not(:disabled){border-color:var(--gold)}
+.act:disabled{opacity:.4;cursor:not-allowed}
+.act b{font-size:.86rem;line-height:1.3}
+.act span{font-size:.68rem;color:var(--muted);line-height:1.3}
+.act.wide{grid-column:1/-1}
+.act.main{background:var(--fg);color:var(--bg);border-color:var(--fg);align-items:center}
+.act.main span{color:inherit;opacity:.75}
+.act.red{border-left-color:var(--red)}.act.blue{border-left-color:var(--blue)}
+.act.good{border-left-color:var(--ok)}.act.bad{border-left-color:var(--red)}.act.gold{border-left-color:var(--gold)}
+.act:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.note{font-size:.6rem;color:var(--muted);margin:0;text-align:center;flex:none}
+@media (max-height:640px){.note{display:none}.act{min-height:42px;padding:5px 9px}}
+@media (prefers-reduced-motion:reduce){.vs i{transition:none}}
+</style>
+
+<div class="app">
+  <div class="stage" id="stage">
+    <div id="art"></div>
+    <div class="hud"><span id="phase"><b>大統領になろう</b></span><span class="money" id="money"></span></div>
+    <div class="gauge" id="gauge"></div>
+  </div>
+  <div class="chips" id="chips"></div>
+  <div class="msg" id="msg" aria-live="polite"></div>
+  <div class="acts" id="acts"></div>
+  <p class="note">架空の国・政党・人物によるフィクションです。ロビーは分野名で表しており、特定の実在団体ではありません。</p>
+</div>
+
+<script>
+(()=>{
+'use strict';
+const $=id=>document.getElementById(id);
+const ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+
+// ---------- data
+const PARTY={red:{n:'赤い党',c:'#d33a3a',rival:'ダグラス・ホイット知事',opp:'ナンシー・ヴェイル知事'},blue:{n:'青い党',c:'#2f63d6',rival:'エレン・マーシュ上院議員',opp:'ブラッド・コルトン上院議員'}};
+// r: share of this lobby's money that goes to the red party (the rest goes to blue) — every lobby funds both parties, with a tilt. ap: approval change when the pledge is carried out.
+const LOBBY=[
+ {id:'mil',s:'軍需',n:'軍需産業ロビー',r:0.6,pledge:'国防予算を増やす',ap:-1,done:'国防予算が過去最大に。防衛関連企業の株が上がった。財政赤字を心配する声も。'},
+ {id:'oil',s:'石油',n:'エネルギー・石油ロビー',r:0.75,pledge:'石油・ガスの掘削規制を緩める',ap:1,done:'ガソリン価格が少し下がった。環境への影響を心配する声も上がった。'},
+ {id:'pharma',s:'製薬',n:'製薬・ヘルスケアロビー',r:0.5,pledge:'薬価の引き下げを行わない',ap:-3,done:'新薬の開発は続くが、薬代の高さへの不満が残った。'},
+ {id:'gun',s:'銃',n:'銃の権利団体',r:0.85,pledge:'銃規制を強めない',ap:0,done:'銃に関する法律は据え置き。賛成と反対が真っ二つに分かれた。'},
+ {id:'senior',s:'高齢者',n:'高齢者団体',r:0.35,pledge:'高齢者医療を守り、薬価を引き下げる',ap:3,done:'高齢者の薬代が下がった。財源をめぐる議論は続いている。'},
+ {id:'isr',s:'親イスラエル',n:'親イスラエル・ロビー',r:0.5,pledge:'イスラエルへの軍事支援を続ける',ap:0,done:'支援は継続された。国内では賛否が分かれ、議論が続いた。'},
+ {id:'ins',s:'保険',n:'保険ロビー',r:0.65,pledge:'公的医療保険を拡大しない',ap:-2,done:'民間保険中心の制度が続いた。保険料の高さへの不満も根強い。'},
+ {id:'food',s:'食品',n:'食品業界ロビー',r:0.55,pledge:'加工食品の表示規制を強めない',ap:-1,done:'食品業界は安堵した。健康団体からは批判が出た。'},
+ {id:'env',s:'環境',n:'環境保護団体',r:0.2,pledge:'再生可能エネルギーへの転換を進める',ap:1,done:'再エネ投資が拡大した。電気代の上昇を心配する声もある。'},
+ {id:'labor',s:'労組',n:'労働組合',r:0.25,pledge:'最低賃金を引き上げる',ap:2,done:'最低賃金が上がった。中小企業や飲食業からは悲鳴も。'},
+ {id:'tech',s:'IT',n:'IT・テック業界',r:0.45,pledge:'AIとネットの規制をゆるく保つ',ap:0,done:'テック企業は勢いづいた。個人情報への不安は残った。'},
+];
+const L=Object.fromEntries(LOBBY.map(l=>[l.id,l]));
+// opposing demands: you cannot satisfy both sides
+const CONFLICT=[['oil','env','エネルギー政策'],['pharma','senior','薬価'],['ins','labor','医療保険'],['food','labor','飲食業の賃金']];
+const conflictsOf=id=>CONFLICT.filter(c=>c[0]===id||c[1]===id).map(c=>c[0]===id?c[1]:c[0]);
+const SWING=[['アリゾナ',11],['ジョージア',16],['ミシガン',15],['ネバダ',6],['ノースカロライナ',16],['ペンシルベニア',19],['ウィスコンシン',10]];
+
+// ---------- state
+let G;
+function init(){G={party:null,phase:'title',turn:0,maxTurn:0,money:10,me:0,rv:0,ap:0,met:new Set(),pl:{},host:new Set(),log:[],year:0,congress:true,ev:null,debatePrep:0,cleanBonus:0}}
+const other=()=>G.party==='red'?'blue':'red';
+// pl[id] = 'pledged' | 'done' | 'betrayed' | 'blocked' | 'refused'
+const pledged=()=>Object.keys(G.pl).filter(k=>G.pl[k]==='pledged');
+
+// ---------- stage art
+function artSVG(){
+  const st=$('stage');const w=st.clientWidth||360,h=st.clientHeight||200;const H=Math.max(220,360*h/w);
+  const pc=G.party?PARTY[G.party].c:'#6b5bd6';const ph=G.phase;
+  let s=`<svg viewBox="0 ${230-H} 360 ${H}" preserveAspectRatio="xMidYMax slice" role="img" aria-label="ステージ"><defs><linearGradient id="bgG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0e1424"/><stop offset="1" stop-color="${pc}" stop-opacity=".55"/></linearGradient></defs>`;
+  s+=`<rect x="-400" y="-900" width="1160" height="1200" fill="url(#bgG)"/>`;
+  if(ph==='office'){
+    // a stately office: window with curtains, flags, desk
+    s+=`<rect x="-400" y="-900" width="1160" height="1200" fill="#2a2418"/><rect x="110" y="20" width="140" height="100" fill="#8fb6dc"/><rect x="96" y="14" width="24" height="120" fill="#7a2a2a"/><rect x="240" y="14" width="24" height="120" fill="#7a2a2a"/>`;
+    s+=`<line x1="60" y1="30" x2="60" y2="150" stroke="#c9a85a" stroke-width="3"/><rect x="62" y="32" width="34" height="22" fill="${pc}"/><line x1="300" y1="30" x2="300" y2="150" stroke="#c9a85a" stroke-width="3"/><rect x="266" y="32" width="34" height="22" fill="#f4efe2"/>`;
+    s+=`<ellipse cx="180" cy="210" rx="220" ry="40" fill="#3a3122"/><circle cx="180" cy="125" r="14" fill="#e8c4a0"/><rect x="160" y="138" width="40" height="30" rx="8" fill="#232a3a"/><rect x="176" y="140" width="8" height="16" fill="${pc}"/>`;
+    s+=`<rect x="100" y="158" width="160" height="50" rx="4" fill="#5a3a20"/><rect x="104" y="162" width="152" height="8" fill="#6e4a2a"/><circle cx="180" cy="186" r="10" fill="#c9a85a"/>`;
+    return s+'</svg>';
+  }
+  // spotlights
+  s+=`<path d="M60 -200 L130 200 L-10 200 Z" fill="rgba(255,255,255,.05)"/><path d="M300 -200 L370 200 L230 200 Z" fill="rgba(255,255,255,.05)"/>`;
+  // banner
+  s+=`<rect x="80" y="18" width="200" height="34" rx="4" fill="${pc}"/><text x="180" y="41" font-size="15" fill="#fff" text-anchor="middle" font-family="'Dela Gothic One',sans-serif">${ph==='title'?'ELECTION':ph==='night'?'開票速報':'VOTE!'}</text>`;
+  // stars
+  for(let i=0;i<5;i++)s+=`<circle cx="${100+i*40}" cy="62" r="2.5" fill="#fff" opacity=".8"/>`;
+  // candidate + podium
+  s+=`<circle cx="180" cy="96" r="15" fill="#e8c4a0"/><path d="M165 92 Q180 72 195 92 Z" fill="#3a2a20"/><rect x="158" y="110" width="44" height="36" rx="9" fill="#232a3a"/><rect x="176" y="112" width="8" height="18" fill="${pc}"/>`;
+  s+=`<path d="M146 130 L214 130 L206 196 L154 196 Z" fill="#f4efe2"/><rect x="146" y="126" width="68" height="8" fill="${pc}"/><circle cx="180" cy="160" r="12" fill="none" stroke="${pc}" stroke-width="3"/><path d="M180 152 l2.5 5.5 6 .5 -4.5 4 1.4 6 -5.4 -3.2 -5.4 3.2 1.4 -6 -4.5 -4 6 -.5 Z" fill="${pc}"/>`;
+  // crowd with signs
+  for(let i=0;i<9;i++){const x=10+i*42+(i%2)*8,y=200-(i%2)*6;s+=`<circle cx="${x}" cy="${y-18}" r="10" fill="#141a2a"/><rect x="${x-13}" y="${y-8}" width="26" height="30" rx="8" fill="#141a2a"/>`;
+    if(i%3!==1)s+=`<line x1="${x+12}" y1="${y-14}" x2="${x+12}" y2="${y-40}" stroke="#141a2a" stroke-width="2"/><rect x="${x}" y="${y-58}" width="26" height="18" fill="${i%3===0?pc:'#f4efe2'}" stroke="#141a2a"/>`}
+  return s+'</svg>';
+}
+
+// ---------- render
+let UI=null;
+function render(){
+  $('art').innerHTML=artSVG();
+  const p=G.party?PARTY[G.party]:null;
+  const PH={title:'大統領になろう',primary:`予備選 ${G.turn}/${G.maxTurn}`,general:`本選 ${G.turn}/${G.maxTurn}`,night:'開票速報',office:`政権 ${G.year}年目`};
+  $('phase').innerHTML=`<b>${PH[G.phase]||''}</b>${p?`　${p.n}`:''}`;
+  $('money').textContent=G.phase==='primary'||G.phase==='general'?`資金 $${G.money}M`:'';
+  // gauge
+  let g='';
+  if(G.phase==='primary'||G.phase==='general'){
+    const rn=G.phase==='primary'?PARTY[G.party].rival:PARTY[other()].opp;const rc=G.phase==='primary'?'#9aa1ad':PARTY[other()].c;
+    const tot=G.me+G.rv||1;
+    g=`<div class="row"><span>あなた <b>${G.me}%</b></span><span>${rn} <b>${G.rv}%</b></span></div><div class="vs"><i style="width:${G.me/tot*100}%;background:${p.c}"></i><i style="width:${G.rv/tot*100}%;background:${rc}"></i><span class="mid"></span></div>`;
+  }else if(G.phase==='night'&&G.ev){
+    const e=G.ev;g=`<div class="row"><span>あなた <b>${e.me}</b></span><span>過半数 270</span><span><b>${e.op}</b> 相手</span></div><div class="vs"><i style="width:${e.me/538*100}%;background:${p.c}"></i><i style="flex:1;background:transparent"></i><i style="width:${e.op/538*100}%;background:${PARTY[other()].c}"></i><span class="mid"></span></div>`;
+  }else if(G.phase==='office'){
+    g=`<div class="row"><span>支持率 <b>${G.ap}%</b></span><span>議会 ${G.congress?'与党が多数':'ねじれ'}</span></div><div class="vs"><i style="width:${G.ap}%;background:${G.ap>=50?'#2f9e6a':'#d33a3a'}"></i><span class="mid"></span></div>`;
+  }
+  $('gauge').innerHTML=g;$('gauge').hidden=!g;
+  // chips
+  const ids=Object.keys(G.pl).filter(k=>G.pl[k]!=='refused');const hs=[...G.host].filter(h=>!ids.includes(h));
+  $('chips').innerHTML=ids.length||hs.length?`<span class="lab">公約</span>`+ids.map(k=>`<span class="chip ${({pledged:'pl',done:'done',betrayed:'bt',blocked:'bt'})[G.pl[k]]}" title="${L[k].n}：${L[k].pledge}">${L[k].s}</span>`).join('')+hs.map(k=>`<span class="chip host" title="${L[k].n}（敵対）">${L[k].s}✕</span>`).join(''):`<span class="lab">ロビーとの約束はまだありません</span>`;
+  // message & actions
+  const msg=$('msg'),acts=$('acts');
+  if(UI){msg.className='msg'+(UI.opts.length<=2?' big':'');msg.innerHTML=UI.html;
+    acts.innerHTML=UI.opts.map((o,i)=>`<button class="act ${o.cls||''} ${UI.opts.length%2&&i===UI.opts.length-1?'wide':''}" data-i="${i}" type="button" ${o.dis?'disabled':''}><b>${o.l}</b>${o.s?`<span>${o.s}</span>`:''}</button>`).join('');
+    acts.querySelectorAll('.act').forEach(b=>b.addEventListener('click',()=>{if(!UI)return;const cb=UI.cb;UI=null;cb(+b.dataset.i)}));
+    msg.scrollTop=0;
+  }
+}
+function ask(html,opts){return new Promise(res=>{UI={html,opts,cb:res};render();setTimeout(()=>{const b=$('acts').querySelector('button:not(:disabled)');if(b)try{b.focus({preventScroll:true})}catch(e){}},30)})}
+const say=(html,btn='つぎへ')=>ask(html,[{l:btn,cls:'main'}]);
+function show(html){UI=null;$('msg').className='msg big';$('msg').innerHTML=html;$('acts').innerHTML='';render();$('msg').className='msg big';$('msg').innerHTML=html}
+const sgn=n=>n>0?`+${n}`:`${n}`;
+
+// ---------- campaign
+function poll(d){G.me=clamp(G.me+d,5,70)}
+async function campaignTurn(){
+  const ph=G.phase,gen=ph==='general';
+  const rn=gen?PARTY[other()].opp:PARTY[G.party].rival;
+  // 1. action
+  const i=await ask(`<h2>${gen?'本選':'予備選'}　${G.turn}週目</h2><p>${gen?`${PARTY[other()].n}の${rn}との一騎打ち。`:`党の指名を争うライバルは${rn}。`}今週はどう動く？</p>`,[
+    {l:'遊説に回る',s:'支持 +1〜4・資金 −$3M',cls:'good',dis:G.money<3},
+    {l:'テレビ広告を打つ',s:'支持 +3〜7・資金 −$20M',cls:'gold',dis:G.money<20},
+    {l:'献金パーティー',s:'資金 +$12〜22M・支持 −1',cls:''},
+    {l:'討論会に備える',s:'次の討論会で有利に',cls:''}]);
+  let r='';
+  if(i===0){const d=ri(1,4);G.money-=3;poll(d);r=`各地の集会で握手し続けた。支持 ${sgn(d)}`}
+  else if(i===1){const d=ri(3,7);G.money-=20;poll(d);r=`テレビ広告が流れた。支持 ${sgn(d)}`}
+  else if(i===2){const m=ri(12,22);G.money+=m;poll(-1);r=`高級ホテルで献金パーティー。資金 +$${m}M。「金持ちの候補」と書かれた。支持 −1`}
+  else{G.debatePrep++;r='政策ブリーフィングと模擬討論をくり返した。'}
+  // 2. event
+  if((gen&&G.turn===Math.ceil(G.maxTurn/2))||(!gen&&G.turn===3))await debate(rn,r);
+  else if(Math.random()<.72&&LOBBY.some(l=>!G.met.has(l.id)))await lobbyOffer(r);
+  else await randomEvent(r);
+  // 3. hostile lobbies strike
+  for(const h of G.host){if(Math.random()<.3){const d=ri(2,4);poll(-d);await say(`<h2>反対キャンペーン</h2><p class="q">${L[h].n}が、あなたを批判するテレビ広告に大金を投じた。</p><p>支持 −${d}</p>`)}}
+  // 4. rival moves
+  const rd=ri(0,2);G.rv=clamp(G.rv+rd,5,70);
+  if(Math.random()<.4)await hedge(rn);
+}
+const share=lb=>G.party==='red'?lb.r:1-lb.r;
+function splitBar(lb){const r=Math.round(lb.r*100);return `<div style="display:flex;height:8px;border-radius:4px;overflow:hidden;margin:4px 0 2px"><i style="width:${r}%;background:#d33a3a"></i><i style="flex:1;background:#2f63d6"></i></div><small style="color:var(--muted)">献金の配分　赤い党 ${r}%・青い党 ${100-r}%</small>`}
+async function lobbyOffer(prev){
+  const cand=LOBBY.filter(l=>!G.met.has(l.id));const lb=pick(cand);G.met.add(lb.id);
+  const sh=share(lb),gen=G.phase==='general';
+  const money=Math.max(6,Math.round(ri(30,44)*sh));
+  let sup=gen?1:clamp(Math.round((sh-.5)*8),-3,3);
+  const cf=conflictsOf(lb.id).filter(c=>G.pl[c]==='pledged');
+  const i=await ask(`<p class="log">${prev}</p><h2>${lb.n}がやってきた</h2>${splitBar(lb)}<p>「$${money}Mの献金と、組織をあげての応援をお約束します。そのかわり、当選したら<b>${lb.pledge}</b>と約束してください」</p>${sh<=.4?`<p class="warn">ふだんは${PARTY[other()].n}寄りの団体。${gen?'':'党の支持層には評判が悪い。'}</p>`:sh>=.6?`<p>${PARTY[G.party].n}寄りの支援団体だ。</p>`:'<p>両党にほぼ半々で献金している団体だ。</p>'}${cf.length?`<p class="warn">⚠ すでに約束した${cf.map(c=>L[c].n).join('・')}の主張と正反対です。</p>`:''}`,[
+    {l:'約束する',s:`資金 +$${money}M・支持 ${sgn(sup)}`,cls:'gold'},
+    {l:'断る',s:'敵に回るかもしれない',cls:'bad'}]);
+  if(i===0){G.pl[lb.id]='pledged';G.money+=money;poll(sup);await say(`<p>${lb.n}と握手した。公約に「${lb.pledge}」が加わった。</p>${cf.length?'<p class="warn">矛盾する約束を抱えてしまった。当選後、どちらかを裏切ることになる。</p>':''}`)}
+  else{G.pl[lb.id]='refused';
+    if(Math.random()<.35+sh*.3){G.host.add(lb.id);await say(`<p>${lb.n}は、無言で部屋を出ていった。<span class="warn">敵に回った。</span>浮いた献金は、相手陣営に回るだろう。</p>`)}
+    else{const d=Math.random()<.5?1:0;poll(d);await say(`<p>${lb.n}は肩をすくめて帰っていった。${d?'「献金を断った候補」として小さく報じられた。支持 +1':''}</p>`)}}
+}
+// every lobby also funds the other side — the size depends on its tilt
+async function hedge(rn){
+  const lb=pick(LOBBY);const prim=G.phase==='primary';const theirs=(prim?share(lb):1-share(lb))+(G.host.has(lb.id)?.3:0);
+  const m=Math.max(3,Math.round(ri(20,40)*theirs));const d=prim?(theirs>=.6?1:0):theirs>=.6?2:theirs>=.4?1:0;G.rv=clamp(G.rv+d,5,70);
+  const mine=G.pl[lb.id]==='pledged';
+  await say(`<h2>献金の流れ</h2>${splitBar(lb)}<p>${lb.n}が、${rn}の陣営に$${m}Mを献金していた。${mine?'<span class="warn">あなたと約束した団体なのに。</span>どちらが勝っても損をしないように、両方に賭けているのだ。':prim?'同じ党の候補どうし、両方に張っているらしい。':theirs<.4?'ふだんはあなたの党寄りの団体だが、保険をかけたらしい。':''}</p>${d?`<p>相手の支持 +${d}</p>`:''}`);
+}
+async function debate(rn,prev){
+  const prep=G.debatePrep;G.debatePrep=0;
+  const t=pick(['医療費','物価','外交','移民','税金','エネルギー']);
+  const i=await ask(`<p class="log">${prev}</p><h2>テレビ討論会</h2><p class="q">司会「${t}について、どうお考えですか」</p><p>${rn}がこちらをにらんでいる。${prep?'準備はばっちりだ。':''}</p>`,[
+    {l:'相手の弱点を突く',s:'大きく勝つか、大きく負ける',cls:'bad'},
+    {l:'堅実に政策を語る',s:'確実に少し伸びる',cls:'good'},
+    {l:'ジョークで場をなごませる',s:'うければ大きい',cls:'gold'}]);
+  let d;
+  if(i===0)d=Math.random()<.5+prep*.2?ri(5,8):-ri(2,4);
+  else if(i===1)d=ri(1,3)+prep*2;
+  else d=Math.random()<.55+prep*.1?ri(3,6):-ri(1,3);
+  poll(d);
+  await say(`<p>${d>0?pick(['会場から拍手が起きた。','翌朝の見出しは「圧勝」。','SNSで名場面として拡散された。']):pick(['言葉に詰まった瞬間が、何度も放送された。','相手の切り返しが一枚上手だった。'])}</p><p>支持 ${sgn(d)}</p>`);
+}
+async function randomEvent(prev){
+  const gen=G.phase==='general';
+  const ev=pick(['gaffe','endorse','scandal','rally','meme']);
+  if(ev==='gaffe'){const i=await ask(`<p class="log">${prev}</p><h2>失言！</h2><p class="q">マイクが入っているのに気づかず、「地方の人は細かいことを気にしない」と言ってしまった。</p>`,[{l:'すぐに謝る',s:'支持 −1',cls:'good'},{l:'開き直る',s:gen?'本選では大きく減る':'党の支持層にはうける',cls:'bad'}]);
+    const d=i===0?-1:gen?-4:2;poll(d);await say(`<p>${i===0?'謝罪会見を開いた。騒ぎはすぐにおさまった。':gen?'中間層がはっきりと離れていった。':'「本音を言う候補」として支持層が盛り上がった。'}</p><p>支持 ${sgn(d)}</p>`)}
+  else if(ev==='endorse'){const d=ri(2,4);poll(d);await say(`<p class="log">${prev}</p><h2>応援表明</h2><p>人気の元知事が、あなたの応援演説に立った。支持 +${d}</p>`)}
+  else if(ev==='scandal'){const d=ri(2,4);G.rv=clamp(G.rv-d,5,70);await say(`<p class="log">${prev}</p><h2>相手にスキャンダル</h2><p>相手陣営の幹部が、経費の使い方で批判を浴びた。相手の支持 −${d}</p>`)}
+  else if(ev==='rally'){const i=await ask(`<p class="log">${prev}</p><h2>大集会のチャンス</h2><p>スタジアムを借りて大集会を開けると言われた。費用は$15M。</p>`,[{l:'開く',s:'資金 −$15M・支持 +3〜6',cls:'gold',dis:G.money<15},{l:'見送る',s:'',cls:''}]);
+    if(i===0){const d=ri(3,6);G.money-=15;poll(d);await say(`<p>スタジアムが${PARTY[G.party].n}の色に染まった。支持 +${d}</p>`)}else await say('<p>今回は見送った。</p>')}
+  else{const d=Math.random()<.6?ri(1,3):-ri(1,2);poll(d);await say(`<p class="log">${prev}</p><h2>ネットでバズった</h2><p>${d>0?'集会でのダンス動画が若者にうけた。':'集会でのダンス動画が、ものまねのネタにされた。'}支持 ${sgn(d)}</p>`)}
+}
+
+// ---------- election night
+async function electionNight(gapBase,title){
+  G.phase='night';
+  const meSafe=Math.random()<.5?226:219,opSafe=445-meSafe;
+  G.ev={me:meSafe,op:opSafe};
+  const results=[];
+  show(`<h2>${title}</h2><p>投票が締め切られた。確実な州の票が積み上がる……</p>`);
+  await sleep(1200);
+  for(const[nm,ev] of shuffle(SWING)){
+    const p=1/(1+Math.exp(-(gapBase+(Math.random()*6-3))*.45));const win=Math.random()<p;
+    if(win)G.ev.me+=ev;else G.ev.op+=ev;results.push(`${nm}（${ev}）… ${win?'<b>あなた</b>':'相手'}`);
+    show(`<h2>${title}</h2><p>${results.join('<br>')}</p>`);await sleep(850);
+  }
+  const won=G.ev.me>=270;
+  return won;
+}
+
+// ---------- governance
+async function office(){
+  G.phase='office';G.year=1;G.ap=clamp(52+Math.round((G.me-G.rv)/2),45,62);
+  // build the agenda: conflicting pairs become dilemmas, others are single bills
+  const items=[];const used=new Set();
+  for(const[a,b,topic] of CONFLICT){if(G.pl[a]==='pledged'&&G.pl[b]==='pledged'){items.push({type:'dilemma',a,b,topic});used.add(a);used.add(b)}}
+  for(const id of pledged())if(!used.has(id))items.push({type:'bill',id});
+  const crises=shuffle(['storm','recession','aide','summit']).slice(0,3).map(c=>({type:'crisis',c}));
+  const all=shuffle(items);
+  const years=[[],[],[],[]];all.forEach((it,i)=>years[i%4].push(it));crises.forEach((c,i)=>years[[0,1,3][i]].push(c));
+  for(let y=0;y<4;y++){
+    G.year=y+1;render();
+    await say(`<h2>政権 ${G.year}年目</h2><p>${y===0?'大統領に就任した。ロビーとの約束を果たすときがきた。':'新しい一年が始まった。'}</p>${years[y].filter(x=>x.type!=='crisis').length?`<p>今年の議題：${years[y].filter(x=>x.type!=='crisis').length}件</p>`:''}`);
+    for(const it of shuffle(years[y])){
+      if(it.type==='bill')await bill(it.id);else if(it.type==='dilemma')await dilemma(it);else await crisis(it.c);
+    }
+    if(y===1)await midterm();
+  }
+  return reelection();
+}
+function apAdd(d){G.ap=clamp(G.ap+d,10,90)}
+async function betray(id,why){G.pl[id]='betrayed';G.host.add(id);const d=ri(3,5);apAdd(-d);await say(`<h2>${L[id].n}の逆襲</h2><p class="q">「約束を破った大統領を、私たちは忘れない」</p><p>${why}批判広告が全国に流れた。支持率 −${d}</p>`)}
+async function pass(id){
+  if(!G.congress&&Math.random()<.4){G.pl[id]='blocked';apAdd(-1);await say(`<p class="warn">議会で否決された……。</p><p>${L[id].n}は不満げだが、「議会のせいだ」と説明した。支持率 −1</p>`);return false}
+  G.pl[id]='done';apAdd(L[id].ap);await say(`<p>「${L[id].pledge}」を実行した。</p><p>${L[id].done}</p><p>支持率 ${sgn(L[id].ap)}</p>`);return true}
+async function bill(id){
+  const lb=L[id];
+  const i=await ask(`<h2>公約の期限</h2><p>${lb.n}が待っている。</p><p class="q">約束：${lb.pledge}</p><p>国民への影響：支持率 ${sgn(lb.ap)}（見込み）</p>`,[{l:'実行する',s:'約束を守る',cls:'good'},{l:'見送る',s:'ロビーを裏切る',cls:'bad'}]);
+  if(i===0)await pass(id);else await betray(id,'');
+}
+async function dilemma(it){
+  const a=L[it.a],b=L[it.b];
+  const i=await ask(`<h2>板ばさみ：${it.topic}</h2><p>選挙中、正反対の約束を二つしてしまった。</p><p class="q">${a.n}：${a.pledge}<br>${b.n}：${b.pledge}</p><p>どちらか一方しか守れない。</p>`,[{l:`${a.s}を取る`,s:`${b.n}を裏切る`,cls:'gold'},{l:`${b.s}を取る`,s:`${a.n}を裏切る`,cls:'gold'}]);
+  const keep=i===0?it.a:it.b,lose=i===0?it.b:it.a;
+  await pass(keep);await betray(lose,`${L[keep].n}の側についたことで、`);
+}
+async function crisis(c){
+  const C={
+    storm:['巨大ハリケーン','南部の州を巨大ハリケーンが直撃した。',[['大規模な支援を送る',4,'迅速な対応が評価された。'],['州に任せる',-4,'「見捨てられた」と怒りの声が上がった。']]],
+    recession:['景気後退','株価が急落し、失業率が上がりはじめた。',[['大型の景気対策',2,'景気は持ち直したが、赤字は膨らんだ。'],['市場に任せる',-3,'回復は遅く、不満が広がった。']]],
+    aide:['側近のスキャンダル','側近が、あるロビーと内密に会っていたと報じられた。',[['すぐに更迭する',-1,'素早い対応で傷は浅くすんだ。'],['かばう',0,'']]],
+    summit:['国際サミット','同盟国が集まる首脳会議に招かれた。',[['出席する',2,'各国首脳と並んだ写真が大きく報じられた。'],['国内の課題を優先する',-1,'「外交軽視」と批判された。']]]
+  }[c];
+  const i=await ask(`<h2>${C[0]}</h2><p class="q">${C[1]}</p>`,C[2].map((o,k)=>({l:o[0],cls:k?'':'good'})));
+  let [_,d,t]=C[2][i];
+  if(c==='aide'&&i===1){if(Math.random()<.5){d=-6;t='続報が次々に出て、大炎上した。'}else{d=1;t='騒ぎはそのうち忘れられた。「身内に甘い」とも言われたが。'}}
+  apAdd(d);await say(`<p>${t}</p><p>支持率 ${sgn(d)}</p>`);
+}
+async function midterm(){
+  const g=G.ap-50+ri(-4,4);G.congress=g>=0;render();
+  await say(`<h2>中間選挙</h2><p>${G.congress?'与党が議会の多数を守った。法案は通りやすいままだ。':'与党が議会の多数を失った。<span class="warn">これからは、公約を実行しようとしても議会で否決されることがある。</span>'}</p>`);
+}
+async function reelection(){
+  const enemies=[...G.host].length;
+  const gap=(G.ap-48)/1.5-enemies*0.6;
+  G.rv=0;await say(`<h2>再選をかけた選挙</h2><p>4年がたった。支持率は${G.ap}%。あなたを敵視するロビーは${enemies}団体。</p>`,'開票へ');
+  return electionNight(gap,'再選選挙 開票速報');
+}
+
+// ---------- endings
+function card(){
+  const rows=Object.keys(G.pl).filter(k=>G.pl[k]!=='refused').map(k=>`<tr><td>${L[k].n}<br><small>${L[k].pledge}</small></td><td>${({pledged:'—',done:'✓ 実行',betrayed:'✕ 裏切り',blocked:'△ 否決'})[G.pl[k]]}</td></tr>`).join('');
+  return rows?`<table>${rows}</table>`:'<p>ロビーとの約束は、ひとつもしなかった。</p>'}
+async function ending(kind){
+  let title,body;
+  const done=Object.values(G.pl).filter(v=>v==='done').length,bt=Object.values(G.pl).filter(v=>v==='betrayed').length,owed=Object.values(G.pl).filter(v=>v!=='refused').length;
+  if(kind==='primary'){title='予備選敗退';body=`党の指名は${PARTY[G.party].rival}が勝ち取った。あなたの挑戦は、ここで終わった。`}
+  else if(kind==='general'){title='落選';body=`大統領になったのは${PARTY[other()].opp}だった。ロビーとの約束は、すべて白紙に戻った。`}
+  else{
+    const re=kind==='re';
+    if(owed===0)title=re?'誰にも借りのない大統領（2期目へ）':'誰にも借りのない大統領';
+    else if(bt===0&&done>=3)title=re?'ロビーに愛された大統領（2期目へ）':'約束を守り抜いた大統領';
+    else if(bt>=3)title=re?'全方位を敵に回して、なお勝った大統領':'全方位を敵に回した大統領';
+    else title=re?'したたかな大統領（2期目へ）':'1期で去った大統領';
+    body=re?`再選を果たした。支持率 ${G.ap}%。`:`再選はならなかった。支持率 ${G.ap}%。`;
+  }
+  G.phase=kind==='primary'||kind==='general'?G.phase:'office';render();
+  await ask(`<h2>${title}</h2><p>${body}</p>${kind!=='primary'?`<p><b>ロビー通信簿</b>　実行 ${done}・裏切り ${bt}</p>${card()}`:''}`,[{l:'最初からやりなおす',cls:'main'}]);
+  main();
+}
+
+// ---------- main flow
+async function main(){
+  init();render();
+  await say(`<h2>大統領になろう</h2><p>大統領選に名乗りを上げたあなた。まずは党内の予備選を勝ち抜き、次に相手の党の候補との本選に挑む。</p><p>勝つには資金がいる。ロビー団体は両方の党に献金していて、あなたにも献金と応援を申し出てくる。ただし、見返りに政策の約束を求めてくる。当選したら、その約束を果たさなければならない。</p>`,'はじめる');
+  const pi=await ask(`<h2>どちらの党から出馬する？</h2><p>どちらを選んでも、ルールは同じです。どのロビーも両方の党に献金していますが、団体ごとにどちらかへ偏りがあります。</p>`,[{l:'赤い党',s:`ライバル：${PARTY.red.rival}`,cls:'red'},{l:'青い党',s:`ライバル：${PARTY.blue.rival}`,cls:'blue'}]);
+  G.party=pi===0?'red':'blue';document.documentElement.style.setProperty('--me',PARTY[G.party].c);
+  // primary
+  G.phase='primary';G.maxTurn=5;G.me=30;G.rv=33;G.money=10;
+  for(G.turn=1;G.turn<=G.maxTurn;G.turn++)await campaignTurn();
+  G.turn=G.maxTurn;render();
+  if(G.me<=G.rv){await say(`<h2>予備選の結果</h2><p>あなた ${G.me}%　${PARTY[G.party].rival} ${G.rv}%</p>`);return ending('primary')}
+  await say(`<h2>党の指名を獲得！</h2><p>あなた ${G.me}%　${PARTY[G.party].rival} ${G.rv}%</p><p>${PARTY[G.party].rival}は敗北を認め、あなたへの支持を表明した。いよいよ本選だ。</p>`);
+  // general
+  G.phase='general';G.maxTurn=7;G.me=45;G.rv=47;G.money=Math.max(G.money,10);
+  for(G.turn=1;G.turn<=G.maxTurn;G.turn++)await campaignTurn();
+  G.turn=G.maxTurn;render();
+  await say(`<h2>投票日</h2><p>最終世論調査：あなた ${G.me}%　${PARTY[other()].opp} ${G.rv}%</p><p>接戦州7つの行方が、すべてを決める。</p>`,'開票へ');
+  const won=await electionNight(G.me-G.rv,'大統領選 開票速報');
+  await say(`<h2>${won?'当選確実！':'敗北'}</h2><p>選挙人 あなた ${G.ev.me}　相手 ${G.ev.op}</p>${won?`<p>あなたは新しい大統領に選ばれた。祝福の電話が鳴りやまない。その中には、${pledged().length?`約束をしたロビー${pledged().length}団体からの電話もあった。`:'ロビーからの電話はなかった。'}</p>`:''}`);
+  if(!won)return ending('general');
+  const re=await office();
+  await say(`<h2>${re?'再選！':'敗北'}</h2><p>選挙人 あなた ${G.ev.me}　相手 ${G.ev.op}</p>`);
+  ending(re?'re':'one');
+}
+let rt;addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>{if(G)$('art').innerHTML=artSVG()},100)});
+window.__pres={get G(){return G}};
+main();
+})();
+</script>
+
+</body></html>

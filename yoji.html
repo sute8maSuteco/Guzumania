@@ -1,0 +1,256 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>四字もち</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&family=Yuji+Boku&display=swap">
+<style>
+/* Layout: a wagashi-shop counter — the falling board on the left, a narrow side column (next, score, today's three お題) on the right, thumb controls below. */
+:root{
+  --paper:#f3ecdf; --card:#fbf7ef; --ink:#2b2420; --muted:#7a6e62; --line:#e0d4c0;
+  --sakura:#f4b8c4; --matcha:#a8c98a; --yuzu:#f5d47a; --azuki:#b7a0c8; --shiro:#ffffff; --sora:#a9d3e8;
+  --shu:#c8452b;
+  --round:'Zen Maru Gothic','Hiragino Maru Gothic ProN','Yu Gothic',sans-serif;
+  --brush:'Yuji Boku','Hiragino Mincho ProN',serif;
+  color-scheme:light;
+}
+html,body{background:var(--paper);color:var(--ink)}
+body{font-family:var(--round);padding-inline:16px;line-height:1.6}
+.wrap{max-width:520px;margin:0 auto;padding-block:14px 30px;display:flex;flex-direction:column;gap:12px}
+header{display:flex;justify-content:space-between;align-items:flex-end;gap:10px}
+h1{font-family:var(--brush);font-weight:400;font-size:2.1rem;margin:0;line-height:1;letter-spacing:.06em;white-space:nowrap}
+header p{margin:0;font-size:.72rem;color:var(--muted);text-align:right;min-width:0}
+.game{display:grid;grid-template-columns:minmax(0,1fr) 112px;gap:10px;align-items:start}
+.board{position:relative;background:#e9dcc6;border-radius:14px;padding:6px;box-shadow:inset 0 0 0 2px #d6c4a6}
+canvas{display:block;width:100%;height:auto;aspect-ratio:6/12;border-radius:10px;touch-action:none;user-select:none;-webkit-user-select:none}
+.over{position:absolute;inset:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center;background:rgba(251,247,239,.92);border-radius:10px;padding:12px}
+.over[hidden]{display:none}
+.over h2{margin:0;font-family:var(--brush);font-weight:400;font-size:2rem;line-height:1.2}
+.over p{margin:0;font-size:.85rem;color:var(--muted)}
+.btn{font:inherit;font-weight:900;font-size:1rem;background:var(--shu);color:#fff;border:none;border-radius:999px;padding:10px 24px;cursor:pointer}
+.btn:focus-visible,.ctl button:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+.side{display:flex;flex-direction:column;gap:8px;min-width:0}
+.box{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:8px}
+.box h3{margin:0 0 4px;font-size:.7rem;letter-spacing:.14em;color:var(--muted);font-weight:700}
+.box canvas{aspect-ratio:2/2.2;border-radius:6px}
+.num{font-weight:900;font-size:1.25rem;font-variant-numeric:tabular-nums;line-height:1.2}
+.odai{display:flex;flex-direction:column;gap:6px}
+.odai div{display:flex;gap:2px}
+.odai span{flex:1;text-align:center;font-weight:900;font-size:1rem;border-radius:6px;background:#efe6d6;color:var(--muted);line-height:1.5}
+.odai span.on{background:var(--yuzu);color:var(--ink)}
+.feed{font-size:.8rem;min-height:4.5em}
+.feed b{display:block;font-size:1.05rem;color:var(--shu)}
+.feed small{color:var(--muted);line-height:1.4;display:block}
+.ctl{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;touch-action:none;user-select:none;-webkit-user-select:none}
+.ctl button{font:inherit;font-weight:900;font-size:1.15rem;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 0;cursor:pointer;touch-action:none}
+.ctl button.on{background:var(--yuzu)}
+.ctl .drop{grid-column:span 4;font-size:.95rem;padding:10px 0;background:#efe6d6}
+.foot{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;font-size:.75rem;color:var(--muted)}
+.foot button{font:inherit;color:var(--ink);background:none;border:1px solid var(--line);border-radius:999px;padding:2px 12px;cursor:pointer}
+@media (max-width:380px){.game{grid-template-columns:minmax(0,1fr) 96px}}
+</style>
+
+<div class="wrap">
+  <header><h1>四字もち</h1><p>横は左から、縦は上から読んで<br>四字熟語になれば消える</p></header>
+  <div class="game">
+    <div class="board">
+      <canvas id="cv" aria-label="ゲーム盤面"></canvas>
+      <div class="over" id="over">
+        <h2 id="oT">四字もち</h2>
+        <p id="oP">落ちてくるお餅を並べて、四字熟語を完成させよう。<br>右の「お題」の字が多めに降ってきます。<br>ときどき降る「筆」は、まわりのお餅を消してくれます。</p>
+        <button class="btn" id="go" type="button">はじめる</button>
+      </div>
+    </div>
+    <div class="side">
+      <div class="box"><h3>つぎ</h3><canvas id="nx"></canvas></div>
+      <div class="box"><h3>とくてん</h3><div class="num" id="score">0</div><h3 style="margin-top:4px">熟語</h3><div class="num" id="count">0</div></div>
+      <div class="box"><h3>お題</h3><div class="odai" id="odai"></div></div>
+      <div class="box feed" id="feed"><h3>できた熟語</h3><small>まだありません</small></div>
+    </div>
+  </div>
+  <div class="ctl">
+    <button id="bL" type="button" aria-label="左へ">◀</button>
+    <button id="bR" type="button" aria-label="回転">↻</button>
+    <button id="bRt" type="button" aria-label="右へ">▶</button>
+    <button id="bD" type="button" aria-label="下へ">▼</button>
+    <button id="bH" class="drop" type="button">いっきに落とす</button>
+  </div>
+  <div class="foot"><span>キー：←→移動／↑・Z回転／↓下へ／スペースで落とす</span><button id="snd" type="button">音: オン</button></div>
+</div>
+
+<script>
+(()=>{
+'use strict';
+const DICT=[
+['一石二鳥','いっせきにちょう','一つのことで二つの得をする'],['一期一会','いちごいちえ','一生に一度の出会いを大切に'],['十人十色','じゅうにんといろ','好みや考えは人それぞれ'],
+['四苦八苦','しくはっく','ひどく苦労すること'],['七転八倒','しちてんばっとう','苦しくて転げ回ること'],['起承転結','きしょうてんけつ','文章や話の組み立て'],
+['以心伝心','いしんでんしん','言葉なしで心が通じる'],['大器晩成','たいきばんせい','大物はゆっくり育つ'],['有言実行','ゆうげんじっこう','言ったことは必ずやる'],
+['自業自得','じごうじとく','自分の行いの報いを受ける'],['電光石火','でんこうせっか','非常にすばやいこと'],['晴耕雨読','せいこううどく','晴れたら耕し雨なら読む暮らし'],
+['温故知新','おんこちしん','古きをたずねて新しきを知る'],['弱肉強食','じゃくにくきょうしょく','強い者が弱い者を食う'],['千載一遇','せんざいいちぐう','めったにない好機'],
+['一心同体','いっしんどうたい','心も体も一つのように結びつく'],['異口同音','いくどうおん','みんなが同じことを言う'],['単刀直入','たんとうちょくにゅう','いきなり本題に入る'],
+['臨機応変','りんきおうへん','その場に合わせて対応する'],['自画自賛','じがじさん','自分で自分をほめる'],['半信半疑','はんしんはんぎ','半分信じて半分疑う'],
+['花鳥風月','かちょうふうげつ','自然の美しい風物'],['春夏秋冬','しゅんかしゅうとう','一年の四つの季節'],['東西南北','とうざいなんぼく','あらゆる方角'],
+['喜怒哀楽','きどあいらく','人のさまざまな感情'],['前代未聞','ぜんだいみもん','これまで聞いたことがない'],['公明正大','こうめいせいだい','私心がなく正しい'],
+['天変地異','てんぺんちい','自然界の異変'],['無我夢中','むがむちゅう','我を忘れて熱中する'],['用意周到','よういしゅうとう','準備が行き届いている'],
+['適材適所','てきざいてきしょ','能力に合った役目につける'],['一長一短','いっちょういったん','良い所も悪い所もある'],['心機一転','しんきいってん','気持ちを入れ替える'],
+['絶体絶命','ぜったいぜつめい','逃れようのない危機'],['意気投合','いきとうごう','気持ちがぴったり合う'],['試行錯誤','しこうさくご','失敗を重ねて正解に近づく'],
+['二人三脚','ににんさんきゃく','二人で協力して進む'],['三寒四温','さんかんしおん','寒暖をくり返す冬の天気'],['五里霧中','ごりむちゅう','手がかりがなく迷う'],
+['八方美人','はっぽうびじん','誰にでも良い顔をする'],['百発百中','ひゃっぱつひゃくちゅう','すべて的中する'],['一騎当千','いっきとうせん','一人で千人に匹敵する強さ'],
+['日進月歩','にっしんげっぽ','絶えず進歩する'],['疑心暗鬼','ぎしんあんき','疑うと何でも怪しく見える'],['優柔不断','ゆうじゅうふだん','ぐずぐずして決められない'],
+['大同小異','だいどうしょうい','少しの違いはあっても大体同じ'],['本末転倒','ほんまつてんとう','大事なこととそうでないことを取り違える'],['因果応報','いんがおうほう','行いに応じた報いがある'],
+['風林火山','ふうりんかざん','状況に応じた戦いぶり'],['自由自在','じゆうじざい','思いのまま'],['一網打尽','いちもうだじん','悪者を一度に全部捕らえる'],
+['危機一髪','ききいっぱつ','ほんのわずかで危険になる瀬戸際'],['言語道断','ごんごどうだん','もってのほか'],['森羅万象','しんらばんしょう','宇宙のあらゆるもの'],
+['唯一無二','ゆいいつむに','ただ一つで代わりがない'],['一刀両断','いっとうりょうだん','すぱっと決断する'],['馬耳東風','ばじとうふう','人の意見を聞き流す'],
+['我田引水','がでんいんすい','自分に都合よく運ぶ'],['正真正銘','しょうしんしょうめい','うそいつわりのない本物'],['一進一退','いっしんいったい','進んだり戻ったり'],
+];
+const MAP=new Map(DICT.map(d=>[d[0],d]));
+const ALLCH=[...new Set(DICT.flatMap(d=>[...d[0]]))];
+const COLS=6,ROWS=12;
+const PAL=['#f4b8c4','#a8c98a','#f5d47a','#b7a0c8','#ffffff','#a9d3e8','#f2c49b'];
+const $=id=>document.getElementById(id);
+const cv=$('cv'),ctx=cv.getContext('2d'),nx=$('nx'),nctx=nx.getContext('2d');
+let CELL=40,dpr=1;
+function resize(){dpr=Math.min(window.devicePixelRatio||1,2.5);const w=cv.getBoundingClientRect().width||240;CELL=w/COLS;cv.width=w*dpr;cv.height=w*2*dpr;const nw=nx.getBoundingClientRect().width||90;nx.width=nw*dpr;nx.height=nw*1.1*dpr;draw();drawNext()}
+window.addEventListener('resize',resize);
+// ---------- audio
+let ac=null,soundOn=true;
+function initAudio(){if(!soundOn)return;if(!ac){try{ac=new(window.AudioContext||window.webkitAudioContext)()}catch(e){}}if(ac&&ac.state==='suspended')ac.resume()}
+function tone(f,d,type='triangle',v=.05,delay=0){if(!soundOn||!ac)return;const t=ac.currentTime+delay,o=ac.createOscillator(),g=ac.createGain();o.type=type;o.frequency.setValueAtTime(f,t);g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g).connect(ac.destination);o.start(t);o.stop(t+d+.02)}
+const sfx={move:()=>tone(600,.03,'square',.02),rot:()=>tone(900,.04,'square',.02),land:()=>tone(180,.08,'sine',.06),clear:n=>[523,659,784,1047].forEach((f,i)=>tone(f*(1+n*.12),.15,'triangle',.05,i*.07)),brush:()=>tone(240,.3,'sawtooth',.04),over:()=>[392,330,262,196].forEach((f,i)=>tone(f,.3,'triangle',.05,i*.2))};
+$('snd').addEventListener('click',e=>{soundOn=!soundOn;if(soundOn)initAudio();e.currentTarget.textContent='音: '+(soundOn?'オン':'オフ')});
+// ---------- state
+let grid,piece,queue,odai,score,count,state='title',fallT=0,fallInt=900,pieceNo=0,anim=null,feed=[];
+const colorOf=ch=>{let h=0;for(const c of ch)h=(h*31+c.charCodeAt(0))>>>0;return PAL[h%PAL.length]};
+function pickOdai(exclude=[]){const pool=DICT.filter(d=>!odai?.some(o=>o[0]===d[0])&&!exclude.includes(d[0]));return pool[Math.floor(Math.random()*pool.length)]}
+function boardCount(ch){let n=0;for(const row of grid)for(const c of row)if(c&&c.ch===ch)n++;for(const p of queue||[])for(const b of p)if(b.ch===ch)n++;if(piece)for(const b of [piece.a,piece.b])if(b.ch===ch)n++;return n}
+function genChar(){
+  if(Math.random()<.18)return ALLCH[Math.floor(Math.random()*ALLCH.length)];
+  const need=[];for(const o of odai)for(const ch of o[0])need.push(ch);
+  const w=need.map(ch=>Math.max(.25,1-boardCount(ch)*.5));const tot=w.reduce((a,b)=>a+b,0);let r=Math.random()*tot;
+  for(let i=0;i<need.length;i++){if((r-=w[i])<0)return need[i]}return need[0];
+}
+function genPair(){pieceNo++;const a={ch:genChar()},b={ch:pieceNo%17===0?'筆':genChar()};if(b.ch==='筆')b.sp=true;a.col=colorOf(a.ch);b.col=b.sp?'#2b2420':colorOf(b.ch);return[a,b]}
+const OFF=[[-1,0],[0,1],[1,0],[0,-1]];
+function cells(p){const[dr,dc]=OFF[p.rot];return[[p.r,p.c,p.a],[p.r+dr,p.c+dc,p.b]]}
+function free(r,c){return c>=0&&c<COLS&&r<ROWS&&(r<0||!grid[r][c])}
+function fits(p){return cells(p).every(([r,c])=>free(r,c))}
+function spawn(){
+  const [a,b]=queue.shift();queue.push(genPair());
+  piece={r:0,c:2,rot:0,a,b};
+  if(!fits({...piece,r:1})&&!fits(piece)){return gameOver()}
+  if(fits({...piece,r:1}))piece.r=1;
+  drawNext();
+}
+function move(dc){if(!piece||anim)return;const p={...piece,c:piece.c+dc};if(fits(p)){piece=p;sfx.move();draw()}}
+function rotate(){if(!piece||anim)return;const p={...piece,rot:(piece.rot+1)%4};if(fits(p)){piece=p}else{for(const k of[-1,1,0]){const q={...p,c:p.c+k,r:p.r+(k===0?-1:0)};if(fits(q)){piece=q;break}}}sfx.rot();draw()}
+function down(){if(!piece||anim)return false;const p={...piece,r:piece.r+1};if(fits(p)){piece=p;draw();return true}lock();return false}
+function hardDrop(){if(!piece||anim)return;while(fits({...piece,r:piece.r+1}))piece.r++;lock()}
+function lock(){
+  const cs=cells(piece);piece=null;sfx.land();
+  for(const[r,c,b] of cs){if(r<0){return gameOver()}grid[r][c]={...b}}
+  resolve(0);
+}
+function gravity(){let moved=false;for(let c=0;c<COLS;c++){let w=ROWS-1;for(let r=ROWS-1;r>=0;r--){if(grid[r][c]){if(w!==r){grid[w][c]=grid[r][c];grid[r][c]=null;moved=true}w--}}}return moved}
+function findWords(){
+  const hits=[];
+  for(let r=0;r<ROWS;r++)for(let c=0;c<=COLS-4;c++){const cs=[0,1,2,3].map(i=>grid[r][c+i]);if(cs.every(x=>x&&!x.sp)){const w=cs.map(x=>x.ch).join('');if(MAP.has(w))hits.push({w,cells:[0,1,2,3].map(i=>[r,c+i])})}}
+  for(let c=0;c<COLS;c++)for(let r=0;r<=ROWS-4;r++){const cs=[0,1,2,3].map(i=>grid[r+i][c]);if(cs.every(x=>x&&!x.sp)){const w=cs.map(x=>x.ch).join('');if(MAP.has(w))hits.push({w,cells:[0,1,2,3].map(i=>[r+i,c])})}}
+  return hits;
+}
+async function resolve(chain){
+  // brush specials
+  const brushes=[];for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++)if(grid[r][c]?.sp)brushes.push([r,c]);
+  if(brushes.length){gravity();const bs=[];for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++)if(grid[r][c]?.sp)bs.push([r,c]);
+    const kill=new Set();for(const[r,c]of bs)for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++){const rr=r+dr,cc=c+dc;if(rr>=0&&rr<ROWS&&cc>=0&&cc<COLS&&grid[rr][cc])kill.add(rr+','+cc)}
+    sfx.brush();await flash([...kill].map(s=>s.split(',').map(Number)),'#2b2420');for(const s of kill){const[r,c]=s.split(',').map(Number);grid[r][c]=null}score+=kill.size*10;
+  }
+  gravity();draw();
+  const hits=findWords();
+  if(!hits.length){anim=null;updateSide();spawn();draw();return}
+  chain++;const cellsAll=new Map();for(const h of hits)for(const[r,c]of h.cells)cellsAll.set(r+','+c,[r,c]);
+  sfx.clear(chain);
+  for(const h of hits){const isOdai=odai.findIndex(o=>o[0]===h.w);const pts=100*chain*(isOdai>=0?2:1);score+=pts;count++;
+    feed.unshift(MAP.get(h.w));if(isOdai>=0)odai[isOdai]=pickOdai([h.w]);}
+  showFeed(hits.map(h=>h.w),chain);
+  await flash([...cellsAll.values()],'#fff');
+  for(const[r,c]of cellsAll.values())grid[r][c]=null;
+  fallInt=Math.max(260,900-Math.floor(count/4)*70);
+  updateSide();draw();await new Promise(r=>setTimeout(r,160));
+  resolve(chain);
+}
+function flash(list,col){return new Promise(res=>{anim={list,col,t:0};const t0=performance.now();const step=now=>{anim.t=(now-t0)/520;draw();if(anim.t<1)requestAnimationFrame(step);else{anim={list:[],t:1};res()}};requestAnimationFrame(step)})}
+// ---------- UI side
+function updateSide(){
+  $('score').textContent=score.toLocaleString();$('count').textContent=count;
+  const have=new Set();for(const row of grid)for(const c of row)if(c)have.add(c.ch);
+  $('odai').innerHTML=odai.map(o=>`<div title="${o[1]}">${[...o[0]].map(ch=>`<span class="${have.has(ch)?'on':''}">${ch}</span>`).join('')}</div>`).join('');
+}
+function showFeed(words,chain){
+  const d=MAP.get(words[0]);
+  $('feed').innerHTML=`<h3>${chain>1?chain+'れんさ！':'できた熟語'}</h3>${words.map(w=>{const x=MAP.get(w);return`<b>${x[0]}</b><small>${x[1]}<br>${x[2]}</small>`}).join('')}`;
+}
+// ---------- drawing
+function mochi(g,x,y,s,b,alpha=1){
+  g.save();g.globalAlpha=alpha;
+  g.fillStyle='rgba(80,50,20,.18)';g.beginPath();g.ellipse(x+s/2,y+s*.88,s*.42,s*.1,0,0,7);g.fill();
+  const gr=g.createRadialGradient(x+s*.38,y+s*.32,s*.05,x+s/2,y+s/2,s*.55);gr.addColorStop(0,'#ffffff');gr.addColorStop(.35,b.col);gr.addColorStop(1,shade(b.col));
+  g.fillStyle=gr;g.beginPath();g.ellipse(x+s/2,y+s*.53,s*.45,s*.41,0,0,7);g.fill();
+  g.strokeStyle='rgba(80,50,20,.25)';g.lineWidth=1;g.stroke();
+  g.fillStyle=b.sp?'#fff':'#2b2420';g.font=`900 ${s*.5}px ${b.sp?'"Yuji Boku", serif':'"Zen Maru Gothic", sans-serif'}`;g.textAlign='center';g.textBaseline='middle';g.fillText(b.ch,x+s/2,y+s*.56);
+  g.restore();
+}
+function shade(hex){const n=parseInt(hex.slice(1),16),r=(n>>16)*.78|0,g=((n>>8)&255)*.78|0,b=(n&255)*.78|0;return`rgb(${r},${g},${b})`}
+function draw(){
+  if(!grid)return;const s=CELL;ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.fillStyle='#f7f0e2';ctx.fillRect(0,0,s*COLS,s*ROWS);
+  ctx.strokeStyle='rgba(180,150,110,.18)';ctx.lineWidth=1;for(let c=1;c<COLS;c++){ctx.beginPath();ctx.moveTo(c*s,0);ctx.lineTo(c*s,s*ROWS);ctx.stroke()}for(let r=1;r<ROWS;r++){ctx.beginPath();ctx.moveTo(0,r*s);ctx.lineTo(s*COLS,r*s);ctx.stroke()}
+  ctx.fillStyle='rgba(200,69,43,.12)';ctx.fillRect(2*s,0,s,s);
+  const fl=new Set((anim?.list||[]).map(([r,c])=>r+','+c));
+  for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){const b=grid[r][c];if(!b)continue;const f=fl.has(r+','+c);
+    if(f){const k=anim.t;const sc=1+Math.sin(k*Math.PI)*.18;ctx.save();ctx.translate(c*s+s/2,r*s+s/2);ctx.scale(sc,sc);mochi(ctx,-s/2,-s/2,s,b,1-k*.8);ctx.restore();ctx.fillStyle=`rgba(255,255,255,${Math.sin(k*Math.PI)*.6})`;ctx.fillRect(c*s,r*s,s,s)}
+    else mochi(ctx,c*s,r*s,s,b)}
+  if(piece){
+    let gp={...piece};while(fits({...gp,r:gp.r+1}))gp.r++;
+    for(const[r,c,b]of cells(gp))if(r>=0){ctx.strokeStyle='rgba(43,36,32,.25)';ctx.setLineDash([4,3]);ctx.beginPath();ctx.ellipse(c*s+s/2,r*s+s*.53,s*.42,s*.38,0,0,7);ctx.stroke();ctx.setLineDash([])}
+    for(const[r,c,b]of cells(piece))if(r>=0)mochi(ctx,c*s,r*s,s,b);
+  }
+}
+function drawNext(){
+  if(!queue)return;const w=nx.width/dpr,h=nx.height/dpr;nctx.setTransform(dpr,0,0,dpr,0,0);nctx.clearRect(0,0,w,h);
+  const s=Math.min(w/2.4,h/2.2);const [a,b]=queue[0];mochi(nctx,w/2-s*1.05,h/2-s*.5,s,b);mochi(nctx,w/2+s*.05,h/2-s*.5,s,a);
+  if(queue[1]){const s2=s*.5;const[a2,b2]=queue[1];nctx.globalAlpha=.6;mochi(nctx,w-s2*2-2,h-s2-2,s2,b2);mochi(nctx,w-s2-2,h-s2-2,s2,a2);nctx.globalAlpha=1}
+}
+// ---------- loop
+let last=performance.now();
+function loop(now){const dt=now-last;last=now;
+  if(state==='play'&&piece&&!anim){fallT+=dt;if(fallT>=fallInt){fallT=0;down()}}
+  requestAnimationFrame(loop)}
+function start(){
+  grid=Array.from({length:ROWS},()=>Array(COLS).fill(null));odai=null;odai=[];for(let i=0;i<3;i++)odai.push(pickOdai());
+  score=0;count=0;pieceNo=0;fallInt=900;feed=[];anim=null;queue=[];queue.push(genPair(),genPair());state='play';
+  $('over').hidden=true;$('feed').innerHTML='<h3>できた熟語</h3><small>まだありません</small>';spawn();updateSide();resize();
+}
+function gameOver(){state='over';piece=null;sfx.over();draw();
+  let hi=0;try{hi=+localStorage.getItem('yojimochi-hi')||0;if(score>hi){hi=score;localStorage.setItem('yojimochi-hi',hi)}}catch(e){}
+  $('oT').textContent='おしまい';$('oP').innerHTML=`とくてん ${score.toLocaleString()}　熟語 ${count}個<br>最高記録 ${Math.max(hi,score).toLocaleString()}`;$('go').textContent='もう一度';$('over').hidden=false}
+$('go').addEventListener('click',()=>{initAudio();start()});
+// ---------- input
+const act={L:()=>move(-1),R:()=>move(1),U:()=>rotate(),D:()=>{down();fallT=0},H:()=>hardDrop()};
+window.addEventListener('keydown',e=>{if(state!=='play')return;const m={ArrowLeft:'L',ArrowRight:'R',ArrowUp:'U',KeyZ:'U',KeyX:'U',ArrowDown:'D',Space:'H'}[e.code];if(!m)return;e.preventDefault();if(m==='H'&&e.repeat)return;act[m]()});
+function holdBtn(el,k,repeat){let iv=null,to=null;el.addEventListener('pointerdown',e=>{e.preventDefault();initAudio();if(state!=='play')return;el.classList.add('on');act[k]();if(repeat){to=setTimeout(()=>{iv=setInterval(act[k],70)},220)}});
+  const up=()=>{el.classList.remove('on');clearTimeout(to);clearInterval(iv)};['pointerup','pointercancel','pointerleave'].forEach(ev=>el.addEventListener(ev,up));el.addEventListener('contextmenu',e=>e.preventDefault())}
+holdBtn($('bL'),'L',true);holdBtn($('bRt'),'R',true);holdBtn($('bR'),'U',false);holdBtn($('bD'),'D',true);holdBtn($('bH'),'H',false);
+// swipe on board
+let sw=null;
+cv.addEventListener('pointerdown',e=>{if(state!=='play')return;initAudio();sw={x:e.clientX,y:e.clientY,moved:0,t:performance.now()};try{cv.setPointerCapture(e.pointerId)}catch(_){}});
+cv.addEventListener('pointermove',e=>{if(!sw)return;const dx=e.clientX-sw.x;const step=CELL*.9;while(dx-sw.moved*step>step){move(1);sw.moved++}while(dx-sw.moved*step<-step){move(-1);sw.moved--}});
+cv.addEventListener('pointerup',e=>{if(!sw)return;const dy=e.clientY-sw.y,dx=e.clientX-sw.x,dt=performance.now()-sw.t;if(dy>CELL*1.5&&Math.abs(dy)>Math.abs(dx))hardDrop();else if(Math.abs(dx)<8&&Math.abs(dy)<8&&dt<300)rotate();sw=null});
+// first paint: example board behind the title
+grid=Array.from({length:ROWS},()=>Array(COLS).fill(null));
+[['温',11,0],['故',11,1],['知',11,2],['新',11,3],['一',10,0],['期',10,1],['一',9,0],['会',8,0]].forEach(([ch,r,c])=>grid[r][c]={ch,col:colorOf(ch)});
+odai=[MAP.get('一期一会'),MAP.get('温故知新'),MAP.get('十人十色')];score=0;count=0;queue=[[{ch:'十',col:colorOf('十')},{ch:'人',col:colorOf('人')}]];
+updateSide();requestAnimationFrame(()=>{resize()});requestAnimationFrame(loop);
+window.__y={MAP,findWords:()=>findWords(),grid:()=>grid};
+})();
+</script>
+
+</body></html>
