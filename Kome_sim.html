@@ -1,0 +1,300 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>一膳の向こう側</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Zen+Kaku+Gothic+New:wght@400;700&display=swap">
+<style>
+/* Layout: one phone-height screen (same flow as the coffee edition). Top = the rice paddies by the house, which change with the
+   season, area and the farmer's age; HUD shows year, age and cash, a price board shows this year's JA advance payment.
+   Then a status row, the message box and the choices. */
+:root{
+  --bg:#f4f1e8; --card:#fffefa; --fg:#23251c; --muted:#6f7263; --line:#e2dfd0;
+  --rice:#c9a43a; --leaf:#4f8a3a; --gold:#d6a22b; --red:#c8402f; --ink:#3b4a2a;
+  --head:'Dela Gothic One','Hiragino Sans','Yu Gothic',sans-serif;
+  --body:'Zen Kaku Gothic New','Hiragino Sans','Yu Gothic',system-ui,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#13150f;--card:#1c1f17;--fg:#ecefe2;--muted:#a4a893;--line:#33382a;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#13150f;--card:#1c1f17;--fg:#ecefe2;--muted:#a4a893;--line:#33382a;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--fg);overflow:hidden}
+body{font-family:var(--body);line-height:1.5}
+.app{height:100vh;height:100dvh;max-width:520px;margin:0 auto;display:flex;flex-direction:column;padding:10px 12px calc(10px + env(safe-area-inset-bottom));gap:7px}
+.stage{position:relative;flex:1 1 auto;min-height:130px;border-radius:14px;overflow:hidden;background:#9fd0ee}
+.stage svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+.hud{position:absolute;left:0;right:0;top:0;display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 10px;background:linear-gradient(rgba(20,24,12,.6),transparent);color:#fff;font-size:.76rem;font-variant-numeric:tabular-nums}
+.hud b{font-family:var(--head);font-weight:400;font-size:.95rem}
+.board{position:absolute;right:8px;top:38px;background:rgba(20,22,12,.82);color:#fff1c2;border-radius:8px;padding:5px 9px;font-size:.68rem;line-height:1.35;text-align:right;font-variant-numeric:tabular-nums}
+.board b{font-family:var(--head);font-weight:400;font-size:.95rem;color:#fff}
+.stats{flex:none;display:grid;grid-template-columns:repeat(4,1fr);gap:5px}
+.st{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:3px 6px;text-align:center;min-width:0}
+.st small{display:block;font-size:.62rem;color:var(--muted);white-space:nowrap}
+.st b{font-size:.86rem;font-variant-numeric:tabular-nums;white-space:nowrap}
+.st.bad b{color:var(--red)}
+.st .m{height:4px;background:var(--line);border-radius:2px;overflow:hidden;margin-top:2px}
+.st .m i{display:block;height:100%;background:var(--leaf)}
+.st.bad .m i{background:var(--red)}
+.msg{flex:none;height:clamp(100px,19dvh,170px);overflow-y:auto;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:.88rem}
+.msg.big{height:clamp(140px,36dvh,320px)}
+.msg h2{margin:0 0 4px;font-family:var(--head);font-weight:400;font-size:1.05rem;line-height:1.35}
+.msg p{margin:0 0 5px}
+.msg .q{font-weight:700;padding:5px 9px;border-left:3px solid var(--gold);background:color-mix(in srgb,var(--gold) 10%,var(--card))}
+.msg .warn{color:var(--red);font-weight:700}
+.msg .good{color:var(--leaf);font-weight:700}
+.msg .src{font-size:.7rem;color:var(--muted)}
+.msg .big-num{font-family:var(--head);font-weight:400;font-size:1.2rem;color:var(--ink)}
+.msg table{width:100%;border-collapse:collapse;font-size:.8rem;margin:4px 0}
+.msg td{padding:2px 4px;border-bottom:1px solid var(--line)}
+.msg td:last-child{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.msg tr.sum td{font-weight:700;border-bottom:none}
+.acts{flex:none;display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.act{font:inherit;text-align:left;background:var(--card);color:var(--fg);border:1px solid var(--line);border-left:4px solid var(--ink);border-radius:10px;padding:7px 10px;cursor:pointer;display:flex;flex-direction:column;justify-content:center;min-width:0;min-height:48px}
+.act:hover:not(:disabled){border-color:var(--gold)}
+.act:disabled{opacity:.4;cursor:not-allowed}
+.act b{font-size:.86rem;line-height:1.3}
+.act span{font-size:.68rem;color:var(--muted);line-height:1.3}
+.act.wide{grid-column:1/-1}
+.act.main{background:var(--ink);color:#fff;border-color:var(--ink);align-items:center}
+.act.main span{color:inherit;opacity:.8}
+.act.good{border-left-color:var(--leaf)}.act.bad{border-left-color:var(--red)}.act.gold{border-left-color:var(--gold)}
+.act:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.note{font-size:.6rem;color:var(--muted);margin:0;text-align:center;flex:none}
+@media (max-height:640px){.note{display:none}.act{min-height:42px;padding:5px 9px}}
+</style>
+
+<div class="app">
+  <div class="stage" id="stage">
+    <div id="art"></div>
+    <div class="hud"><span id="phase"><b>一膳の向こう側</b></span><span id="cash"></span></div>
+    <div class="board" id="board" hidden></div>
+  </div>
+  <div class="stats" id="stats"></div>
+  <div class="msg" id="msg" aria-live="polite"></div>
+  <div class="acts" id="acts"></div>
+  <p class="note">「一杯の向こう側」日本の米農家編。主人公と、ゲーム内のお金の数字の多くは単純化した架空のものです。クイズの数字は公的統計と報道によります。</p>
+</div>
+
+<script>
+(()=>{
+'use strict';
+const $=id=>document.getElementById(id);
+const ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const man=n=>`${(Math.round(n/1000)/10).toLocaleString()}万円`; // yen -> 万円 with one decimal
+const yen=n=>`${Math.round(n).toLocaleString()}円`;
+
+// ---------- game numbers (simplified; per 1 hyo = 60kg of brown rice)
+const YIELD_HA=88;          // hyo per ha in a normal year (about 530kg / 10a)
+const COST_HA=1300000;      // cash cost per ha (fertilizer, chemicals, fuel, drying, machine upkeep) — game value
+const FEED_SUB_HA=1200000;   // subsidy per ha for switching to feed rice — game value
+const FEED_PRICE=1500;      // feed rice sale price per hyo — game value
+const BOWLS_PER_HYO=830;    // ~54kg of polished rice / ~65g per bowl (rough calculation)
+// JA advance payment (概算金) per hyo. Year 1 and 2 follow the real 2025→2026 swing (high, then 2–4 割 down).
+const PRICES=[
+ {n:'高騰',p:28000,t:'米不足で、どこも米を集めようと必死だ。JAの前払い金（概算金）は過去にない高さになった。'},
+ {n:'急落',p:18000,t:'今年は一転して在庫がだぶつき、JAの前払い金は去年より4割近く下がった。'},
+];
+const LATER=[{n:'安値',p:16000,t:'在庫が減らず、米価は低いままだ。'},{n:'ふつう',p:19000,t:'米価は少し落ち着いた。'},{n:'持ち直し',p:22000,t:'米価が少し持ち直した。'},{n:'安値',p:17000,t:'米価は、なかなか上がらない。'}];
+
+const QUIZ=[
+ {q:'2025年の農林業センサスで、農業を主な仕事にしている人（基幹的農業従事者）の平均年齢は？',o:['約52歳','約60歳','約68歳'],a:2,e:'67.6歳。65歳以上が69.5%を占める。',src:'農林水産省「2025年農林業センサス」（共同通信報道）'},
+ {q:'基幹的農業従事者は、5年前（2020年）と比べてどれだけ減った？',o:['約5%減','約12%減','約25%減'],a:2,e:'約25%減の102万1千人。減少率は、比べられる1985年以降で最大。',src:'農林水産省「2025年農林業センサス」（共同通信報道）'},
+ {q:'米1俵（玄米60kg）をつくるのにかかる費用（全算入生産費）の全国平均は？（2024年産）',o:['約6,000円','約16,000円','約30,000円'],a:1,e:'15,814円。ただし作付けが0.5ha未満の小さな農家では27,217円、50ha以上の大規模経営では9,978円と、規模で3倍近い差がある。',src:'農林水産省「令和6年産 農産物生産費（個別経営体）」'},
+ {q:'2026年産の新米で、JAが農家に払う前払い金（概算金）は、前年と比べてどうなった？',o:['2〜4割上がった','ほぼ同じ','2〜4割下がった'],a:2,e:'在庫が多くなり、2〜4割下がった。宮崎県では約3万2千円から1万8千円へ、約4割安。',src:'共同通信（2026年7月）'},
+ {q:'2026年9月、業者どうしで取引する米の値段（相対取引価格）は、前年同月と比べて？',o:['約4割下がった','約1割上がった','約4割上がった'],a:0,e:'玄米60kgあたり21,293円で、前年同月より42%安い。',src:'農林水産省発表（時事通信報道、2026年10月）'},
+ {q:'2025年の農業経営体の数は、5年前と比べて？',o:['約23%減って82万8千','ほぼ横ばいの100万','約10%増えて120万'],a:0,e:'82万8千で、初めて100万を下回った。一方、1経営体あたりの耕地は3.7haに広がり、農業法人など団体の経営体は増えている。',src:'農林水産省「2025年農林業センサス」（共同通信報道）'},
+];
+
+// ---------- state
+let G;
+function init(){G={year:0,age:68,cash:3000000,ha:3,feed:0,lent:0,hp:80,machine:2,son:20,netCust:0,
+  m:null,deficitYears:0,totalProfit:0,score:0,qi:0,qset:shuffle(QUIZ).slice(0,5),subCut:false,heat:false,helpedBySon:false,season:'spring',quit:false}}
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+
+// ---------- art
+function artSVG(){
+  const st=$('stage');const w=st.clientWidth||360,h=st.clientHeight||200;const H=Math.max(220,360*h/w);
+  const ss=G?G.season:'spring';
+  const sky=ss==='autumn'?'#f2c98a':G&&G.heat?'#f6d7a0':'#9fd0ee';
+  const paddy=ss==='spring'?'#7fc0d8':ss==='summer'?'#6fae3a':'#d9b34a';
+  let s=`<svg viewBox="0 ${230-H} 360 ${H}" preserveAspectRatio="xMidYMax slice" role="img" aria-label="田んぼのようす">`;
+  s+=`<rect x="-400" y="-900" width="1160" height="1200" fill="${sky}"/>`;
+  s+=`<circle cx="60" cy="48" r="16" fill="${G&&G.heat?'#ff9e3b':'#fff3b0'}"/>`;
+  s+=`<path d="M-400 120 L-100 60 L40 100 L150 50 L270 95 L380 60 L760 110 L760 400 L-400 400 Z" fill="#6f8f6a"/>`;
+  s+=`<path d="M-400 140 Q60 115 200 132 T760 130 L760 400 L-400 400 Z" fill="#88a865"/>`;
+  // paddies: 6 plots; feed rice plots are darker, lent plots get a different crop color, abandoned plots turn to weeds
+  const total=6;const lent=G?Math.round(G.lent/G.ha*total):0,feed=G?Math.round(G.feed/(G.ha||1)*total):0;
+  for(let i=0;i<total;i++){const x=-30+(i%3)*130,y=150+Math.floor(i/3)*38;
+    let col=paddy;if(G&&G.quit)col='#9aa36a';else if(i<lent)col=ss==='autumn'?'#cfa23e':'#5f9a38';else if(i<lent+feed)col=ss==='autumn'?'#b9953e':'#4f8a30';
+    s+=`<path d="M${x} ${y} L${x+122} ${y} L${x+132} ${y+32} L${x-10} ${y+32} Z" fill="${col}" stroke="#7a6a40" stroke-width="2"/>`;
+    if(!(G&&G.quit)&&ss!=='spring')for(let r=0;r<6;r++)s+=`<line x1="${x+8+r*20}" y1="${y+28}" x2="${x+12+r*20}" y2="${y+6}" stroke="${ss==='autumn'?'#a9822a':'#3f7a2a'}" stroke-width="2"/>`;
+    if(G&&G.quit)for(let r=0;r<5;r++)s+=`<path d="M${x+10+r*24} ${y+28} q4 -16 8 0 q4 -12 8 0" fill="#6a7a3a"/>`;}
+  // farmhouse
+  s+=`<g transform="translate(300 146)"><rect x="-30" y="-24" width="60" height="26" fill="#d8c8a0"/><path d="M-40 -22 L0 -50 L40 -22 Z" fill="#5a4a3a"/><rect x="-8" y="-14" width="16" height="16" fill="#4a3a2a"/></g>`;
+  // the farmer (stooped more as he ages / gets tired), and the son if he came home
+  if(G){const bend=clamp((80-G.hp)/4,0,12);
+    s+=`<g transform="translate(170 196) rotate(${bend})"><circle cx="0" cy="-30" r="6.5" fill="#e3bf98"/><path d="M-9 -34 L9 -34 L0 -42 Z" fill="#e8d6a0"/><rect x="-6" y="-24" width="12" height="20" rx="4" fill="#5a6e8a"/><rect x="-5" y="-4" width="4" height="10" fill="#3a3a3a"/><rect x="1" y="-4" width="4" height="10" fill="#3a3a3a"/></g>`;
+    if(G.helpedBySon)s+=`<g transform="translate(200 196)"><circle cx="0" cy="-32" r="6.5" fill="#e3bf98"/><rect x="-6" y="-26" width="12" height="22" rx="4" fill="#2f5a8a"/><rect x="-5" y="-4" width="4" height="10" fill="#2a2a2a"/><rect x="1" y="-4" width="4" height="10" fill="#2a2a2a"/></g>`;
+  }
+  // old combine
+  if(!(G&&G.quit))s+=`<g transform="translate(250 205)"><rect x="-20" y="-16" width="34" height="14" rx="2" fill="${G&&G.machine<=0?'#8a8a8a':'#d84a2a'}"/><rect x="8" y="-24" width="12" height="10" fill="#ddd"/><rect x="-22" y="-4" width="40" height="6" rx="3" fill="#333"/></g>`;
+  return s+'</svg>';
+}
+
+// ---------- render
+let UI=null;
+function render(){
+  $('art').innerHTML=artSVG();
+  $('phase').innerHTML=`<b>${G.year?`${G.year}年目`:'一膳の向こう側'}</b>${G.year?`　${G.age}歳`:''}`;
+  $('cash').textContent=G.year?`貯金 ${man(G.cash)}`:'';
+  const b=$('board');if(G.m){b.hidden=false;b.innerHTML=`JA 概算金（1俵）<br><b>${yen(G.m.p)}</b><br>米価：${G.m.n}`}else b.hidden=true;
+  const cells=[['体力',G.hp,G.hp<40],['後継ぎの気持ち',G.son,G.son<30]];
+  $('stats').innerHTML=cells.map(([l,v,bad])=>`<div class="st ${bad?'bad':''}"><small>${l}</small><b>${v}</b><div class="m"><i style="width:${v}%"></i></div></div>`).join('')
+   +`<div class="st"><small>田んぼ</small><b>${G.ha-G.lent}ha${G.lent?`<small style="display:inline">／貸${G.lent}</small>`:''}</b></div>`
+   +`<div class="st ${G.deficitYears?'bad':''}"><small>赤字の年</small><b>${G.deficitYears}年</b></div>`;
+  const msg=$('msg'),acts=$('acts');
+  if(UI){msg.className='msg'+(UI.opts.length<=2?' big':'');msg.innerHTML=UI.html;
+    acts.innerHTML=UI.opts.map((o,i)=>`<button class="act ${o.cls||''} ${UI.opts.length%2&&i===UI.opts.length-1?'wide':''}" data-i="${i}" type="button" ${o.dis?'disabled':''}><b>${o.l}</b>${o.s?`<span>${o.s}</span>`:''}</button>`).join('');
+    acts.querySelectorAll('.act').forEach(bt=>bt.addEventListener('click',()=>{if(!UI)return;const cb=UI.cb;UI=null;cb(+bt.dataset.i)}));
+    msg.scrollTop=0}
+}
+function ask(html,opts){return new Promise(res=>{UI={html,opts,cb:res};render();setTimeout(()=>{const bt=$('acts').querySelector('button:not(:disabled)');if(bt)try{bt.focus({preventScroll:true})}catch(e){}},30)})}
+const say=(html,btn='つぎへ')=>ask(html,[{l:btn,cls:'main'}]);
+
+// ---------- one year
+async function year(){
+  G.year++;if(G.year>1)G.age++;G.season='spring';G.heat=false;G.helpedBySon=false;
+  G.m=G.year<=2?PRICES[G.year-1]:pick(LATER);
+  G.hp=clamp(G.hp-ri(3,5),0,100); // getting older
+  render();
+  await say(`<h2>${G.year}年目の春　${G.age}歳</h2><p>${G.year===1?'田植えの季節がやってきた。息子は東京で働いていて、田んぼは一人で守っている。':'また田植えの季節がやってきた。'}</p><p>${G.hp<40?'<span class="warn">最近、腰が痛くて朝起きるのがつらい。</span>':'体はまだ動く。'}</p>`);
+  await plant();
+  G.season='summer';render();
+  await summer();
+  G.season='autumn';render();
+  const kg=await harvest();
+  await sell(kg);
+  await son();
+  if(G.qi<G.qset.length)await quiz(G.qset[G.qi++]);
+}
+async function plant(){
+  const own=G.ha-G.lent;
+  const subTxt=G.subCut?'（制度が変わり、補助金は今年から減った）':'';
+  const i=await ask(`<h2>今年、何を作る？</h2><p>耕している田んぼは ${own}ha。主食用の米だけでなく、家畜のえさにする「飼料用米」に切り替えると、国から補助金が出る。${subTxt}</p><p class="src">米価が高ければ主食用が得。安ければ補助金のある飼料用米が手堅い。でも、今年の米価は、田植えの時点ではわからない。</p>`,[
+    {l:'全部、主食用の米',s:'米価しだい',cls:'gold'},
+    {l:'半分を飼料用米に',s:`補助金 約${man(own/2*FEED_SUB_HA*(G.subCut?.6:1))}`,cls:'good'},
+    {l:'1haを近くの農業法人に貸す',s:'貸し賃 年10万円・体力の負担が減る',cls:'',dis:own<=1}]);
+  G.feed=0;
+  if(i===1)G.feed=own/2;
+  else if(i===2){G.lent+=1;await say(`<p>近くの農業法人に1haを貸した。若い社員が大きな機械で一気に田植えをしていった。</p><p class="src">2025年の農林業センサスでは、農業経営体全体は減る一方、法人などの団体経営体は増えています。</p>`)}
+}
+async function summer(){
+  const ev=G.year===2?'machine':G.year===4?'heat':pick(['heat','boar','heat','back','sub']);
+  if(ev==='machine'){
+    const i=await ask(`<h2>コンバインが壊れた</h2><p class="q">25年使ってきたコンバインが、とうとう動かなくなった。新品は1台 数百万円。</p><p>あと何年、米を作れるだろう。</p>`,[
+      {l:'新しいのを買う',s:'−500万円（借金してでも）',cls:'bad'},{l:'中古を探す',s:'−150万円・また壊れるかも',cls:'gold'},{l:'刈り取りを人に頼む',s:'作業委託 1haあたり毎年 約12万円',cls:'good'}]);
+    if(i===0){G.cash-=5000000;G.machine=3;await say('<p>新品のコンバインが納屋に入った。「これを使い切るまで、やめられないな」と思った。</p>')}
+    else if(i===1){G.cash-=1500000;G.machine=1;await say('<p>隣町の農家がやめるというので、中古を譲ってもらった。</p>')}
+    else{G.machine=-1;await say('<p>今年から、刈り取りは地域の農業法人に頼むことにした。</p>')}
+  }else if(ev==='heat'){G.heat=true;render();await say(`<h2>記録的な猛暑</h2><p>夏の暑さで、米粒が白く濁ってしまった。等級が下がり、売り値が安くなる。</p>`)}
+  else if(ev==='boar'){await say(`<h2>イノシシの被害</h2><p>山ぎわの田んぼが、一晩で荒らされた。電気柵を張る気力も、もう残っていない。</p>`);G.boar=true}
+  else if(ev==='back'){G.hp=clamp(G.hp-15,0,100);await say(`<h2>腰を痛めた</h2><p>草刈りの最中に、腰に激痛が走った。体力 −15</p>`)}
+  else{G.subCut=true;await say(`<h2>補助金の制度が変わる</h2><p>来年から、飼料用米への補助金の仕組みが見直されるという。毎年のようにルールが変わり、先が読めない。</p>`)}
+}
+async function harvest(){
+  const own=G.ha-G.lent;let q=1;if(G.heat)q*=.9;if(G.boar){q*=.92;G.boar=false}
+  const main=Math.round((own-G.feed)*YIELD_HA*q),feed=Math.round(G.feed*YIELD_HA);
+  // hard work drains strength; machine trouble too
+  G.hp=clamp(G.hp-Math.round(own*2),0,100);
+  if(G.machine===1&&Math.random()<.4){G.cash-=400000;await say('<p class="warn">中古のコンバインが、刈り取りの最中に止まった。修理に40万円。</p>')}
+  await say(`<h2>${G.year}年目の秋　収穫</h2><p>${G.m.t}</p><p>主食用の米 <span class="big-num">${main}俵</span>${feed?`、飼料用米 ${feed}俵`:''}がとれた。${G.heat?'<span class="warn">猛暑で等級が下がった。</span>':''}</p>`);
+  return {main,feed};
+}
+async function sell(kg){
+  const p=Math.round(G.m.p*(G.heat?.88:1));
+  const highYear=G.m.p>=24000;
+  const netCap=Math.min(kg.main,20+G.netCust*10);
+  const netPrice=highYear?32000:26000; // after packing/shipping it nets less (below)
+  const i=await ask(`<h2>米をどこに売る？</h2><p>主食用の米 ${kg.main}俵。</p>`,[
+    {l:'全部JAに出す',s:`1俵 ${yen(p)}（前払い）・売れれば後で追加払いも`,cls:'good'},
+    {l:'集荷業者に売る',s:highYear?`1俵 ${yen(Math.round(p*1.12))}・高い年は競って買いに来る`:`1俵 ${yen(Math.round(p*.92))}・安い年は買いたたかれる`,cls:'gold'},
+    {l:'一部をネットで直接売る',s:`最大${netCap}俵を高めに。手間と体力がいる`,cls:'',dis:G.hp<25}]);
+  let rev=0,lines=[];
+  if(i===0){rev=kg.main*p;const add=Math.random()<.4?ri(5,15)*100:0;rev+=kg.main*add;lines.push(['JAへ出荷',`${kg.main}俵 × ${yen(p+add)}`]);if(add)await say(`<p>JAから、1俵あたり${add}円の追加払いがあった。</p>`)}
+  else if(i===1){const pp=Math.round(p*(highYear?1.12:.92));rev=kg.main*pp;lines.push(['集荷業者へ',`${kg.main}俵 × ${yen(pp)}`])}
+  else{
+    // net direct sales: demand depends on how cheap rice is in the supermarkets this year
+    const demand=highYear?1:.55+Math.random()*.3;const sold=Math.round(netCap*demand);
+    const packShip=6500;const net=netPrice-packShip;
+    G.hp=clamp(G.hp-8,0,100);
+    let txt=highYear?'スーパーの米が高いので、注文がどんどん入った。':`スーパーの米が安くなり、注文は思ったほど来なかった。売れたのは${sold}俵。`;
+    const ev=pick(['review','complain','none']);
+    if(ev==='review'){G.netCust++;txt+='「今年もお願いします」という手紙が届いた。常連さんが増えた。'}
+    else if(ev==='complain'){txt+='「届くのが遅い」とレビューに書かれた。精米、袋詰め、発送を一人でこなすのは、思った以上に大変だ。'}
+    else G.netCust+=highYear?1:0;
+    const rest=kg.main-sold;rev=sold*net+rest*p;
+    lines.push(['ネット直販',`${sold}俵 × ${yen(net)}（送料・袋代など差引）`],['残りをJAへ',`${rest}俵 × ${yen(p)}`]);
+    await say(`<h2>ネット直販</h2><p>${txt}</p><p>体力 −8</p>`);
+  }
+  // feed rice & subsidies
+  let sub=0,feedRev=0;
+  if(kg.feed){sub=Math.round(G.feed*FEED_SUB_HA*(G.subCut?.6:1));feedRev=kg.feed*FEED_PRICE;lines.push(['飼料用米の売上',`${kg.feed}俵 × ${yen(FEED_PRICE)}`],['飼料用米の補助金',man(sub)])}
+  const rent=G.lent*100000;if(rent)lines.push(['田んぼの貸し賃',man(rent)]);
+  const own=G.ha-G.lent;
+  let cost=(own-G.feed)*COST_HA+G.feed*COST_HA*.8;if(G.machine===-1)cost+=own*120000;
+  const income=rev+sub+feedRev+rent,profit=income-cost;
+  G.cash+=profit;G.totalProfit+=profit;if(profit<0)G.deficitYears++;
+  const perHyo=kg.main?rev/kg.main:0;
+  const perBowl=perHyo/BOWLS_PER_HYO;
+  await ask(`<h2>今年の収支</h2><table>${lines.map(([a,b])=>`<tr><td>${a}</td><td>${b}</td></tr>`).join('')}<tr><td>収入の合計</td><td>${man(income)}</td></tr><tr><td>経費（肥料・農薬・燃料・乾燥・機械${G.machine===-1?'・作業委託':''}）<br><small>自分の働いた分の給料は入っていない</small></td><td>−${man(cost)}</td></tr><tr class="sum"><td>手元に残ったお金</td><td class="${profit<0?'warn':'good'}">${profit<0?'−':''}${man(Math.abs(profit))}</td></tr></table><p>主食用の米1俵の売り値は 約${yen(perHyo)}。お茶碗1杯（約830杯で1俵）にすると、約<span class="big-num">${perBowl.toFixed(0)}円</span>。この中から、肥料も燃料も機械代も出す。</p><p class="src">${profit<0?'自分の働いた分の給料は、もちろん出ない。':'自分の働いた分を時給にすると、いくらになるだろう。'}</p>`,[{l:'つぎへ',cls:'main'}]);
+}
+async function son(){
+  // the son's interest goes up with good years and with being asked to help
+  const good=G.totalProfit>0&&G.deficitYears<=1;
+  const i=await ask(`<h2>息子からの電話</h2><p class="q">「お父さん、体は大丈夫？　${G.year===1?'今年の米、高く売れたんだって？':'米の値段、また下がったってニュースで見たよ'}」</p><p>息子は東京で会社勤め。農業を継ぐ気があるのかは、聞いたことがない。</p>`,[
+    {l:'「稲刈りを手伝いに来ないか」',s:'後継ぎの気持ち +',cls:'good'},
+    {l:'「お前は、お前の人生を生きろ」',s:'後継ぎの気持ち −',cls:''},
+    {l:'「大丈夫だ」とだけ言う',s:'',cls:''}]);
+  if(i===0){const up=ri(5,10)+(good?4:0);G.son=clamp(G.son+up,0,100);G.helpedBySon=true;G.hp=clamp(G.hp+5,0,100);render();await say(`<p>週末、息子が帰ってきて稲刈りを手伝った。${good?'「思ったより、ちゃんと稼げるんだね」と言った。':'「これで、この値段なの？」と、帳簿を見て黙りこんだ。'}</p><p>後継ぎの気持ち +${up}・体力 +5</p>`)}
+  else if(i===1){G.son=clamp(G.son-10,0,100);await say('<p>電話の向こうで、息子は少しほっとしたように笑った。</p>')}
+  else{G.son=clamp(G.son+(good?3:-3),0,100);await say('<p>短い電話だった。</p>')}
+}
+async function quiz(q){
+  const i=await ask(`<h2>米の問題 ${G.qi}</h2><p class="q">${q.q}</p>`,q.o.map(o=>({l:o})));
+  const ok=i===q.a;if(ok)G.score++;
+  await say(`<h2>${ok?'正解！':'ざんねん'}</h2><p>答え：<b>${q.o[q.a]}</b></p><p>${q.e}</p><p class="src">出典：${q.src}</p>`);
+}
+
+// ---------- ending
+async function ending(){
+  G.m=null;G.season='autumn';render();
+  const opts=[
+    {l:'息子に継いでもらう',s:G.son>=60?'息子に頼んでみる':'まだ継ぐ気持ちが足りない',cls:'good',dis:G.son<60},
+    {l:'地域の農業法人に田んぼを託す',s:'貸し賃は少ないが、田んぼは残る',cls:'gold'},
+    {l:'もう少し、自分で続ける',s:G.hp>=35?'体が動くうちは':'体力が足りない',cls:'',dis:G.hp<35},
+    {l:'やめる',s:'誰も作らなければ、田んぼは荒れていく',cls:'bad'}];
+  const i=await ask(`<h2>5年目の冬　${G.age}歳</h2><p>5年間の手元に残ったお金は、合計 <b>${G.totalProfit<0?'−':''}${man(Math.abs(G.totalProfit))}</b>。赤字の年は ${G.deficitYears}年。</p><p>体力 ${G.hp}、後継ぎの気持ち ${G.son}。この田んぼを、これからどうする？</p>`,opts);
+  let title,body;
+  if(i===0){title='息子が帰ってきた';body='息子は会社を辞めて、田んぼを継ぐと決めた。ネットの直販はこれから息子が広げていくという。米価の上がり下がりに振り回されるのは、これからも変わらないけれど。'}
+  else if(i===1){G.lent=G.ha;title='田んぼを託した';body='地域の農業法人が、田んぼをまとめて引き受けてくれた。大きな機械で、何軒分もの田んぼを少ない人数で耕していく。田んぼの景色は残った。'}
+  else if(i===2){title='まだ、やめられない';body='来年もまた、苗を植える。ただ、いつまで体が持つかは、誰にもわからない。'}
+  else{G.quit=true;title='田んぼが、草に覆われた';body='翌年の夏、誰も植えなかった田んぼは、背の高い草に覆われた。隣の田んぼも、その隣も、少しずつ同じ景色になっていく。'}
+  render();
+  await ask(`<h2>${title}</h2><p>${body}</p><p>クイズ：${G.score} / ${G.qset.length}問 正解</p><p>値段は市場で決まり、制度は毎年のように変わり、作り手は年をとっていく。遠いエチオピアのコーヒー農家と、近くの田んぼは、同じ構図の上にあるのかもしれない。</p><p class="src">参考：農林水産省「2025年農林業センサス」「令和6年産 農産物生産費（個別経営体）」、共同通信・時事通信の報道（2026年）。ゲーム内の人物と、お金の多くの数字は単純化した架空のものです。</p>`,[{l:'もう一度、5年を生きる',cls:'main'}]);
+  main();
+}
+// ---------- main
+async function main(){
+  init();render();
+  await say(`<h2>一膳の向こう側　日本の米農家編</h2><p>毎日のごはん。その米を作っているのは、どんな人たちだろう。</p><p>あなたは68歳の米農家。田んぼは3ha。妻と二人暮らしで、息子は東京で働いている。これから5年間、米価と補助金に振り回されながら、田んぼを守る。</p><p>年ごとに、米にまつわるクイズも出ます。</p>`,'はじめる');
+  for(let y=0;y<5;y++)await year();
+  await ending();
+}
+let rt;addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>{if(G)$('art').innerHTML=artSVG()},100)});
+window.__rc={get G(){return G}};
+main();
+})();
+</script>
+
+</body></html>

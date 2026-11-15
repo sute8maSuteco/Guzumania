@@ -1,0 +1,270 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>一杯の向こう側</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Zen+Kaku+Gothic+New:wght@400;700&display=swap">
+<style>
+/* Layout: one phone-height screen. Top = the farm on the hillside (trees, house, children, weather) with HUD overlay
+   (year, cash, world price). Then a status row, the message box and the choices — a novel-game flow like the earlier games. */
+:root{
+  --bg:#f5efe6; --card:#fffdf9; --fg:#2a1d14; --muted:#7a6a5c; --line:#e6dccd;
+  --coffee:#6b3e26; --cherry:#c8312f; --leaf:#3f7a3a; --gold:#d79a2b; --red:#c8312f;
+  --head:'Dela Gothic One','Hiragino Sans','Yu Gothic',sans-serif;
+  --body:'Zen Kaku Gothic New','Hiragino Sans','Yu Gothic',system-ui,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#17110d;--card:#211913;--fg:#f1e7db;--muted:#ab9a89;--line:#3a2e24;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#17110d;--card:#211913;--fg:#f1e7db;--muted:#ab9a89;--line:#3a2e24;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--fg);overflow:hidden}
+body{font-family:var(--body);line-height:1.5}
+.app{height:100vh;height:100dvh;max-width:520px;margin:0 auto;display:flex;flex-direction:column;padding:10px 12px calc(10px + env(safe-area-inset-bottom));gap:7px}
+.stage{position:relative;flex:1 1 auto;min-height:130px;border-radius:14px;overflow:hidden;background:#87c1e6}
+.stage svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+.hud{position:absolute;left:0;right:0;top:0;display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 10px;background:linear-gradient(rgba(30,18,10,.6),transparent);color:#fff;font-size:.76rem;font-variant-numeric:tabular-nums}
+.hud b{font-family:var(--head);font-weight:400;font-size:.95rem}
+.board{position:absolute;right:8px;top:38px;background:rgba(20,14,10,.82);color:#ffe9b8;border-radius:8px;padding:5px 9px;font-size:.68rem;line-height:1.35;text-align:right;font-variant-numeric:tabular-nums}
+.board b{font-family:var(--head);font-weight:400;font-size:.95rem;color:#fff}
+.stats{flex:none;display:grid;grid-template-columns:repeat(4,1fr);gap:5px}
+.st{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:3px 6px;text-align:center;min-width:0}
+.st small{display:block;font-size:.62rem;color:var(--muted);white-space:nowrap}
+.st b{font-size:.86rem;font-variant-numeric:tabular-nums;white-space:nowrap}
+.st.bad b{color:var(--red)}
+.msg{flex:none;height:clamp(100px,19dvh,170px);overflow-y:auto;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:.88rem}
+.msg.big{height:clamp(140px,36dvh,320px)}
+.msg h2{margin:0 0 4px;font-family:var(--head);font-weight:400;font-size:1.05rem;line-height:1.35}
+.msg p{margin:0 0 5px}
+.msg .q{font-weight:700;padding:5px 9px;border-left:3px solid var(--gold);background:color-mix(in srgb,var(--gold) 10%,var(--card))}
+.msg .warn{color:var(--red);font-weight:700}
+.msg .src{font-size:.7rem;color:var(--muted)}
+.msg .big-num{font-family:var(--head);font-weight:400;font-size:1.25rem;color:var(--coffee)}
+.cup{display:flex;height:16px;border-radius:4px;overflow:hidden;margin:6px 0 2px;background:var(--line)}
+.cup i{display:block;height:100%}
+.acts{flex:none;display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.act{font:inherit;text-align:left;background:var(--card);color:var(--fg);border:1px solid var(--line);border-left:4px solid var(--coffee);border-radius:10px;padding:7px 10px;cursor:pointer;display:flex;flex-direction:column;justify-content:center;min-width:0;min-height:48px}
+.act:hover:not(:disabled){border-color:var(--gold)}
+.act:disabled{opacity:.4;cursor:not-allowed}
+.act b{font-size:.86rem;line-height:1.3}
+.act span{font-size:.68rem;color:var(--muted);line-height:1.3}
+.act.wide{grid-column:1/-1}
+.act.main{background:var(--coffee);color:#fff;border-color:var(--coffee);align-items:center}
+.act.main span{color:inherit;opacity:.8}
+.act.good{border-left-color:var(--leaf)}.act.bad{border-left-color:var(--red)}.act.gold{border-left-color:var(--gold)}
+.act.ok{background:color-mix(in srgb,var(--leaf) 18%,var(--card));border-color:var(--leaf)}
+.act.ng{background:color-mix(in srgb,var(--red) 14%,var(--card));border-color:var(--red)}
+.act:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.note{font-size:.6rem;color:var(--muted);margin:0;text-align:center;flex:none}
+@media (max-height:640px){.note{display:none}.act{min-height:42px;padding:5px 9px}}
+</style>
+
+<div class="app">
+  <div class="stage" id="stage">
+    <div id="art"></div>
+    <div class="hud"><span id="phase"><b>一杯の向こう側</b></span><span id="cash"></span></div>
+    <div class="board" id="board" hidden></div>
+  </div>
+  <div class="stats" id="stats"></div>
+  <div class="msg" id="msg" aria-live="polite"></div>
+  <div class="acts" id="acts"></div>
+  <p class="note">映画『おいしいコーヒーの真実』(2006年)を題材にしたゲームです。家族と、ゲーム内のお金の数字は単純化した架空のものです。</p>
+</div>
+
+<script>
+(()=>{
+'use strict';
+const $=id=>document.getElementById(id);
+const ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const fmt=n=>Math.round(n).toLocaleString();
+
+// Facts used in the quiz and the "where did your beans go" screen.
+// Source: UC Berkeley NewsCenter (2007) on the film Black Gold / 『おいしいコーヒーの真実』:
+// 1kg of beans ≈ 80 cups; a Western consumer pays about 25 birr ($2.90) per cup; farmers receive about 2 birr (24 cents) per kg.
+const CUPS_PER_KG=80, CUP_BIRR=25;
+
+// World price (the "C price" set daily on the New York exchange) — game levels, birr per kg paid at the farm gate
+const MARKET=[
+ {n:'暴落',p:1.4,t:'ニューヨークの取引所で、コーヒーの国際価格が大きく下がった。'},
+ {n:'安値',p:1.8,t:'国際価格は、今年も低いままだ。'},
+ {n:'ふつう',p:2.0,t:'国際価格は、例年どおり。'},
+ {n:'高値',p:2.6,t:'国際価格が少し上がった。久しぶりの明るい知らせだ。'},
+];
+const NEED={food:420,school:120,fert:110};
+
+const QUIZ=[
+ {q:'コーヒー豆1キロから、だいたい何杯のコーヒーがいれられる？',o:['約10杯','約80杯','約500杯'],a:1,e:'映画の主人公タデッセさんによると、1キロの豆から約80杯。'},
+ {q:'映画が撮られたころ、エチオピアの農家が受け取っていた豆の値段は1キロあたりいくら？',o:['約24セント（2ブル）','約2ドル40セント','約24ドル'],a:0,e:'1キロあたり約2ブル（24セント）。この値段は、1989年に国際コーヒー協定が崩れてから、ほとんど変わっていなかった。'},
+ {q:'先進国の消費者は、カフェのコーヒー1杯に平均いくら払っていた？',o:['約29セント','約2ドル90セント','約29ドル'],a:1,e:'1杯平均2ドル90セント（25ブル）。1キロ分の80杯で、約230ドルになる。農家の受け取りは、その1キロで24セント。'},
+ {q:'エチオピアの輸出収入のうち、コーヒーが占める割合は？',o:['約7%','約27%','約67%'],a:2,e:'約67%。国の外貨のほとんどを、コーヒーが稼いでいた。それでも毎年700万人が緊急の食料支援を必要としていた。'},
+ {q:'コーヒーの国際価格（C価格）は、主にどこで決まる？',o:['生産国の農協の会議','ニューヨークの商品取引所','国連の会議'],a:1,e:'ニューヨークの商品取引所で、毎営業日決まる。農家は、自分では決められない値段で豆を売っている。'},
+ {q:'世界で1日に飲まれているコーヒーは、およそ何杯？',o:['約2000万杯','約2億杯','約20億杯'],a:2,e:'約20億杯。小売の売上は1990年の300億ドルから、2005年には800億ドルに増えていた。'},
+ {q:'映画のなかで、生活が成り立たない農家が「代わりに植える」と話していた作物は？',o:['カート（葉に覚醒作用のある植物）','小麦','バラ'],a:0,e:'カート。コーヒーより高く売れるため、コーヒーの木を切って植え替える農家も出ていた。'},
+];
+
+// ---------- state
+let G;
+function init(){G={year:0,cash:150,trees:100,soil:1,coop:false,ft:false,khat:false,direct:false,
+  kids:[{n:'長女アベバ',school:0,ok:true},{n:'長男ダウィット',school:0,ok:true}],hungry:0,helping:false,
+  m:null,harvest:0,sold:0,earned:0,totalKg:0,totalBirr:0,score:0,qi:0,drought:false,qset:shuffleQ()}}
+function shuffleQ(){const a=QUIZ.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a.slice(0,5)}
+
+// ---------- art
+function artSVG(){
+  const st=$('stage');const w=st.clientWidth||360,h=st.clientHeight||200;const H=Math.max(220,360*h/w);
+  const dry=G&&G.drought;const sky=dry?'#e9c98a':'#8cc6ea';
+  let s=`<svg viewBox="0 ${230-H} 360 ${H}" preserveAspectRatio="xMidYMax slice" role="img" aria-label="コーヒー農園のようす">`;
+  s+=`<rect x="-400" y="-900" width="1160" height="1200" fill="${sky}"/>`;
+  s+=`<circle cx="300" cy="${dry?40:50}" r="${dry?22:16}" fill="${dry?'#ffb347':'#fff3b0'}"/>`;
+  if(!dry)s+=`<g fill="#fff" opacity=".85"><ellipse cx="80" cy="44" rx="26" ry="9"/><ellipse cx="100" cy="38" rx="18" ry="9"/></g>`;
+  // far hills
+  s+=`<path d="M-400 120 Q0 60 120 100 T360 80 T760 110 L760 400 L-400 400 Z" fill="${dry?'#b9a46a':'#6e9b5a'}"/>`;
+  s+=`<path d="M-400 150 Q40 110 180 140 T420 130 L760 150 L760 400 L-400 400 Z" fill="${dry?'#a68d55':'#557f45'}"/>`;
+  // ground
+  s+=`<rect x="-400" y="170" width="1160" height="300" fill="${dry?'#9c7a4c':'#6a4a2c'}"/>`;
+  // coffee trees (rows) — fewer when cut for khat
+  const n=G?Math.round(14*G.trees/100):14;let k=0;
+  for(let row=0;row<2;row++)for(let i=0;i<7;i++){const x=20+i*50+row*25,y=row?168:150;if(k++>=n){
+      if(G&&G.khat){s+=`<g transform="translate(${x} ${y})"><rect x="-1.5" y="-4" width="3" height="10" fill="#5a4030"/><circle cx="0" cy="-12" r="9" fill="#8fbf3a"/><circle cx="-6" cy="-8" r="6" fill="#9fcf4a"/><circle cx="6" cy="-8" r="6" fill="#9fcf4a"/></g>`}continue}
+    s+=`<g transform="translate(${x} ${y})"><rect x="-2" y="-2" width="4" height="10" fill="#5a4030"/><ellipse cx="0" cy="-14" rx="13" ry="16" fill="${dry?'#6f8a3e':'#2f6a2e'}"/>`;
+    for(let c=0;c<5;c++)s+=`<circle cx="${(c*7%22)-10}" cy="${-20+(c*5%18)}" r="2" fill="#c8312f"/>`;s+='</g>'}
+  // house
+  s+=`<g transform="translate(250 176)"><circle cx="0" cy="0" r="0"/><rect x="-26" y="-26" width="52" height="30" fill="#c9a171"/><path d="M-34 -24 L0 -52 L34 -24 Z" fill="#8a6a3a"/><rect x="-7" y="-14" width="14" height="18" fill="#4a3220"/></g>`;
+  // family: parent + kids (school bag when in school this year)
+  if(G){const fx=[205,222,236];
+    s+=`<g transform="translate(${fx[0]} 186)"><circle cx="0" cy="-26" r="6" fill="#5a3a26"/><rect x="-6" y="-20" width="12" height="20" rx="4" fill="#e6b84a"/></g>`;
+    G.kids.forEach((kd,i)=>{const x=fx[i+1];s+=`<g transform="translate(${x} 188)"><circle cx="0" cy="-18" r="4.5" fill="#5a3a26"/><rect x="-4.5" y="-13" width="9" height="13" rx="3" fill="${i?'#4a8fd0':'#d05a8a'}"/>${kd.inSchool?'<rect x="3" y="-12" width="5" height="7" rx="1" fill="#e04a3a"/>':''}</g>`})}
+  // sacks
+  s+=`<g fill="#d9c49a" stroke="#9a8460"><rect x="296" y="170" width="16" height="18" rx="4"/><rect x="314" y="172" width="16" height="16" rx="4"/></g>`;
+  return s+'</svg>';
+}
+
+// ---------- render
+let UI=null;
+function render(){
+  $('art').innerHTML=artSVG();
+  $('phase').innerHTML=`<b>${G.year?`${G.year}年目の収穫期`:'一杯の向こう側'}</b>`;
+  $('cash').textContent=G.year?`手元のお金 ${fmt(G.cash)}ブル`:'';
+  const b=$('board');if(G.m){b.hidden=false;b.innerHTML=`NY 国際価格<br><b>${G.m.n}</b><br>庭先の買い値 ${G.m.p.toFixed(1)}ブル/kg`}else b.hidden=true;
+  const inS=G.kids.filter(k=>k.school>0).length;
+  $('stats').innerHTML=[
+    ['コーヒーの木',`${G.trees}%`,G.trees<100],
+    ['学校に通えた',`${G.kids.reduce((a,k)=>a+k.school,0)}年分`,false],
+    ['食べ物が不足',`${G.hungry}年`,G.hungry>0],
+    ['組合',G.ft?'フェアトレード':G.coop?'加入':'未加入',false]
+  ].map(([l,v,bad])=>`<div class="st ${bad?'bad':''}"><small>${l}</small><b>${v}</b></div>`).join('');
+  const msg=$('msg'),acts=$('acts');
+  if(UI){msg.className='msg'+(UI.opts.length<=2?' big':'');msg.innerHTML=UI.html;
+    acts.innerHTML=UI.opts.map((o,i)=>`<button class="act ${o.cls||''} ${UI.opts.length%2&&i===UI.opts.length-1?'wide':''}" data-i="${i}" type="button" ${o.dis?'disabled':''}><b>${o.l}</b>${o.s?`<span>${o.s}</span>`:''}</button>`).join('');
+    acts.querySelectorAll('.act').forEach(bt=>bt.addEventListener('click',()=>{if(!UI)return;const cb=UI.cb;UI=null;cb(+bt.dataset.i)}));
+    msg.scrollTop=0}
+}
+function ask(html,opts){return new Promise(res=>{UI={html,opts,cb:res};render();setTimeout(()=>{const bt=$('acts').querySelector('button:not(:disabled)');if(bt)try{bt.focus({preventScroll:true})}catch(e){}},30)})}
+const say=(html,btn='つぎへ')=>ask(html,[{l:btn,cls:'main'}]);
+
+// ---------- a year on the farm
+async function year(){
+  G.year++;G.drought=false;G.kids.forEach(k=>k.inSchool=false);
+  G.m=G.year===3?MARKET[0]:pick(G.year===1?[MARKET[1],MARKET[2]]:MARKET);
+  // weather
+  let wf=1;
+  if(G.year===4||(G.year>1&&Math.random()<.2)){G.drought=true;wf=.65}
+  const helpBonus=G.helping?1.1:1;G.helping=false;
+  G.harvest=Math.round(300*(G.trees/100)*wf*G.soil*helpBonus*(G.ft&&G.year===G.ftYear?.85:1));G.soil=1;
+  render();
+  await say(`<h2>${G.year}年目の収穫</h2><p>${G.m.t}</p>${G.drought?'<p class="warn">雨が少なく、実の育ちが悪かった。</p>':''}<p>今年とれた豆は <span class="big-num">${G.harvest}kg</span>。</p>`);
+  await sell();
+  await event();
+  await spend();
+  await yearEnd();
+  if(G.qi<G.qset.length)await quiz(G.qset[G.qi++]);
+}
+async function sell(){
+  const p=G.m.p,kg=G.harvest;
+  const mid=Math.round(kg*p*.8);
+  const coopNow=Math.round(kg*p*.85),coopLater=Math.round(kg*(p*.15+(G.ft?.9:0)+(G.direct?.6:0)));
+  const opts=[{l:'仲買人に売る',s:`いますぐ ${fmt(mid)}ブル`,cls:''}];
+  if(G.coop)opts.push({l:'組合に出す',s:`いま ${fmt(coopNow)} ＋ 年末に約${fmt(coopLater)}ブル`,cls:'good'});
+  else opts.push({l:'組合に入って出す',s:`加入金 60ブル。いま ${fmt(coopNow)} ＋ 年末に配当`,cls:'good'});
+  const i=await ask(`<h2>豆をどこに売る？</h2><p>村には、トラックで豆を買いに来る仲買人がいる。一方、農家が集まってつくる協同組合は、仲買人を通さずに豆を売り、もうけを組合員に返している。</p>`,opts);
+  if(i===0){G.cash+=mid;G.later=0;G.earned=mid;await say(`<p>仲買人は豆を量ると、その場で ${fmt(mid)}ブルを払っていった。</p>`)}
+  else{if(!G.coop){G.coop=true;G.cash-=60}G.cash+=coopNow;G.later=coopLater;G.earned=coopNow+coopLater;
+    await say(`<p>組合の倉庫に豆を運んだ。${fmt(coopNow)}ブルを受け取った。残りは、組合が豆を売ったあとの年末に配当として戻ってくる。</p>`)}
+  G.totalKg+=G.harvest;
+}
+async function event(){
+  const y=G.year;
+  if(y===2&&!G.khat){
+    const i=await ask(`<h2>となりの農家の話</h2><p class="q">「コーヒーはもうだめだ。木を切ってカートを植えるよ。カートなら毎年いい値で売れる」</p><p>カートは葉に覚醒作用のある植物で、エチオピアでは広く栽培されている。木を半分切って植え替えれば、来年から現金収入が増える。</p>`,[{l:'コーヒーを続ける',s:'収入はこのまま',cls:'good'},{l:'半分をカートに植え替える',s:'コーヒーの木 −50%・毎年 +250ブル',cls:'bad'}]);
+    if(i===1){G.khat=true;G.trees=50;await say(`<p>コーヒーの木を半分切り倒した。何十年も実をつけてきた木だった。</p><p class="src">映画のなかでも、生活のためにコーヒーをやめてカートに植え替える農家が登場します。</p>`)}
+    else await say('<p>父の代から育ててきた木だ。もう少し、コーヒーを続けてみることにした。</p>');
+    return}
+  if(y===3&&G.coop&&!G.ft){
+    const i=await ask(`<h2>組合の集会</h2><p>組合の代表が、海外の買い手と話をつけてきたと言う。</p><p class="q">「フェアトレードの認証を取れば、国際価格がどんなに下がっても、決まった最低価格と、学校や井戸に使える上乗せ金が払われる。ただし、農薬を減らすなどの基準を守る必要がある」</p>`,[{l:'認証に参加する',s:'来年の収穫は少し減るが、配当が増える',cls:'good'},{l:'今までどおり',s:'',cls:''}]);
+    if(i===0){G.ft=true;G.ftYear=4;await say('<p>組合は、フェアトレード認証の手続きを始めた。来年から、配当に上乗せ金がつく。</p>')}else await say('<p>今までどおりのやり方を続けることにした。</p>');return}
+  if(y===3&&!G.coop){await say(`<h2>組合のうわさ</h2><p>組合に入った農家が、フェアトレードの認証を取ったらしい。仲買人に売っているあなたには、関係のない話だった。</p>`);return}
+  if(y===5&&G.ft){G.direct=true;G.later+=Math.round(G.harvest*.6);G.earned+=Math.round(G.harvest*.6);await say(`<h2>海外からの買い手</h2><p>外国の焙煎会社の人が、組合を訪ねてきた。豆の味を確かめ、「来年からは、取引所を通さずに直接買いたい」と言った。今年の配当にも、上乗せがついた。</p>`);return}
+  const r=pick(['sick','price','repair']);
+  if(r==='sick'){const c=100;G.cash=Math.max(0,G.cash-c);await say(`<h2>家族が熱を出した</h2><p>町の診療所で薬を買った。${c}ブルが出ていった。</p>`)}
+  else if(r==='price'){await say(`<h2>町のカフェの話</h2><p>首都に出かけたいとこが、外国人向けのカフェの話をしてくれた。「コーヒー1杯の値段が、うちの豆1キロの値段の何倍もするんだ」</p>`)}
+  else{const c=70;G.cash=Math.max(0,G.cash-c);await say(`<h2>屋根の修理</h2><p>雨季の前に、屋根を直した。${c}ブルが出ていった。</p>`)}
+}
+async function spend(){
+  if(G.khat){G.cash+=250;await say('<p>カートの葉を市場で売り、250ブルの現金が入った。</p>')}
+  // food
+  let i=await ask(`<h2>今年のお金の使い道</h2><p>手元のお金は <span class="big-num">${fmt(G.cash)}ブル</span>。${G.later?`年末に約${fmt(G.later)}ブルの配当が入る予定。`:''}</p><p>まずは家族の食べ物。1年分をしっかり買うには ${NEED.food}ブルかかる。</p>`,[
+    {l:'十分に買う',s:`−${NEED.food}ブル`,cls:'good',dis:G.cash<NEED.food},{l:'切り詰める',s:`−${NEED.food/2}ブル・食べ物が足りない年になる`,cls:'bad',dis:G.cash<NEED.food/2},{l:'ほとんど買えない',s:'食料支援に並ぶ',cls:'bad'}]);
+  if(i===0)G.cash-=NEED.food;else if(i===1){G.cash-=NEED.food/2;G.hungry++}else{G.hungry++;await say('<p>町の配給所に、食料支援の小麦をもらいに並んだ。</p><p class="src">映画の舞台エチオピアでは、毎年700万人が緊急の食料支援を必要としていました。</p>')}
+  render();
+  // school
+  const sc=NEED.school;
+  i=await ask(`<h2>子どもたちの学校</h2><p>手元のお金は <span class="big-num">${fmt(G.cash)}ブル</span>。</p><p>制服やノート、学費で、1人あたり年に ${sc}ブル。通わせなければ、子どもは畑の手伝いができる。</p>`,[
+    {l:'2人とも学校へ',s:`−${sc*2}ブル`,cls:'good',dis:G.cash<sc*2},{l:'1人だけ学校へ',s:`−${sc}ブル`,cls:'gold',dis:G.cash<sc},{l:'今年は畑を手伝ってもらう',s:'来年の収穫 +10%',cls:'bad'}]);
+  if(i===0){G.cash-=sc*2;G.kids.forEach(k=>{k.school++;k.inSchool=true})}
+  else if(i===1){G.cash-=sc;const k=G.kids[0].school<=G.kids[1].school?G.kids[0]:G.kids[1];k.school++;k.inSchool=true;await say(`<p>今年は${k.n}が学校に通う。もう1人は、畑で豆を摘む。</p>`)}
+  else{G.helping=true;await say('<p>子どもたちは、朝から畑で赤い実を摘んだ。</p>')}
+  render();
+  // field
+  i=await ask(`<h2>畑の手入れ</h2><p>手元のお金は <span class="big-num">${fmt(G.cash)}ブル</span>。</p><p>肥料を買って木の手入れをすれば、来年の収穫が増える。</p>`,[{l:'肥料を買う',s:`−${NEED.fert}ブル・来年の収穫 +15%`,cls:'good',dis:G.cash<NEED.fert},{l:'今年はやめておく',s:'',cls:''}]);
+  if(i===0){G.cash-=NEED.fert;G.soil=1.15}
+}
+async function yearEnd(){
+  if(G.later){G.cash+=G.later;await say(`<h2>組合の配当</h2><p>組合が豆を売り終え、配当 ${fmt(G.later)}ブルが届いた。${G.ft?'フェアトレードの上乗せ金の一部で、村の学校の屋根が直された。':''}</p>`);G.later=0}
+  G.totalBirr+=G.earned;
+  const cups=G.harvest*CUPS_PER_KG,paid=cups*CUP_BIRR;
+  const share=G.earned/paid*100;
+  await ask(`<h2>あなたの豆の行方</h2><p>今年の ${G.harvest}kg は、海を渡って約 <b>${fmt(cups)}杯</b> のコーヒーになる。</p><p>消費国のカフェで1杯 約25ブル（2ドル90セント）とすると、飲む人が払う合計は約 <span class="big-num">${fmt(paid)}ブル</span>。</p><p>あなたが受け取ったのは <span class="big-num">${fmt(G.earned)}ブル</span>（約${share.toFixed(1)}%）。</p><div class="cup" aria-hidden="true"><i style="width:${Math.max(.8,share)}%;background:var(--leaf)"></i><i style="flex:1;background:var(--coffee)"></i></div><p class="src">緑が農家の取り分、茶色がそれ以外（輸送・焙煎・小売など）。</p>`,[{l:'つぎへ',cls:'main'}]);
+}
+async function quiz(q){
+  const i=await ask(`<h2>コーヒーの問題 ${G.qi}</h2><p class="q">${q.q}</p>`,q.o.map(o=>({l:o,cls:''})));
+  const ok=i===q.a;if(ok)G.score++;
+  await say(`<h2>${ok?'正解！':'ざんねん'}</h2><p>答え：<b>${q.o[q.a]}</b></p><p>${q.e}</p><p class="src">出典：UC Berkeley NewsCenter（2007年）による映画の紹介記事、ほか</p>`);
+}
+
+// ---------- ending
+async function ending(){
+  const sch=G.kids.reduce((a,k)=>a+k.school,0);
+  let title;
+  if(sch>=8&&G.hungry===0)title='子どもたちを学校に通わせきった';
+  else if(G.khat)title='コーヒーの木を手放した';
+  else if(G.hungry>=3)title='食べるのがやっとの5年間';
+  else title='なんとか持ちこたえた5年間';
+  const cups=G.totalKg*CUPS_PER_KG;
+  G.m=null;render();
+  await ask(`<h2>5年後：${title}</h2><p>5年間で育てた豆は ${fmt(G.totalKg)}kg、約 ${fmt(cups)}杯分。受け取ったお金は合計 ${fmt(G.totalBirr)}ブルだった。</p><p>学校に通えたのは、2人あわせて ${sch}年分（最大10年）。食べ物が足りなかった年は ${G.hungry}年。${G.ft?'組合はフェアトレードの認証を取り、海外の買い手との直接取引も始まった。':''}</p><p>クイズ：${G.score} / ${G.qset.length}問 正解</p><p>どんなにがんばっても、豆の値段は遠いニューヨークの取引所で決まる。1杯のコーヒーの向こう側には、こんな暮らしがある。それが、映画『おいしいコーヒーの真実』が見せたものでした。</p><p class="src">参考：映画『おいしいコーヒーの真実』（原題 Black Gold、2006年）、UC Berkeley NewsCenter（2007年2月）。ゲーム内の家族と、お金の多くの数字は単純化した架空のものです。</p>`,[{l:'もう一度、5年を生きる',cls:'main'}]);
+  main();
+}
+// ---------- main
+async function main(){
+  init();render();
+  await say(`<h2>一杯の向こう側</h2><p>朝の1杯のコーヒー。その豆を育てているのは、どんな人たちだろう。</p><p>あなたはエチオピア南部の小さなコーヒー農家。妻と、2人の子どもがいる。これから5年間、豆を育てて売り、そのお金で家族を養う。</p><p>年ごとに、コーヒーにまつわるクイズも出ます。</p>`,'はじめる');
+  for(let y=0;y<5;y++)await year();
+  await ending();
+}
+let rt;addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>{if(G)$('art').innerHTML=artSVG()},100)});
+window.__cf={get G(){return G}};
+main();
+})();
+</script>
+
+</body></html>
