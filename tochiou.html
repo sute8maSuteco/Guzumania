@@ -1,0 +1,382 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>土地王</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Zen+Kaku+Gothic+New:wght@500;700&display=swap">
+<style>
+/* One deliberate theme: a printed board game (cream board on a warm table), so it does not switch with light/dark.
+   Layout (phone portrait, one screen): status bar / square board (9x9 ring, center panel with dice and log) /
+   the four players' money / action buttons. Management, trading and results open as sheets. */
+:root{--table:#2f3b33;--board:#f6efdc;--ink:#2a2620;--muted:#7a7060;--line:#cbbd9a;--accent:#c0392b;
+  --head:'Dela Gothic One','Hiragino Sans',sans-serif;--body:'Zen Kaku Gothic New','Hiragino Sans',system-ui,sans-serif;color-scheme:light}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--table);color:var(--ink);font-family:var(--body);overflow:hidden;-webkit-tap-highlight-color:transparent}
+.app{height:100vh;height:100dvh;max-width:560px;margin:0 auto;display:flex;flex-direction:column;gap:6px;padding:8px 8px calc(8px + env(safe-area-inset-bottom))}
+.top{flex:none;display:flex;justify-content:space-between;align-items:center;color:#f6efdc;font-size:.78rem}
+.top h1{margin:0;font-family:var(--head);font-weight:400;font-size:1.15rem;letter-spacing:.05em}
+.boardwrap{flex:1 1 auto;min-height:0;display:flex;align-items:center;justify-content:center}
+.board{--s:min(100%,calc(100dvh - 250px));width:var(--s);aspect-ratio:1;display:grid;grid-template-columns:1.25fr repeat(7,1fr) 1.25fr;grid-template-rows:1.25fr repeat(7,1fr) 1.25fr;background:var(--board);border:3px solid #6b5a3a;border-radius:6px;position:relative;container-type:inline-size}
+.cell{position:relative;border:1px solid var(--line);display:flex;flex-direction:column;align-items:center;justify-content:flex-start;overflow:hidden;font-size:2.55cqi;line-height:1.1;text-align:center;cursor:pointer;padding-bottom:1px}
+.cell .band{width:100%;height:22%;flex:none;display:flex;gap:1px;align-items:center;justify-content:center}
+.cell .band i{width:16%;height:60%;background:#2e8b57;border:1px solid rgba(0,0,0,.35)}
+.cell .band i.hotel{width:40%;background:#c0392b}
+.cell .nm{font-weight:700;margin-top:6%;white-space:nowrap}
+.cell .pr{color:var(--muted);font-size:.85em;margin-top:2%}
+.cell .ic{font-size:1.9em;margin-top:6%}
+.cell.corner{justify-content:flex-start;padding-top:9%;font-weight:700;font-size:2.6cqi}
+.cell.corner .tokens{padding-bottom:3%}
+.cell.corner .ic{font-size:1.6em;margin:0 0 4%}
+.cell .own{position:absolute;left:0;right:0;bottom:0;height:12%}
+.cell.mort{background:repeating-linear-gradient(45deg,#e9dfc6 0 4px,#f6efdc 4px 8px)}
+.cell.hl{outline:3px solid var(--accent);outline-offset:-3px;z-index:2}
+.tokens{position:absolute;inset:0;pointer-events:none;display:flex;flex-wrap:wrap;align-content:flex-end;justify-content:center;gap:1px;padding-bottom:14%}
+.tok{width:26%;aspect-ratio:1;border-radius:50%;border:1.5px solid #fff;box-shadow:0 1px 2px rgba(0,0,0,.5)}
+.center{grid-column:2/9;grid-row:2/9;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2.5cqi;padding:3cqi;text-align:center}
+.center .logo{font-family:var(--head);font-size:8cqi;color:#7a2a1a;letter-spacing:.1em;line-height:1}
+.center .sub{font-size:2.6cqi;color:var(--muted);margin-top:-1.5cqi}
+.dice{display:flex;gap:3cqi}
+.die{width:11cqi;height:11cqi;background:#fff;border:1.5px solid #6b5a3a;border-radius:2cqi;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);padding:1.2cqi}
+.die i{width:2.2cqi;height:2.2cqi;border-radius:50%;background:#2a2620;place-self:center}
+.die.roll{animation:shake .35s}
+@keyframes shake{25%{transform:rotate(-14deg)}75%{transform:rotate(14deg)}}
+.log{font-size:2.9cqi;line-height:1.45;width:100%;max-height:30cqi;overflow:hidden}
+.log p{margin:0}.log p:first-child{font-weight:700;font-size:1.08em}
+.log p:not(:first-child){color:var(--muted)}
+.players{flex:none;display:grid;grid-template-columns:repeat(4,1fr);gap:5px}
+.pl{background:#f6efdc;border-radius:8px;padding:4px 6px;font-size:.7rem;border-left:5px solid;min-width:0}
+.pl b{display:block;font-size:.86rem;font-variant-numeric:tabular-nums}
+.pl.turn{box-shadow:0 0 0 2px #ffd54f}
+.pl.out{opacity:.4;text-decoration:line-through}
+.pl small{color:var(--muted)}
+.msg{flex:none;color:#f6efdc;font-size:.82rem;text-align:center;min-height:1.3em}
+.acts{flex:none;display:flex;gap:6px;justify-content:center;flex-wrap:wrap;min-height:42px}
+.btn{font:inherit;font-weight:700;font-size:.92rem;border:none;border-radius:999px;padding:10px 18px;cursor:pointer;background:#f6efdc;color:var(--ink)}
+.btn.hot{background:#ffd54f;color:#3a2a00}
+.btn.red{background:var(--accent);color:#fff}
+.btn.ghost{background:rgba(255,255,255,.14);color:#f6efdc}
+.btn.sm{font-size:.76rem;padding:6px 11px}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn:focus-visible{outline:3px solid #fff;outline-offset:2px}
+.modal{position:fixed;inset:0;z-index:10;background:rgba(20,18,14,.7);display:flex;align-items:center;justify-content:center;padding:14px}
+.modal[hidden]{display:none}
+.sheet{width:min(100%,460px);max-height:100%;overflow:auto;background:#f6efdc;border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:10px}
+.sheet h2{margin:0;font-family:var(--head);font-weight:400;font-size:1.25rem}
+.sheet p{margin:0;font-size:.88rem;line-height:1.6}
+.sheet .row{display:flex;align-items:center;gap:6px;padding:6px 0;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.sheet .row .sw{width:12px;height:28px;border-radius:3px;flex:none}
+.sheet .row .info{flex:1;min-width:110px;font-size:.84rem}
+.sheet .row .info small{display:block;color:var(--muted)}
+.sheet .btn{background:#2a2620;color:#f6efdc}
+.sheet .btn.hot{background:#c0392b;color:#fff}
+.sheet .btn.ghost{background:#e4d9bd;color:var(--ink)}
+.sheet input[type=range]{width:100%}
+.sheet .card{background:#fff;border:2px solid #6b5a3a;border-radius:10px;padding:14px;text-align:center;font-weight:700}
+.sheet table{width:100%;border-collapse:collapse;font-size:.85rem}
+.sheet td{padding:4px;border-bottom:1px solid var(--line)}
+.sheet td:last-child{text-align:right;font-variant-numeric:tabular-nums}
+.deed{border:2px solid #2a2620;border-radius:8px;overflow:hidden;background:#fff}
+.deed .hd{padding:8px;text-align:center;color:#fff;font-weight:700}
+.deed table{margin:6px 0}
+</style>
+
+<div class="app">
+  <div class="top"><h1>土地王</h1><span id="round"></span></div>
+  <div class="boardwrap"><div class="board" id="board"></div></div>
+  <div class="players" id="players"></div>
+  <div class="msg" id="msg" aria-live="polite"></div>
+  <div class="acts" id="acts"></div>
+</div>
+<div class="modal" id="modal" hidden></div>
+
+<script>
+(()=>{
+'use strict';
+const $=id=>document.getElementById(id);
+const sleep=ms=>new Promise(r=>setTimeout(r,window.__fast?0:ms));
+const ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const yen=n=>`${Math.round(n).toLocaleString()}万`;
+
+// ---------- board data
+const GROUP=[{n:'北海道',c:'#8d5a3b',house:50},{n:'東北',c:'#6fb9dd',house:50},{n:'北陸・中部',c:'#d0559a',house:100},{n:'中国・関西',c:'#ef8a22',house:100},{n:'中京・九州',c:'#d23a2e',house:150},{n:'三大都市',c:'#2b4fb3',house:150}];
+const P=(n,g,p)=>({t:'prop',n,g,p});
+const SQ=[
+ {t:'go',n:'スタート',ic:'➜'},P('網走',0,60),{t:'card',n:'運命',ic:'？'},P('釧路',0,60),P('函館',0,80),{t:'rail',n:'北口駅',p:200,ic:'🚃'},P('盛岡',1,100),P('仙台',1,100),
+ {t:'onsen',n:'温泉',ic:'♨'},P('新潟',1,120),{t:'util',n:'電力',p:150,ic:'⚡'},P('金沢',2,140),P('長野',2,140),{t:'rail',n:'東口駅',p:200,ic:'🚃'},P('静岡',2,160),{t:'card',n:'運命',ic:'？'},
+ {t:'lotto',n:'宝くじ',ic:'🎫'},P('広島',3,180),P('岡山',3,180),{t:'card',n:'運命',ic:'？'},P('神戸',3,200),{t:'rail',n:'南口駅',p:200,ic:'🚃'},P('福岡',4,220),{t:'util',n:'水道',p:150,ic:'💧'},
+ {t:'gotoonsen',n:'湯けむり',ic:'🚌'},P('名古屋',4,220),P('京都',4,240),{t:'rail',n:'西口駅',p:200,ic:'🚃'},{t:'tax',n:'税金',amt:100,ic:'🧾'},P('横浜',5,300),P('大阪',5,320),P('東京',5,350),
+];
+const N=SQ.length; // 32
+const ONSEN=8;
+SQ.forEach(s=>{if(s.t==='prop'){const b=Math.round(s.p*0.08);s.rent=[b,b*5,b*15,b*40,b*50,b*60]}});
+const RAIL_RENT=[0,25,50,100,200];
+const COLORS=['#e53935','#1e88e5','#43a047','#f9a825'];
+const NAMES=['あなた','青山','緑川','黄瀬'];
+const CARDS=[
+ {t:'宝くじで小当たり！',f:p=>gain(p,100),s:'+100万'},
+ {t:'株の配当金を受け取る',f:p=>gain(p,50),s:'+50万'},
+ {t:'町内会費を払う',f:p=>payTo(p,'pot',50),s:'−50万（宝くじ売り場へ）'},
+ {t:'スピード違反の反則金',f:p=>payTo(p,'pot',30),s:'−30万（宝くじ売り場へ）'},
+ {t:'スタートへ進む',f:p=>moveTo(p,0),s:''},
+ {t:'東京の視察に出かける',f:p=>moveTo(p,31),s:'東京へ進む'},
+ {t:'忘れ物をした！',f:p=>moveBy(p,-3),s:'3マス戻る'},
+ {t:'疲れがたまっている',f:p=>sendOnsen(p),s:'温泉で休む（スタートは通らない）'},
+ {t:'誕生日！みんなからお祝い',f:async p=>{for(const q of alive())if(q!==p)await payTo(q,p,20)},s:'全員から20万ずつ'},
+ {t:'持ち家の大掃除',f:p=>payTo(p,'bank',ownedBy(p).reduce((a,i)=>a+(G.own[i].h===5?100:G.own[i].h*25),0)),s:'家1軒25万・ホテル100万'},
+ {t:'一番近い駅へ進む',f:p=>{let i=p.pos;do{i=(i+1)%N}while(SQ[i].t!=='rail');return moveTo(p,i)},s:''},
+ {t:'不動産セミナーの講師をした',f:p=>gain(p,80),s:'+80万'},
+];
+
+// ---------- state
+let G,ASK=null,MODAL_OPEN=false;
+function newGame(limit){
+  G={players:NAMES.map((n,i)=>({i,name:n,color:COLORS[i],cash:1500,pos:0,rest:0,out:false,cpu:i>0})),
+    own:{},pot:0,turn:0,round:1,limit,log:[],dice:[1,1],hl:null,over:false};
+}
+const alive=()=>G.players.filter(p=>!p.out);
+const ownedBy=p=>Object.keys(G.own).map(Number).filter(i=>G.own[i].o===p.i);
+const groupIdx=g=>SQ.map((s,i)=>s.t==='prop'&&s.g===g?i:-1).filter(i=>i>=0);
+function hasSet(p,g){return groupIdx(g).every(i=>G.own[i]&&G.own[i].o===p.i)}
+function log(t){G.log.unshift(t);G.log=G.log.slice(0,5);render()}
+function rentOf(i,roll){
+  const s=SQ[i],o=G.own[i];if(!o||o.m)return 0;const owner=G.players[o.o];
+  if(s.t==='prop'){if(o.h)return s.rent[o.h];return hasSet(owner,s.g)?s.rent[0]*2:s.rent[0]}
+  if(s.t==='rail'){const n=SQ.filter((x,j)=>x.t==='rail'&&G.own[j]&&G.own[j].o===o.o).length;return RAIL_RENT[n]}
+  if(s.t==='util'){const n=SQ.filter((x,j)=>x.t==='util'&&G.own[j]&&G.own[j].o===o.o).length;return roll*(n===2?10:4)}
+  return 0}
+function worth(p){let w=p.cash;for(const i of ownedBy(p)){const o=G.own[i],s=SQ[i];w+=o.m?s.p/2:s.p;if(s.t==='prop')w+=o.h*GROUP[s.g].house}return w}
+
+// ---------- rendering
+function cellPos(i){if(i<=8)return[9,9-i];if(i<=16)return[9-(i-8),1];if(i<=24)return[1,1+(i-16)];return[1+(i-24),9]}
+const PIPS={1:[4],2:[0,8],3:[0,4,8],4:[0,2,6,8],5:[0,2,4,6,8],6:[0,2,3,5,6,8]};
+const dieHTML=(n,roll)=>`<span class="die ${roll?'roll':''}">${[...Array(9)].map((_,k)=>PIPS[n].includes(k)?'<i></i>':'<span></span>').join('')}</span>`;
+function render(rolling){
+  if(!G)return;
+  let h='';
+  SQ.forEach((s,i)=>{const [r,c]=cellPos(i);const o=G.own[i];const corner=i%8===0;
+    let inner='';
+    if(corner)inner=`<span class="ic">${s.ic}</span>${s.n}`;
+    else if(s.t==='prop'){inner=`<span class="band" style="background:${GROUP[s.g].c}">${o&&o.h?(o.h===5?'<i class="hotel"></i>':'<i></i>'.repeat(o.h)):''}</span><span class="nm">${s.n}</span><span class="pr">${s.p}</span>`}
+    else inner=`<span class="ic">${s.ic}</span><span class="nm">${s.n}</span>${s.p?`<span class="pr">${s.p}</span>`:s.amt?`<span class="pr">${s.amt}</span>`:''}`;
+    const toks=G.players.filter(p=>!p.out&&p.pos===i).map(p=>`<span class="tok" style="background:${p.color}"></span>`).join('');
+    h+=`<div class="cell ${corner?'corner':''} ${o&&o.m?'mort':''} ${G.hl===i?'hl':''}" style="grid-row:${r};grid-column:${c}" data-i="${i}">${inner}${o?`<span class="own" style="background:${G.players[o.o].color}"></span>`:''}<span class="tokens">${toks}</span></div>`});
+  const cur=G.players[G.turn];
+  h+=`<div class="center"><div class="logo">土地王</div><div class="sub">${G.limit?`${G.round} / ${G.limit}周目`:`${G.round}周目`}・宝くじ ${yen(G.pot)}</div><div class="dice">${dieHTML(G.dice[0],rolling)}${dieHTML(G.dice[1],rolling)}</div><div class="log">${G.log.map(l=>`<p>${l}</p>`).join('')}</div></div>`;
+  $('board').innerHTML=h;
+  $('board').querySelectorAll('.cell').forEach(el=>el.addEventListener('click',()=>showDeed(+el.dataset.i)));
+  $('round').textContent=`${cur.name}の番`;
+  $('players').innerHTML=G.players.map(p=>`<div class="pl ${p===cur&&!G.over?'turn':''} ${p.out?'out':''}" style="border-color:${p.color}">${p.name}${p.rest?' ♨':''}<b>${yen(p.cash)}</b><small>土地${ownedBy(p).length}</small></div>`).join('');
+  // actions
+  const acts=$('acts');
+  if(ASK){$('msg').innerHTML=ASK.text;acts.innerHTML=ASK.opts.map((o,k)=>`<button class="btn ${o.cls||''}" data-k="${k}" type="button" ${o.dis?'disabled':''}>${o.l}</button>`).join('');
+    acts.querySelectorAll('[data-k]').forEach(b=>b.addEventListener('click',()=>{const a=ASK;ASK=null;a.res(a.opts[+b.dataset.k].v)}))}
+  else{acts.innerHTML='';$('msg').textContent=cur.cpu&&!G.over?`${cur.name}が考えています…`:''}
+}
+function ask(text,opts){return new Promise(res=>{ASK={text,opts,res};render();
+  if(window.__auto){const a=ASK;ASK=null;setTimeout(()=>a.res(window.__autoPick?window.__autoPick(opts,text):opts[0].v),0)}})}
+function sheet(html,buttons){return new Promise(res=>{const m=$('modal');MODAL_OPEN=true;
+  m.innerHTML=`<div class="sheet" role="dialog">${html}<div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end">${buttons.map((b,k)=>`<button class="btn ${b.cls||''}" data-b="${k}" type="button">${b.l}</button>`).join('')}</div></div>`;m.hidden=false;
+  const close=v=>{m.hidden=true;m.innerHTML='';MODAL_OPEN=false;res(v)};
+  m.querySelectorAll('[data-b]').forEach(el=>el.addEventListener('click',()=>close(buttons[+el.dataset.b].v)));
+  const f=m.querySelector('[data-b]');if(f)f.focus();
+  if(window.__auto)setTimeout(()=>close(buttons[0].v),0);
+  m._close=close})}
+function deedHTML(i){const s=SQ[i],o=G.own[i];
+  const owner=o?`<p>持ち主：<b style="color:${G.players[o.o].color}">${G.players[o.o].name}</b>${o.m?'（抵当中）':''}</p>`:'<p>まだ誰のものでもありません。</p>';
+  if(s.t==='prop'){const gc=GROUP[s.g];return`<div class="deed"><div class="hd" style="background:${gc.c}">${s.n}<br><small>${gc.n}・${s.p}万</small></div><table>${['土地のみ','家1軒','家2軒','家3軒','家4軒','ホテル'].map((l,k)=>`<tr><td>${l}</td><td>${yen(s.rent[k])}</td></tr>`).join('')}<tr><td>色をそろえると（家なし）</td><td>${yen(s.rent[0]*2)}</td></tr><tr><td>家の建築費</td><td>1軒 ${yen(gc.house)}</td></tr></table></div>${owner}`}
+  if(s.t==='rail')return`<div class="deed"><div class="hd" style="background:#333">${s.n}<br><small>${s.p}万</small></div><table>${[1,2,3,4].map(n=>`<tr><td>駅を${n}つ持つと</td><td>${yen(RAIL_RENT[n])}</td></tr>`).join('')}</table></div>${owner}`;
+  if(s.t==='util')return`<div class="deed"><div class="hd" style="background:#555">${s.n}<br><small>${s.p}万</small></div><p style="padding:8px">止まった人のサイコロの目 ×4万。電力と水道の両方を持つと ×10万。</p></div>${owner}`;
+  const D={go:'通過するたびに200万もらえます。',onsen:'ただの見学なら何も起きません。「湯けむり」に止まると、ここで休むことになります。',lotto:'税金や罰金が貯まっていきます。止まった人が全部もらえます。',gotoonsen:'温泉へ直行。ゾロ目を出すか、50万払うまで休みます（最大2回）。',card:'運命カードを1枚引きます。',tax:'固定資産税として100万を払います（宝くじ売り場に貯まります）。'};
+  return`<h2>${s.n}</h2><p>${D[s.t]}</p>`}
+function showDeed(i){if(MODAL_OPEN||window.__auto)return;sheet(deedHTML(i),[{l:'閉じる',v:0}])}
+
+// ---------- money
+function gain(p,n){p.cash+=n;log(`${p.name} +${yen(n)}`)}
+async function raise(p,need){ // sell houses, then mortgage, cheapest first
+  const owned=()=>ownedBy(p).sort((a,b)=>(SQ[a].p||0)-(SQ[b].p||0));
+  while(p.cash<need){
+    const withH=owned().filter(i=>G.own[i].h>0);
+    if(withH.length){const i=withH.sort((a,b)=>G.own[b].h-G.own[a].h)[0];G.own[i].h--;p.cash+=GROUP[SQ[i].g].house/2;log(`${p.name}が${SQ[i].n}の家を売った`);continue}
+    const m=owned().filter(i=>!G.own[i].m&&!(SQ[i].t==='prop'&&groupIdx(SQ[i].g).some(j=>G.own[j]&&G.own[j].h)));
+    if(m.length){const i=m[0];G.own[i].m=true;p.cash+=SQ[i].p/2;log(`${p.name}が${SQ[i].n}を抵当に入れた`);continue}
+    return false}
+  return true}
+async function payTo(p,to,amt){
+  if(amt<=0)return;
+  const ok=p.cash>=amt||await raise(p,amt);
+  if(!ok){await bankrupt(p,to);return}
+  p.cash-=amt;
+  if(to==='pot')G.pot+=amt;else if(to!=='bank')to.cash+=amt;
+  log(`${p.name} → ${to==='pot'?'宝くじ売り場':to==='bank'?'銀行':to.name} ${yen(amt)}`)}
+async function bankrupt(p,to){
+  p.out=true;const cr=to&&to.i!=null?to:null;
+  if(cr)cr.cash+=p.cash;p.cash=0;
+  for(const i of ownedBy(p)){if(cr){G.own[i].o=cr.i;G.own[i].h=0}else delete G.own[i]}
+  log(`${p.name}が破産した…`);render();
+  await sheet(`<h2>${p.name}が破産</h2><p>${cr?`土地はすべて${cr.name}のものになった。`:'土地はすべて銀行に戻った。'}</p>`,[{l:'つぎへ',v:0}])}
+
+// ---------- movement
+async function step(p,n){
+  const dir=n<0?-1:1;
+  for(let k=0;k<Math.abs(n);k++){p.pos=(p.pos+dir+N)%N;if(dir>0&&p.pos===0){p.cash+=200;log(`${p.name}がスタートを通過 +200万`)}render();await sleep(110)}}
+async function moveTo(p,i){let n=(i-p.pos+N)%N;await step(p,n);await land(p,ri(2,12))}
+async function moveBy(p,n){await step(p,n);await land(p,ri(2,12))}
+function sendOnsen(p){p.pos=ONSEN;p.rest=2;log(`${p.name}は温泉で休むことに`);render()}
+
+// ---------- landing
+async function land(p,roll){
+  const i=p.pos,s=SQ[i];G.hl=i;render();
+  if(['prop','rail','util'].includes(s.t)){
+    const o=G.own[i];
+    if(!o){
+      if(p.cash>=s.p){
+        const buy=p.cpu?cpuWantsBuy(p,i):await ask(`<b>${s.n}</b>（${yen(s.p)}）を買いますか？　所持金 ${yen(p.cash)}`,[{l:`買う（${yen(s.p)}）`,v:true,cls:'hot'},{l:'見送る',v:false,cls:'ghost'},{l:'権利書を見る',v:'deed',cls:'ghost sm'}]);
+        if(buy==='deed'){await sheet(deedHTML(i),[{l:'閉じる',v:0}]);return land(p,roll)}
+        if(buy){p.cash-=s.p;G.own[i]={o:p.i,h:0,m:false};log(`${p.name}が${s.n}を買った（${yen(s.p)}）`);
+          const g=s.g;if(s.t==='prop'&&hasSet(p,g))log(`${p.name}が${GROUP[g].n}をそろえた！`)}
+        else log(`${p.name}は${s.n}を見送った`)}
+      else log(`${p.name}は${s.n}を買うお金がない`)}
+    else if(o.o!==p.i&&!o.m){const owner=G.players[o.o];if(owner.out)return;const r=rentOf(i,roll);log(`${s.n}は${owner.name}の土地。通行料 ${yen(r)}`);await sleep(350);await payTo(p,owner,r)}
+    else if(o.m&&o.o!==p.i)log(`${s.n}は抵当中なので通行料なし`)
+  }else if(s.t==='card'){
+    const c=CARDS[ri(0,CARDS.length-1)];
+    if(!p.cpu||!window.__auto)await sheet(`<h2>運命カード</h2><div class="card">${c.t}<br><small>${c.s}</small></div>`,[{l:'OK',v:0}]);
+    log(`${p.name}：${c.t}`);await c.f(p)}
+  else if(s.t==='tax')await payTo(p,'pot',s.amt);
+  else if(s.t==='lotto'){if(G.pot>0){const w=G.pot;G.pot=0;p.cash+=w;log(`${p.name}が宝くじに当たった！ +${yen(w)}`)}else log('宝くじ売り場は空っぽだった')}
+  else if(s.t==='gotoonsen')sendOnsen(p);
+  render()}
+
+// ---------- CPU logic
+function cpuWantsBuy(p,i){const s=SQ[i];
+  const completes=s.t==='prop'&&groupIdx(s.g).filter(j=>j!==i).every(j=>G.own[j]&&G.own[j].o===p.i);
+  const blocks=s.t==='prop'&&groupIdx(s.g).some(j=>G.own[j]&&G.own[j].o!==p.i);
+  const reserve=completes?50:blocks?250:150;return p.cash-s.p>=reserve}
+async function cpuManage(p){
+  // unmortgage when rich
+  for(const i of ownedBy(p)){const o=G.own[i];if(o.m&&p.cash>SQ[i].p*0.55+500){p.cash-=Math.round(SQ[i].p*0.55);o.m=false;log(`${p.name}が${SQ[i].n}の抵当を解除`)}}
+  // build evenly on full sets
+  for(let g=5;g>=0;g--){if(!hasSet(p,g))continue;const idx=groupIdx(g);if(idx.some(i=>G.own[i].m))continue;const cost=GROUP[g].house;
+    while(p.cash-cost>=260){const i=idx.slice().sort((a,b)=>G.own[a].h-G.own[b].h)[0];if(G.own[i].h>=5)break;G.own[i].h++;p.cash-=cost;log(`${p.name}が${SQ[i].n}に${G.own[i].h===5?'ホテル':'家'}を建てた`);render();await sleep(200)}}
+  // buy the last piece of a set from another CPU
+  for(let g=0;g<6;g++){const idx=groupIdx(g);const mine=idx.filter(i=>G.own[i]&&G.own[i].o===p.i);if(mine.length!==idx.length-1)continue;
+    const rest=idx.find(i=>!mine.includes(i));const o=G.own[rest];if(!o||o.o===0||o.h)continue;const seller=G.players[o.o];if(seller.out)continue;
+    for(const mult of [1.6,2.2,2.8,3.4]){const offer=Math.round(SQ[rest].p*mult/10)*10;if(p.cash-offer<150)break;
+      if(tradeAccept(seller,rest,offer,p.i)){p.cash-=offer;seller.cash+=offer;o.o=p.i;log(`${p.name}が${seller.name}から${SQ[rest].n}を${yen(offer)}で買い取った`);break}}}
+  // offer to buy the last piece of a set from the human
+  if(Math.random()<.25){const me=G.players[0];if(me.out)return;
+    for(let g=0;g<6;g++){const idx=groupIdx(g);const mine=idx.filter(i=>G.own[i]&&G.own[i].o===p.i);const hers=idx.filter(i=>G.own[i]&&G.own[i].o===0&&!G.own[i].h);
+      if(mine.length===idx.length-1&&hers.length===1){const i=hers[0];const price=Math.round(SQ[i].p*2.2/10)*10;if(p.cash<price+100)continue;
+        const ok=await ask(`${p.name}「<b>${SQ[i].n}</b>を ${yen(price)} で売ってくれませんか？」（売ると${p.name}が${GROUP[g].n}をそろえます）`,[{l:'売る',v:true,cls:'hot'},{l:'断る',v:false,cls:'ghost'}]);
+        if(ok){p.cash-=price;me.cash+=price;G.own[i].o=p.i;log(`あなたが${SQ[i].n}を${p.name}に${yen(price)}で売った`)}else log(`${p.name}の申し出を断った`);
+        return}}}}
+function tradeAccept(cpu,i,offer,buyer=0){const s=SQ[i];let mult=1.5;
+  if(s.t==='prop'){const idx=groupIdx(s.g);const theirs=idx.filter(j=>G.own[j]&&G.own[j].o===cpu.i).length;const yours=idx.filter(j=>G.own[j]&&G.own[j].o===buyer).length;
+    if(theirs===idx.length)return false; // never break own set
+    if(theirs>=2)mult=3;if(yours===idx.length-1)mult+=0.8}
+  if(s.t==='rail'||s.t==='util')mult=1.7;
+  return offer>=Math.round(s.p*mult)}
+
+// ---------- human management & trade
+async function manage(){
+  const me=G.players[0];
+  while(true){
+    const rows=ownedBy(me).sort((a,b)=>a-b).map(i=>{const s=SQ[i],o=G.own[i];
+      const col=s.t==='prop'?GROUP[s.g].c:'#555';let btns='';
+      if(s.t==='prop'){const g=s.g,idx=groupIdx(g),cost=GROUP[g].house;const minH=Math.min(...idx.map(j=>G.own[j]?G.own[j].h:0));
+        const canBuild=hasSet(me,g)&&!idx.some(j=>G.own[j].m)&&o.h<5&&o.h===minH&&me.cash>=cost;
+        const maxH=Math.max(...idx.map(j=>G.own[j]?G.own[j].h:0));
+        btns+=`<button class="btn sm hot" data-a="b${i}" ${canBuild?'':'disabled'}>建てる −${cost}</button>`;
+        if(o.h)btns+=`<button class="btn sm ghost" data-a="s${i}" ${o.h===maxH?'':'disabled'}>家を売る +${cost/2}</button>`}
+      const groupHasHouses=s.t==='prop'&&groupIdx(s.g).some(j=>G.own[j]&&G.own[j].h);
+      if(!o.m)btns+=`<button class="btn sm ghost" data-a="m${i}" ${groupHasHouses?'disabled':''}>抵当 +${s.p/2}</button>`;
+      else{const c=Math.round(s.p*0.55);btns+=`<button class="btn sm" data-a="u${i}" ${me.cash>=c?'':'disabled'}>抵当解除 −${c}</button>`}
+      const st=o.m?'抵当中':s.t==='prop'?[o.h===5?'ホテル':o.h?`家${o.h}軒`:hasSet(me,s.g)?'色そろい':'',`通行料 ${yen(rentOf(i,7))}`].filter(Boolean).join('・'):`通行料 ${s.t==='util'?'目×'+(rentOf(i,1)):yen(rentOf(i,7))}`;
+      return`<div class="row"><span class="sw" style="background:${col}"></span><span class="info">${s.n}<small>${st}</small></span>${btns}</div>`}).join('');
+    const m=$('modal');MODAL_OPEN=true;
+    m.innerHTML=`<div class="sheet" role="dialog"><h2>自分の土地　所持金 ${yen(me.cash)}</h2><p style="font-size:.78rem;color:var(--muted)">同じ色を全部そろえると家を建てられます（均等に1軒ずつ）。5軒目はホテル。</p>${rows||'<p>まだ土地を持っていません。</p>'}<div style="display:flex;justify-content:flex-end"><button class="btn" data-a="x">閉じる</button></div></div>`;m.hidden=false;
+    const a=await new Promise(res=>m.querySelectorAll('[data-a]').forEach(el=>el.addEventListener('click',()=>res(el.dataset.a))));
+    if(a==='x'){m.hidden=true;m.innerHTML='';MODAL_OPEN=false;render();return}
+    const i=+a.slice(1),o=G.own[i],s=SQ[i];
+    if(a[0]==='b'){o.h++;me.cash-=GROUP[s.g].house;log(`あなたが${s.n}に${o.h===5?'ホテル':'家'}を建てた`)}
+    if(a[0]==='s'){o.h--;me.cash+=GROUP[s.g].house/2;log(`あなたが${s.n}の家を売った`)}
+    if(a[0]==='m'){o.m=true;me.cash+=s.p/2;log(`あなたが${s.n}を抵当に入れた`)}
+    if(a[0]==='u'){o.m=false;me.cash-=Math.round(s.p*0.55);log(`あなたが${s.n}の抵当を解除した`)}
+  }}
+async function trade(){
+  const me=G.players[0];
+  const list=Object.keys(G.own).map(Number).filter(i=>G.own[i].o!==0&&!G.own[i].h&&!G.players[G.own[i].o].out);
+  const m=$('modal');MODAL_OPEN=true;
+  const rows=list.map(i=>{const s=SQ[i],o=G.own[i];return`<div class="row"><span class="sw" style="background:${s.t==='prop'?GROUP[s.g].c:'#555'}"></span><span class="info">${s.n}<small>${G.players[o.o].name}の土地・定価 ${yen(s.p)}</small></span><button class="btn sm hot" data-a="${i}">交渉する</button></div>`}).join('');
+  m.innerHTML=`<div class="sheet" role="dialog"><h2>土地を買い取る交渉</h2><p style="font-size:.78rem;color:var(--muted)">CPUの土地（家が建っていないもの）に値段をつけて申し込めます。相手にとって大事な土地ほど、高くないと売ってくれません。</p>${rows||'<p>交渉できる土地がありません。</p>'}<div style="display:flex;justify-content:flex-end"><button class="btn" data-a="x">閉じる</button></div></div>`;m.hidden=false;
+  const a=await new Promise(res=>m.querySelectorAll('[data-a]').forEach(el=>el.addEventListener('click',()=>res(el.dataset.a))));
+  if(a==='x'){m.hidden=true;m.innerHTML='';MODAL_OPEN=false;render();return}
+  const i=+a,s=SQ[i],cpu=G.players[G.own[i].o];
+  const max=Math.max(s.p,Math.min(me.cash,s.p*4));
+  m.innerHTML=`<div class="sheet" role="dialog"><h2>${s.n}の買い取り</h2><p>${cpu.name}に申し込む金額：<b id="ov">${yen(s.p)}</b></p><input type="range" id="rg" min="${Math.min(s.p,me.cash)}" max="${max}" step="10" value="${Math.min(s.p,me.cash)}" aria-label="申し込む金額"><div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn ghost" data-a="x">やめる</button><button class="btn hot" data-a="o" ${me.cash<10?'disabled':''}>申し込む</button></div></div>`;
+  const rg=$('rg');rg.addEventListener('input',()=>$('ov').textContent=yen(+rg.value));$('ov').textContent=yen(+rg.value);
+  const b=await new Promise(res=>m.querySelectorAll('[data-a]').forEach(el=>el.addEventListener('click',()=>res(el.dataset.a))));
+  m.hidden=true;m.innerHTML='';MODAL_OPEN=false;
+  if(b==='o'){const offer=+rg.value;
+    if(offer<=me.cash&&tradeAccept(cpu,i,offer)){me.cash-=offer;cpu.cash+=offer;G.own[i].o=0;log(`${cpu.name}「いいでしょう」${s.n}を${yen(offer)}で買い取った`);if(s.t==='prop'&&hasSet(me,s.g))log(`あなたが${GROUP[s.g].n}をそろえた！`)}
+    else log(`${cpu.name}「その値段では売れませんね」`)}
+  render()}
+
+// ---------- turns
+function roll(){return[ri(1,6),ri(1,6)]}
+async function rollAnim(){for(let k=0;k<5;k++){G.dice=roll();render(true);await sleep(70)}const d=roll();G.dice=d;render();return d}
+async function humanPhase(p,label){
+  while(true){const v=await ask(label,[{l:'サイコロを振る',v:'roll',cls:'hot'},{l:'土地の管理',v:'manage',cls:'ghost'},{l:'交渉',v:'trade',cls:'ghost'}]);
+    if(v==='roll')return;if(v==='manage')await manage();if(v==='trade')await trade()}}
+async function endPhase(p){
+  while(true){const v=await ask(`所持金 ${yen(p.cash)}　家を建てるなら「土地の管理」から`,[{l:'ターン終了',v:'end',cls:'hot'},{l:'土地の管理',v:'manage',cls:'ghost'},{l:'交渉',v:'trade',cls:'ghost'}]);
+    if(v==='end')return;if(v==='manage')await manage();if(v==='trade')await trade()}}
+async function turn(p){
+  G.hl=null;render();
+  if(p.rest){
+    let pay=false;
+    if(p.cpu)pay=p.cash>400;else pay=await ask(`温泉で休んでいます（あと${p.rest}回）。50万払って出発しますか？`,[{l:'50万払って出る',v:true,cls:'hot',dis:p.cash<50},{l:'ゾロ目に賭ける',v:false,cls:'ghost'}]);
+    if(pay){await payTo(p,'pot',50);p.rest=0;if(p.out)return}
+    else{if(!p.cpu)await sleep(100);else await sleep(400);const d=await rollAnim();
+      if(d[0]===d[1]){p.rest=0;log(`${p.name}はゾロ目で温泉を出た！`);await step(p,d[0]+d[1]);await land(p,d[0]+d[1]);return}
+      p.rest--;log(`${p.name}は温泉でのんびり（${d[0]}・${d[1]}）`);if(p.rest===0){await payTo(p,'pot',50);log(`${p.name}は50万払って温泉を出た`)}return}}
+  let doubles=0;
+  while(true){
+    if(p.cpu){await sleep(450)}else await humanPhase(p,`あなたの番です　所持金 ${yen(p.cash)}`);
+    const d=await rollAnim();const sum=d[0]+d[1];
+    log(`${p.name}のサイコロ ${d[0]}・${d[1]}`);
+    if(d[0]===d[1]){doubles++;if(doubles===3){log(`${p.name}はゾロ目3回で疲れた…`);sendOnsen(p);break}}
+    await step(p,sum);await land(p,sum);
+    if(p.out||p.rest)break;
+    if(d[0]===d[1]){log(`ゾロ目！${p.name}はもう一度`);await sleep(300);continue}
+    break}
+  if(p.out)return;
+  if(p.cpu)await cpuManage(p);else if(!p.out)await endPhase(p);
+}
+async function game(){
+  while(!G.over){
+    const p=G.players[G.turn];
+    if(!p.out)await turn(p);
+    if(alive().length<=1||G.players[0].out){G.over=true;break}
+    let n=G.turn;do{n=(n+1)%4}while(G.players[n].out);
+    if(n<=G.turn){G.round++;if(G.limit&&G.round>G.limit){G.over=true;break}}
+    G.turn=n;render()}
+  render();
+  const rank=G.players.slice().sort((a,b)=>(a.out-b.out)||worth(b)-worth(a));
+  const me=rank.indexOf(G.players[0])+1;
+  window.__games=(window.__games||0)+1;
+  (window.__res||(window.__res=[])).push({limit:G.limit,round:G.round,out:G.players.map(q=>q.out),worth:G.players.map(q=>Math.round(worth(q))),houses:Object.values(G.own).reduce((x,o)=>x+o.h,0)});
+  await sheet(`<h2>${G.players[0].out?'破産してしまった…':me===1?'あなたが土地王！':`あなたは${me}位`}</h2><p>総資産（現金＋土地＋家）の順位</p><table>${rank.map((p,k)=>`<tr><td>${k+1}位　<b style="color:${p.color}">${p.name}</b>${p.out?'（破産）':''}</td><td>${p.out?'—':yen(worth(p))}</td></tr>`).join('')}</table>`,[{l:'もう一度遊ぶ',v:0,cls:'hot'}]);
+  if(!window.__stop)start();
+}
+async function start(){
+  G=null;$('board').innerHTML='';$('players').innerHTML='';$('acts').innerHTML='';$('msg').textContent='';
+  newGame(0);render();
+  const v=await sheet(`<h2>土地王</h2><p>サイコロで日本をめぐり、土地を買って通行料を集めるボードゲーム。あなたとCPU3人で、持ち金1500万円からスタートします。</p><p style="font-size:.82rem">・止まった土地は買える。他人の土地に止まると通行料。<br>・同じ色の土地を全部そろえると通行料が2倍、さらに家やホテルを建てられる。<br>・スタートを通るたびに200万。お金が足りないと家を売り、土地を抵当に入れ、それでも足りないと破産。<br>・マスをタップすると権利書が見られます。</p><p>どこまで遊ぶ？</p>`,[{l:'20周で決着',v:20,cls:'hot'},{l:'じっくり50周',v:50,cls:'ghost'}]);
+  G.limit=v;log('ゲーム開始！');game()}
+window.__tc={get G(){return G},SQ,worth};
+start();
+})();
+</script>
+
+</body></html>
